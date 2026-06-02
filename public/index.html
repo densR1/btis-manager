@@ -1,0 +1,2431 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BTIS Manager</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --blue:       #1a3a6b;
+    --blue-mid:   #2257a8;
+    --blue-light: #e8f0fb;
+    --orange:     #e8620a;
+    --yellow:     #f5a623;
+    --white:      #ffffff;
+    --bg:         #424242;
+    --text:       #1a3a6b;
+    --muted:      #6b7280;
+    --border:     #e2e8f0;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: #fdf8f0 !important;
+    color: #1a3a6b;
+    min-height: 100vh;
+  }
+
+  /* ── HEADER ── */
+  header {
+    background: var(--white);
+    border-bottom: 3px solid var(--yellow);
+    padding: 0 2.5rem;
+    height: 100px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 2px 12px rgba(26,58,107,.08);
+    position: sticky;
+    top: 0;
+    z-index: 50;
+  }
+
+  .logo-group {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  /* Logo upload area */
+  .logo-upload-wrap {
+    position: relative;
+    width: 56px;
+    height: 56px;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+
+  .logo-upload-wrap input[type="file"] {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+    width: 100%;
+    height: 100%;
+    z-index: 2;
+  }
+
+  .logo-preview {
+    width: 56px;
+    height: 56px;
+    border-radius: 10px;
+    border: 2px dashed var(--yellow);
+    background: transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    transition: border-color .2s, background .2s;
+  }
+
+  .logo-upload-wrap:hover .logo-preview {
+    border-color: var(--orange);
+    background: transparent;
+  }
+
+  .logo-preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
+    border-radius: 0;
+    mix-blend-mode: multiply;
+  }
+
+  .logo-preview .upload-icon {
+    font-size: 1.4rem;
+    color: var(--yellow);
+    pointer-events: none;
+    user-select: none;
+  }
+
+  .logo-upload-tooltip {
+    position: absolute;
+    bottom: -28px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--blue);
+    color: #fff;
+    font-size: .65rem;
+    padding: .2rem .5rem;
+    border-radius: 4px;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .2s;
+    z-index: 10;
+  }
+
+  .logo-upload-wrap:hover .logo-upload-tooltip {
+    opacity: 1;
+  }
+
+  .logo-title {
+    font-family: 'Eras Bold ITC', 'Eras ITC', 'Century Gothic', 'Gill Sans', 'Trebuchet MS', sans-serif;
+    font-size: 2rem;
+    font-weight: 700;
+    font-style: italic;
+    color: var(--blue);
+    letter-spacing: .01em;
+  }
+
+  .logo-title span {
+    color: var(--orange);
+  }
+
+  .logo-sub {
+    font-size: .72rem;
+    color: var(--muted);
+    letter-spacing: .03em;
+    text-transform: uppercase;
+    margin-top: .1rem;
+    margin-left: 0;
+    padding-left: 0;
+    font-weight: 700;
+  }
+
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .header-date {
+    text-align: right;
+    font-size: .78rem;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+
+  .header-date strong {
+    display: block;
+    color: var(--blue);
+    font-weight: 600;
+  }
+
+  .avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--blue);
+    color: var(--white);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: .95rem;
+    cursor: pointer;
+    border: 2px solid var(--yellow);
+    transition: transform .2s;
+    flex-shrink: 0;
+  }
+  .avatar:hover { transform: scale(1.08); }
+
+  /* ── MAIN ── */
+  main {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 1.5rem 2rem 5rem;
+  }
+
+  .page-heading {
+    text-align: center;
+    margin-bottom: 1.5rem;
+  }
+
+  .page-heading h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #1a3a6b;
+  }
+
+  .page-heading p {
+    margin-top: .5rem;
+    font-size: .9rem;
+    color: #2a4a7f;
+  }
+
+  .divider {
+    width: 60px;
+    height: 4px;
+    background: var(--orange);
+    border-radius: 2px;
+    margin: .8rem auto 0;
+  }
+
+  /* ── GREETING BAR ── */
+  .greeting-bar {
+    background: linear-gradient(135deg, #1a3a6b 0%, #2257a8 100%);
+    border-radius: 14px;
+    padding: 1.4rem 2rem;
+    margin-bottom: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+  .greeting-text h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: .25rem;
+  }
+  .greeting-text p {
+    font-size: .82rem;
+    color: rgba(255,255,255,.75);
+  }
+  .greeting-stats {
+    display: flex;
+    gap: 1rem;
+  }
+  .gstat {
+    background: rgba(255,255,255,.15);
+    border-radius: 10px;
+    padding: .6rem 1.1rem;
+    text-align: center;
+    min-width: 80px;
+  }
+  .gstat-val {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #f5a623;
+    display: block;
+  }
+  .gstat-lbl {
+    font-size: .68rem;
+    color: rgba(255,255,255,.75);
+    text-transform: uppercase;
+    letter-spacing: .05em;
+  }
+
+  /* ── CARD GRID ── */
+  .modules {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: .75rem;
+    max-width: 1060px;
+    margin: 0 auto;
+    padding: 0 0 3rem;
+  }
+
+  @media (max-width: 900px) { .modules { grid-template-columns: repeat(3, 1fr); } }
+  @media (max-width: 600px) { .modules { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 380px) { .modules { grid-template-columns: 1fr; } }
+
+  /* ── MODULE CARD — CLEAN CARD ── */
+  .module-card {
+    background: #ffffff;
+    border-radius: 12px;
+    border: 1.5px solid #e2e8f0;
+    border-top: 3px solid #1a3a6b;
+    padding: .85rem 1rem;
+    cursor: pointer;
+    text-decoration: none;
+    color: inherit;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: .4rem;
+    transition: transform .2s ease, box-shadow .2s ease, border-top-color .2s;
+    animation: fadeUp .4s both;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .card-header {
+    display: flex;
+    align-items: center;
+    gap: .6rem;
+    width: 100%;
+  }
+
+  .module-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 32px rgba(26,58,107,.14);
+    border-top-color: #e8620a;
+  }
+
+  .module-card:nth-child(1) { animation-delay: .05s; border-top-color: #1a3a6b; }
+  .module-card:nth-child(2) { animation-delay: .10s; border-top-color: #2257a8; }
+  .module-card:nth-child(3) { animation-delay: .15s; border-top-color: #0891b2; }
+  .module-card:nth-child(4) { animation-delay: .20s; border-top-color: #059c52; }
+  .module-card:nth-child(5) { animation-delay: .25s; border-top-color: #7c3aed; }
+  .module-card:nth-child(6) { animation-delay: .30s; border-top-color: #d97706; }
+  .module-card:nth-child(7) { animation-delay: .35s; border-top-color: #0f766e; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .card-icon-wrap {
+    width: 36px;
+    height: 36px;
+    border-radius: 9px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.15rem;
+    flex-shrink: 0;
+  }
+
+  .bg1 { background: linear-gradient(135deg, #fce7f3 0%, #fbcfe8 100%); box-shadow: 0 4px 12px rgba(219,39,119,0.12); }
+  .bg2 { background: linear-gradient(135deg, #ede9fe 0%, #ddd6fe 100%); box-shadow: 0 4px 12px rgba(124,58,237,0.12); }
+  .bg3 { background: #e0f7fa; }
+  .bg4 { background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%); box-shadow: 0 4px 12px rgba(21,128,61,0.12); }
+  .bg5 { background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%); box-shadow: 0 4px 12px rgba(5,150,105,0.12); }
+  .bg6 { background: linear-gradient(135deg, #fff7ed 0%, #fed7aa 100%); box-shadow: 0 4px 12px rgba(234,88,12,0.12); }
+  .bg7 { background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%); box-shadow: 0 4px 12px rgba(29,78,216,0.15); }
+
+  .card-body { flex: 1; }
+
+  .card-title {
+    font-family: 'DM Sans', sans-serif;
+    font-size: .82rem;
+    font-weight: 600;
+    color: #1a3a6b;
+    line-height: 1.3;
+    flex: 1;
+  }
+
+  .card-desc {
+    font-size: .72rem;
+    color: #6b7280;
+    line-height: 1.4;
+  }
+
+  .card-arrow {
+    display: inline-flex;
+    align-items: center;
+    gap: .3rem;
+    font-size: .7rem;
+    font-weight: 600;
+    padding: .25rem .7rem;
+    border-radius: 6px;
+    border: 1.5px solid #e2e8f0;
+    color: #1a3a6b;
+    background: #f8fafc;
+    transition: background .2s, color .2s, border-color .2s;
+    margin-top: .1rem;
+    align-self: flex-start;
+  }
+
+  .module-card:hover .card-arrow {
+    background: #1a3a6b;
+    color: #fff;
+    border-color: #1a3a6b;
+  }
+
+  /* ── PROFILE PANEL ── */
+  .profile-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.25);
+    z-index: 300;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .25s;
+  }
+  .profile-overlay.show { opacity: 1; pointer-events: auto; }
+
+  .profile-panel {
+    position: fixed;
+    top: 0;
+    right: 0;
+    height: 100vh;
+    width: 320px;
+    max-width: 95vw;
+    background: #fff;
+    z-index: 301;
+    transform: translateX(100%);
+    transition: transform .28s cubic-bezier(.4,0,.2,1);
+    overflow-y: auto;
+    box-shadow: -4px 0 24px rgba(0,0,0,.12);
+  }
+  .profile-panel.show { transform: translateX(0); }
+
+  .profile-panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.25rem;
+    border-bottom: 2px solid #f5a623;
+    background: #fff;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+  }
+  .profile-panel-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1rem;
+    font-weight: 700;
+    color: #1a3a6b;
+  }
+  .profile-panel-close {
+    background: none;
+    border: none;
+    font-size: 1rem;
+    color: #6b7280;
+    cursor: pointer;
+    padding: .3rem .5rem;
+    border-radius: 6px;
+    transition: background .15s;
+  }
+  .profile-panel-close:hover { background: #f3f4f6; color: #1a3a6b; }
+
+  .profile-panel-body { padding: 1.5rem 1.25rem; }
+
+  .avatar-preview {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: #1a3a6b;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.8rem;
+    font-weight: 700;
+    border: 3px solid #f5a623;
+    letter-spacing: .02em;
+    transition: background .2s;
+  }
+
+  .avatar-colors {
+    display: flex;
+    gap: .5rem;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .avc {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 2.5px solid transparent;
+    transition: transform .15s, border-color .15s;
+  }
+  .avc:hover { transform: scale(1.15); }
+  .avc.selected { border-color: #f5a623; transform: scale(1.15); }
+
+  .profile-field { margin-bottom: 1rem; }
+  .profile-label {
+    display: block;
+    font-size: .78rem;
+    font-weight: 600;
+    color: #1a3a6b;
+    margin-bottom: .4rem;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+  }
+  .profile-input {
+    width: 100%;
+    padding: .6rem .85rem;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: .9rem;
+    font-family: 'DM Sans', sans-serif;
+    color: #1a3a6b;
+    background: #f8fafc;
+    outline: none;
+    transition: border-color .2s;
+  }
+  .profile-input:focus { border-color: #2257a8; background: #fff; }
+
+  .profile-save-btn {
+    width: 100%;
+    padding: .75rem;
+    background: #1a3a6b;
+    color: #fff;
+    border: none;
+    border-radius: 9px;
+    font-size: .92rem;
+    font-weight: 600;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+    transition: background .2s;
+    margin-top: .5rem;
+  }
+  .profile-save-btn:hover { background: #2257a8; }
+
+  .profile-save-msg {
+    text-align: center;
+    font-size: .82rem;
+    font-weight: 600;
+    margin-top: .75rem;
+    min-height: 1.2rem;
+    color: #059c52;
+  }
+
+  /* Avatar di header — nama di bawah jika ada */
+  .avatar-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: .15rem;
+    cursor: pointer;
+  }
+  .avatar-name-label {
+    font-size: .62rem;
+    color: #6b7280;
+    font-weight: 600;
+    max-width: 72px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-align: center;
+  }
+
+  /* ── FOOTER ── */
+  footer {
+    text-align: center;
+    padding: 1.5rem 2rem;
+    font-size: .78rem;
+    color: var(--muted);
+    border-top: 1px solid var(--border);
+    background: var(--white);
+  }
+
+  footer strong { color: var(--blue); }
+
+  /* ── INNER PAGE (iframe-like panels) ── */
+  .page-panel {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+    background: #ffffff;
+    overflow-y: auto;
+  }
+
+  .page-panel.open { display: block; }
+
+  #panel-timetable { background: #edf5f0; }
+  #panel-timetable.open { display: flex; }
+
+  .panel-header {
+    background: var(--white);
+    border-bottom: 3px solid var(--yellow);
+    padding: 0 2rem;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    box-shadow: 0 2px 10px rgba(26,58,107,.08);
+  }
+
+  .panel-back {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    font-size: .88rem;
+    font-weight: 600;
+    color: var(--blue);
+    cursor: pointer;
+    background: none;
+    border: none;
+    padding: .4rem .8rem;
+    border-radius: 8px;
+    transition: background .2s;
+  }
+
+  .panel-back:hover { background: var(--blue-light); }
+
+  .panel-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--blue);
+  }
+
+  .panel-content {
+    padding: 2rem;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  /* Coming soon placeholder */
+  .coming-soon {
+    text-align: center;
+    padding: 6rem 2rem;
+    color: var(--muted);
+  }
+
+  .coming-soon .cs-icon {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+  }
+
+  .coming-soon h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.5rem;
+    color: var(--blue);
+    margin-bottom: .5rem;
+  }
+
+  .coming-soon p {
+    font-size: .9rem;
+  }
+
+  /* ── PROFILE POPUP MODAL ── */
+  .popup-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15,30,60,0.75);
+    z-index: 99999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(5px);
+  }
+  .popup-overlay.hidden { display: none !important; }
+
+  .popup-modal {
+    background: #fff;
+    border-radius: 20px;
+    padding: 2rem 2rem 1.75rem;
+    width: 400px;
+    max-width: 94vw;
+    max-height: 92vh;
+    overflow-y: auto;
+    box-shadow: 0 24px 60px rgba(0,0,0,0.35);
+    text-align: center;
+    animation: popupIn .35s cubic-bezier(.34,1.56,.64,1);
+    position: relative;
+    z-index: 100000;
+  }
+  @keyframes popupIn {
+    from { opacity:0; transform: scale(0.88) translateY(20px); }
+    to   { opacity:1; transform: scale(1) translateY(0); }
+  }
+  .popup-logo { margin-bottom: .75rem; }
+  .popup-school {
+    font-family: 'Playfair Display', serif;
+    font-size: 1rem;
+    font-weight: 700;
+    color: #1a3a6b;
+    margin-bottom: .3rem;
+  }
+  .popup-salam {
+    font-size: 1.05rem;
+    color: #1a3a6b;
+    margin-bottom: .25rem;
+    font-weight: 600;
+    direction: rtl;
+  }
+  .popup-subtitle {
+    font-size: .8rem;
+    color: #6b7280;
+    margin-bottom: 1.25rem;
+  }
+  .popup-avatar-preview {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: #1a3a6b;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    font-weight: 700;
+    border: 3px solid #f5a623;
+    margin: 0 auto .75rem;
+    transition: background .2s;
+  }
+  .popup-field { text-align: left; margin-bottom: .85rem; }
+  .popup-err {
+    font-size: .8rem;
+    color: #c0392b;
+    font-weight: 600;
+    min-height: 1rem;
+    margin-bottom: .25rem;
+  }
+
+  /* ── LOCKED CARD ── */
+  .locked-card { position: relative; }
+  .locked-card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 14px;
+    background: rgba(26,58,107,0.04);
+    pointer-events: none;
+  }
+  .lock-badge {
+    font-size: .85rem;
+    margin-left: auto;
+    opacity: .7;
+    flex-shrink: 0;
+  }
+
+  /* ── PIN MODAL ── */
+  .pin-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15,30,60,0.7);
+    z-index: 99998;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(5px);
+  }
+  .pin-overlay.hidden { display: none !important; }
+
+  .pin-modal {
+    background: #fff;
+    border-radius: 20px;
+    padding: 2rem 1.75rem 1.5rem;
+    width: 320px;
+    max-width: 94vw;
+    text-align: center;
+    box-shadow: 0 24px 60px rgba(0,0,0,0.3);
+    animation: popupIn .3s cubic-bezier(.34,1.56,.64,1);
+  }
+  .pin-icon { font-size: 2.5rem; margin-bottom: .5rem; }
+  .pin-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #1a3a6b;
+    margin-bottom: .25rem;
+  }
+  .pin-subtitle { font-size: .8rem; color: #6b7280; margin-bottom: 1.25rem; }
+
+  .pin-dots {
+    display: flex;
+    justify-content: center;
+    gap: .75rem;
+    margin-bottom: .5rem;
+  }
+  .pin-dot {
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    border: 2px solid #1a3a6b;
+    background: transparent;
+    transition: background .15s;
+  }
+  .pin-dot.filled { background: #1a3a6b; }
+  .pin-dot.shake { animation: pinShake .35s ease; }
+
+  @keyframes pinShake {
+    0%,100% { transform: translateX(0); }
+    20%      { transform: translateX(-6px); }
+    40%      { transform: translateX(6px); }
+    60%      { transform: translateX(-4px); }
+    80%      { transform: translateX(4px); }
+  }
+
+  .pin-err { font-size: .78rem; color: #c0392b; font-weight: 600; min-height: 1.1rem; margin-bottom: .75rem; }
+
+  .pin-numpad {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: .6rem;
+    margin-bottom: 1rem;
+  }
+  .pin-key {
+    background: #f0f4f8;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 10px;
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #1a3a6b;
+    padding: .7rem;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    transition: background .15s, transform .1s;
+  }
+  .pin-key:hover { background: #e8f0fb; }
+  .pin-key:active { transform: scale(0.93); background: #d0e0f5; }
+  .pin-key-clear { color: #c0392b; background: #fdecea; border-color: #f5c6c4; }
+  .pin-key-del { color: #6b7280; }
+
+  .pin-cancel-btn {
+    background: none;
+    border: none;
+    color: #6b7280;
+    font-size: .85rem;
+    cursor: pointer;
+    padding: .4rem 1rem;
+    border-radius: 7px;
+    font-family: 'DM Sans', sans-serif;
+    transition: background .15s;
+    display: block;
+    margin: 0 auto;
+  }
+  .pin-cancel-btn:hover { background: #f3f4f6; color: #1a3a6b; }
+  .pin-hint { font-size: .72rem; color: #9ca3af; margin-top: .85rem; }
+  .pin-hint strong { color: #1a3a6b; }
+  .pin-text-input { letter-spacing: .3em; text-align: center; font-size: 1.1rem; }
+
+  /* ── TIMETABLE LOCK ── */
+  #tt-lock-btn:hover { background: rgba(255,255,255,.28) !important; }
+  #tt-lock-btn.tt-edit-mode { background: rgba(42,92,63,.7) !important; border-color: rgba(255,255,255,.35) !important; }
+  .tt-lock-banner {
+    background: #fff8e1;
+    border-bottom: 1px solid #ffc107;
+    padding: 7px 20px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #7a5c00;
+    display: none;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+  .tt-lock-banner.show { display: flex; }
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+#kaldik-container {
+  min-height: calc(100vh - 60px);
+}
+#kaldik-container .app {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 20px 16px;
+}
+
+:root {
+  --bg: #f4f6f9;
+  --bg2: #ffffff;
+  --bg3: #f0f2f5;
+  --border: #d0d5e0;
+  --text: #1e2230;
+  --text2: #4a5068;
+  --text3: #9098b0;
+  --accent: #1a56db;
+  --accent2: #1045b8;
+  --green: #1a7a4a;
+  --green-bg: #e8f5ee;
+  --red: #c0392b;
+  --red-bg: #fdecea;
+  --amber: #a05e00;
+  --amber-bg: #fef3e0;
+  --blue-bg: #e8f0fe;
+  --radius: 8px;
+  --radius-sm: 5px;
+  --font: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  --shadow: 0 1px 4px rgba(0,0,0,0.07);
+
+  /* warna blok kegiatan — bright/vivid */
+  --c-kegiatan: #059c52;
+  --c-kegiatan-bg: #4ade80;
+  --c-kegiatan-text: #052e16;
+  --c-libur: #dc2626;
+  --c-libur-bg: #f87171;
+  --c-libur-text: #450a0a;
+  --c-ujian: #2563eb;
+  --c-ujian-bg: #60a5fa;
+  --c-ujian-text: #0f1e6b;
+  --c-rapat: #d97706;
+  --c-rapat-bg: #fbbf24;
+  --c-rapat-text: #431407;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font); background: var(--bg); color: var(--text); min-height: 100vh; font-size: 14px; line-height: 1.5; }
+
+.app { max-width: 1100px; margin: 0 auto; padding: 20px 16px; }
+
+/* Header */
+#kaldik-container .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; padding-bottom: 14px; border-bottom: 2px solid var(--accent); }
+#kaldik-container .header-left { display:flex; align-items:center; gap:12px; }
+.school-logo-wrap { width:52px; height:52px; border-radius:50%; object-fit:cover; border:2px solid var(--border); cursor:pointer; flex-shrink:0; background:var(--bg3); display:flex; align-items:center; justify-content:center; overflow:hidden; position:relative; }
+.school-logo-wrap:hover::after { content:'✏️'; position:absolute; inset:0; background:rgba(0,0,0,0.35); display:flex; align-items:center; justify-content:center; font-size:18px; border-radius:50%; }
+.school-logo-wrap img { width:100%; height:100%; object-fit:cover; display:none; }
+.school-logo-wrap img.loaded { display:block; }
+.school-logo-placeholder { font-size:22px; line-height:1; }
+#kaldik-container .header h1 { font-size: 22px; font-weight: 700; color: var(--text); }
+#kaldik-container .header h1 span { color: var(--accent); }
+#kaldik-container .header p { font-size: 13px; color: var(--text); margin-top: 2px; font-weight: 600; }
+.year-wrap { display: flex; align-items: center; gap: 8px; }
+.year-wrap label { font-size: 13px; color: var(--text2); font-weight: 600; }
+select.year-sel { background: white; border: 1px solid var(--border); color: var(--text); border-radius: var(--radius-sm); padding: 6px 10px; font-size: 13px; font-family: var(--font); cursor: pointer; outline: none; }
+select.year-sel:focus { border-color: var(--accent); }
+
+/* Tabs */
+#kaldik-container .tabs { display: flex; gap: 2px; background: white; border: 1px solid var(--border); border-radius: var(--radius); padding: 4px; margin-bottom: 18px; overflow-x: auto; box-shadow: var(--shadow); }
+#kaldik-container .tab { padding: 7px 15px; font-size: 13px; font-weight: 500; border: none; background: none; cursor: pointer; color: var(--text2); border-radius: var(--radius-sm); transition: background 0.15s; white-space: nowrap; font-family: var(--font); }
+/* per-tab hover handled by attribute selectors above */
+#kaldik-container .tab { position: relative; }
+#kaldik-container .tab.active { color: white; font-weight: 700; box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
+#kaldik-container .tab[onclick*="dashboard"].active { background: #1a3a6b; }
+#kaldik-container .tab[onclick*="input"].active    { background: #059c52; }
+#kaldik-container .tab[onclick*="bulanan"].active  { background: #2563eb; }
+#kaldik-container .tab[onclick*="semester"].active { background: #d97706; }
+#kaldik-container .tab[onclick*="ekskul"].active   { background: #7c3aed; }
+#kaldik-container .tab[onclick*="rekap"].active    { background: #c0392b; }
+
+#kaldik-container .tab[onclick*="dashboard"]:hover:not(.active) { background: #e8f0fb; color: #1a3a6b; }
+#kaldik-container .tab[onclick*="input"]:hover:not(.active)     { background: #dcfce7; color: #059c52; }
+#kaldik-container .tab[onclick*="bulanan"]:hover:not(.active)   { background: #dbeafe; color: #2563eb; }
+#kaldik-container .tab[onclick*="semester"]:hover:not(.active)  { background: #fef3c7; color: #d97706; }
+#kaldik-container .tab[onclick*="ekskul"]:hover:not(.active)    { background: #ede9fe; color: #7c3aed; }
+#kaldik-container .tab[onclick*="rekap"]:hover:not(.active)     { background: #fdecea; color: #c0392b; }
+
+#kaldik-container .tab[onclick*="dashboard"] { border-bottom: 3px solid transparent; }
+#kaldik-container .tab[onclick*="input"]     { border-bottom: 3px solid transparent; }
+#kaldik-container .tab[onclick*="bulanan"]   { border-bottom: 3px solid transparent; }
+#kaldik-container .tab[onclick*="semester"]  { border-bottom: 3px solid transparent; }
+#kaldik-container .tab[onclick*="ekskul"]    { border-bottom: 3px solid transparent; }
+#kaldik-container .tab[onclick*="rekap"]     { border-bottom: 3px solid transparent; }
+
+#kaldik-container .tab[onclick*="dashboard"].active { border-bottom: 3px solid #0f2456; }
+#kaldik-container .tab[onclick*="input"].active     { border-bottom: 3px solid #037a3e; }
+#kaldik-container .tab[onclick*="bulanan"].active   { border-bottom: 3px solid #1a4fc4; }
+#kaldik-container .tab[onclick*="semester"].active  { border-bottom: 3px solid #b05d00; }
+#kaldik-container .tab[onclick*="ekskul"].active    { border-bottom: 3px solid #5b21b6; }
+#kaldik-container .tab[onclick*="rekap"].active     { border-bottom: 3px solid #922b21; }
+.notif-pill { background: var(--red); color: white; border-radius: 99px; padding: 1px 6px; font-size: 11px; margin-left: 4px; font-weight: 700; }
+
+/* Metric cards */
+.metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-bottom: 14px; }
+.metric-card { background: white; border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; box-shadow: var(--shadow); position:relative; }
+.metric-card.clickable { cursor:pointer; transition: box-shadow 0.15s, border-color 0.15s; }
+.metric-card.clickable:hover { box-shadow: 0 4px 16px rgba(26,86,219,0.12); border-color: #a0b8f0; }
+.metric-card .m-detail-icon { position:absolute; bottom:9px; right:11px; font-size:11px; color:var(--text3); }
+.metric-card .m-label { font-size: 11px; color: var(--text3); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.04em; font-weight: 600; }
+.metric-card .m-val { font-size: 26px; font-weight: 700; }
+.m-val.c-accent { color: var(--accent); }
+.m-val.c-green { color: var(--green); }
+.m-val.c-amber { color: var(--amber); }
+
+/* Cards */
+.card { background: white; border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; margin-bottom: 12px; box-shadow: var(--shadow); }
+.card-title { font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+
+/* Detail panel (hari efektif slide dari kanan) */
+.detail-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.25); z-index:1000; opacity:0; pointer-events:none; transition:opacity 0.25s; }
+.detail-overlay.show { opacity:1; pointer-events:auto; }
+.detail-panel { position:fixed; top:0; right:0; height:100vh; width:500px; max-width:96vw; background:white; box-shadow:-4px 0 24px rgba(0,0,0,0.12); z-index:1001; transform:translateX(100%); transition:transform 0.28s cubic-bezier(.4,0,.2,1); overflow-y:auto; }
+.detail-panel.show { transform:translateX(0); }
+.detail-panel-header { display:flex; align-items:center; justify-content:space-between; padding:16px; border-bottom:1px solid var(--border); position:sticky; top:0; background:white; z-index:1; }
+.detail-panel-title { font-size:15px; font-weight:700; color:var(--text); }
+.detail-panel-close { background:none; border:none; cursor:pointer; font-size:18px; color:var(--text3); line-height:1; padding:2px 8px; border-radius:4px; }
+.detail-panel-close:hover { background:var(--bg3); color:var(--text); }
+.detail-panel-body { padding:16px; }
+
+/* Action bar (print, copy) */
+.action-bar { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:12px; }
+.action-btn { display:inline-flex; align-items:center; gap:5px; padding:6px 13px; border-radius:var(--radius-sm); font-size:12px; font-weight:600; cursor:pointer; border:1px solid var(--border); background:white; color:var(--text2); font-family:var(--font); transition:all 0.15s; }
+.action-btn:hover { background:var(--blue-bg); border-color:#b8cef8; color:var(--accent); }
+.action-btn.success { background:var(--green-bg); border-color:#b8e0cc; color:var(--green); }
+
+/* Event block item (in lists) */
+.ev-block { display: flex; align-items: flex-start; gap: 0; margin-bottom: 6px; border-radius: 5px; overflow: hidden; }
+
+/* Daftar kegiatan horizontal di tab per-bulan */
+.ev-hlist { display:flex; flex-wrap:wrap; gap:7px; }
+.ev-hitem { display:inline-flex; align-items:stretch; border-radius:5px; overflow:hidden; min-width:220px; max-width:340px; flex:1; box-shadow:0 1px 3px rgba(0,0,0,0.06); }
+.ev-hitem-bar { width:5px; flex-shrink:0; }
+.ev-hitem-body { flex:1; padding:6px 10px; }
+.ev-hitem-name { font-size:12px; font-weight:700; line-height:1.3; }
+.ev-hitem-date { font-size:10px; margin-top:1px; opacity:0.75; }
+.ev-hitem-badge { font-size:9px; font-weight:700; padding:1px 5px; border-radius:2px; margin-top:3px; display:inline-block; opacity:0.85; }
+.ev-hitem.kegiatan .ev-hitem-bar { background:var(--c-kegiatan); }
+.ev-hitem.kegiatan .ev-hitem-body { background:var(--c-kegiatan-bg); color:var(--c-kegiatan-text); }
+.ev-hitem.kegiatan .ev-hitem-badge { background:rgba(0,0,0,0.1); color:var(--c-kegiatan-text); }
+.ev-hitem.libur .ev-hitem-bar { background:var(--c-libur); }
+.ev-hitem.libur .ev-hitem-body { background:var(--c-libur-bg); color:var(--c-libur-text); }
+.ev-hitem.libur .ev-hitem-badge { background:rgba(0,0,0,0.1); color:var(--c-libur-text); }
+.ev-hitem.ujian .ev-hitem-bar { background:var(--c-ujian); }
+.ev-hitem.ujian .ev-hitem-body { background:var(--c-ujian-bg); color:var(--c-ujian-text); }
+.ev-hitem.ujian .ev-hitem-badge { background:rgba(0,0,0,0.1); color:var(--c-ujian-text); }
+.ev-hitem.rapat .ev-hitem-bar { background:var(--c-rapat); }
+.ev-hitem.rapat .ev-hitem-body { background:var(--c-rapat-bg); color:var(--c-rapat-text); }
+.ev-hitem.rapat .ev-hitem-badge { background:rgba(0,0,0,0.1); color:var(--c-rapat-text); }
+.ev-block-bar { width: 5px; flex-shrink: 0; }
+.ev-block-body { flex: 1; padding: 7px 10px; }
+.ev-block-name { font-size: 13px; font-weight: 600; }
+.ev-block-date { font-size: 11px; margin-top: 1px; opacity: 0.75; }
+.ev-block-desc { font-size: 11px; margin-top: 2px; opacity: 0.7; }
+.ev-block-footer { display: flex; align-items: center; gap: 6px; margin-top: 3px; }
+.notif-tag { font-size: 10px; border-radius: 3px; padding: 1px 6px; font-weight: 600; opacity: 0.8; }
+
+.ev-block.kegiatan .ev-block-bar { background: var(--c-kegiatan); }
+.ev-block.kegiatan .ev-block-body { background: var(--c-kegiatan-bg); color: var(--c-kegiatan-text); }
+.ev-block.kegiatan .notif-tag { background: rgba(0,0,0,0.1); color: var(--c-kegiatan-text); }
+
+.ev-block.libur .ev-block-bar { background: var(--c-libur); }
+.ev-block.libur .ev-block-body { background: var(--c-libur-bg); color: var(--c-libur-text); }
+.ev-block.libur .notif-tag { background: rgba(0,0,0,0.1); color: var(--c-libur-text); }
+
+.ev-block.ujian .ev-block-bar { background: var(--c-ujian); }
+.ev-block.ujian .ev-block-body { background: var(--c-ujian-bg); color: var(--c-ujian-text); }
+.ev-block.ujian .notif-tag { background: rgba(0,0,0,0.1); color: var(--c-ujian-text); }
+
+.ev-block.rapat .ev-block-bar { background: var(--c-rapat); }
+.ev-block.rapat .ev-block-body { background: var(--c-rapat-bg); color: var(--c-rapat-text); }
+.ev-block.rapat .notif-tag { background: rgba(0,0,0,0.1); color: var(--c-rapat-text); }
+
+/* ======================== KALENDER PER BULAN ======================== */
+.month-nav { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+.month-nav-btn { width: 30px; height: 30px; background: white; border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text2); cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
+.month-nav-btn:hover { background: var(--accent); color: white; border-color: var(--accent); }
+.month-nav-label { font-size: 16px; font-weight: 700; min-width: 160px; }
+
+/* Kalender bergaris */
+.cal-table { width: 100%; border-collapse: collapse; }
+.cal-table th { font-size: 12px; font-weight: 700; color: var(--text2); text-align: center; padding: 6px 4px; border: 1px solid var(--border); background: var(--bg3); }
+.cal-table th.weekend-hdr { color: #fff; background: #c0392b; }
+.cal-table td { border: 1px solid var(--border); vertical-align: middle; padding: 4px; width: calc(100%/7); min-height: 80px; text-align: center; }
+.cal-table td.weekend-col { background: #fff5f5; }
+.cal-table td.weekend-col.cal-td-empty { background: #fdecea; }
+.cal-td-num { font-size: 12px; font-weight: 700; color: var(--text2); margin-bottom: 0; text-align: center; display: inline-block; }
+.cal-td-num.today-num { display: inline-block; background: var(--accent); color: white; border-radius: 50%; width: 22px; height: 22px; line-height: 22px; text-align: center; font-size: 11px; }
+.cal-td-num.weekend-num { color: var(--red); font-weight: 700; }
+.cal-td-num.other-num { color: var(--text3); }
+.cal-ev-chip { font-size: 10px; font-weight: 600; padding: 2px 5px; border-radius: 3px; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; display: block; }
+.cal-ev-chip.kegiatan { background: var(--c-kegiatan-bg); color: var(--c-kegiatan-text); }
+.cal-ev-chip.libur { background: var(--c-libur-bg); color: var(--c-libur-text); }
+.cal-ev-chip.ujian { background: var(--c-ujian-bg); color: var(--c-ujian-text); }
+.cal-ev-chip.rapat { background: var(--c-rapat-bg); color: var(--c-rapat-text); }
+.cal-td-empty { background: var(--bg3); }
+
+/* ======================== PER SEMESTER ======================== */
+.semester-months-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+
+.sem-month-card { background: white; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); }
+.sem-month-title { font-size: 13px; font-weight: 700; color: white; background: var(--accent); padding: 8px 12px; }
+.sem-cal-wrap { padding: 8px; }
+
+/* Mini kalender per semester - pakai tabel juga */
+.sem-cal-table { width: 100%; border-collapse: collapse; }
+.sem-cal-table th { font-size: 9px; font-weight: 700; text-align: center; padding: 3px 1px; border: 1px solid var(--border); background: var(--bg3); color: var(--text2); }
+.sem-cal-table th.wknd { color: #fff; background: #c0392b; }
+.sem-cal-table td { border: 1px solid var(--border); text-align: center; padding: 1px; width: calc(100%/7); font-size: 9px; vertical-align: middle; height: 22px; position: relative; overflow: hidden; }
+.sem-cal-table td.wknd-col { background: #fff5f5; }
+.sem-td-num { font-size: 9px; color: var(--text2); }
+.sem-td-num.today-s { background: var(--accent); color: white; border-radius: 50%; display: inline-block; width: 16px; height: 16px; line-height: 16px; font-weight: 700; }
+.sem-td-num.wknd-s { color: var(--red); }
+.sem-td-num.other-s { color: var(--text3); }
+.sem-td-ev { font-size: 8px; font-weight: 700; border-radius: 2px; padding: 1px 2px; display: inline-block; }
+.sem-td-ev.kegiatan { background: var(--c-kegiatan-bg); color: var(--c-kegiatan-text); }
+.sem-td-ev.libur { background: var(--c-libur-bg); color: var(--c-libur-text); }
+.sem-td-ev.ujian { background: var(--c-ujian-bg); color: var(--c-ujian-text); }
+.sem-td-ev.rapat { background: var(--c-rapat-bg); color: var(--c-rapat-text); }
+
+/* Daftar kegiatan di bawah mini cal */
+.sem-month-evlist { border-top: 1px solid var(--border); padding: 8px; background: var(--bg3); }
+.sem-month-evlist-title { font-size: 10px; font-weight: 700; color: var(--text3); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 5px; }
+.sem-ev-item { display: flex; align-items: flex-start; gap: 4px; margin-bottom: 4px; }
+.sem-ev-dot { width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0; margin-top: 3px; }
+.sem-ev-text { flex: 1; }
+.sem-ev-name { font-size: 10px; font-weight: 600; color: var(--text); line-height: 1.3; }
+.sem-ev-date { font-size: 9px; color: var(--text3); }
+
+/* ======================== HARI EFEKTIF ======================== */
+.semester-block { border-left: 3px solid var(--accent); padding-left: 14px; margin-bottom: 20px; }
+.semester-block-title { font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 8px; }
+.week-row { display: flex; align-items: center; gap: 8px; padding: 6px 0; border-bottom: 1px solid var(--bg3); font-size: 13px; }
+.week-row:last-child { border-bottom: none; }
+.week-num { color: var(--text3); font-size: 12px; min-width: 30px; font-weight: 600; }
+.week-range { flex: 1; color: var(--text2); }
+.week-libur { font-size: 11px; color: var(--red); font-style: italic; }
+.week-badge { background: var(--green-bg); color: var(--green); border-radius: 4px; padding: 2px 10px; font-size: 12px; font-weight: 700; white-space: nowrap; border: 1px solid #b8e0cc; }
+.week-badge.zero { background: var(--red-bg); color: var(--red); border-color: #f0b8b4; }
+
+/* ======================== NOTIFIKASI ======================== */
+.notif-item { display: flex; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--bg3); align-items: flex-start; }
+.notif-item:last-child { border-bottom: none; }
+.notif-icon { width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; flex-shrink: 0; }
+.notif-icon.urgent { background: var(--red-bg); color: var(--red); border: 1px solid #f0b8b4; }
+.notif-icon.soon { background: var(--amber-bg); color: var(--amber); border: 1px solid #f5d9a0; }
+.notif-icon.normal { background: var(--blue-bg); color: var(--accent); border: 1px solid #b8cef8; }
+.notif-title { font-size: 13px; font-weight: 600; color: var(--text); }
+.notif-sub { font-size: 12px; color: var(--text3); margin-top: 3px; }
+.notif-type-tag { font-size: 10px; background: var(--bg3); border: 1px solid var(--border); color: var(--text2); border-radius: 3px; padding: 1px 6px; margin-left: 4px; font-weight: 600; }
+
+/* ======================== FORM ======================== */
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+.form-full { margin-bottom: 12px; }
+.form-group label { display: block; font-size: 12px; font-weight: 700; color: var(--text2); margin-bottom: 4px; }
+.form-group input, .form-group select, .form-group textarea { width: 100%; padding: 7px 10px; background: white; border: 1px solid var(--border); color: var(--text); border-radius: var(--radius-sm); font-size: 13px; font-family: var(--font); outline: none; transition: border-color 0.15s; }
+.form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(26,86,219,0.1); }
+.form-group textarea { resize: vertical; min-height: 60px; }
+.notif-section { background: var(--bg3); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px; margin-bottom: 12px; }
+.notif-section-title { font-size: 12px; font-weight: 700; color: var(--text2); margin-bottom: 8px; }
+.notif-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+.notif-row:last-child { margin-bottom: 0; }
+.notif-row label { font-size: 12px; color: var(--text2); min-width: 80px; font-weight: 600; }
+.notif-row select { flex: 1; padding: 5px 8px; background: white; border: 1px solid var(--border); color: var(--text); border-radius: var(--radius-sm); font-size: 12px; font-family: var(--font); outline: none; }
+.notif-row .notif-desc { font-size: 11px; color: var(--text3); min-width: 130px; }
+.btn { padding: 8px 18px; border-radius: var(--radius-sm); cursor: pointer; font-size: 13px; font-weight: 600; font-family: var(--font); border: 1px solid var(--border); background: white; color: var(--text2); transition: all 0.15s; }
+.btn:hover { background: var(--bg3); }
+.btn-primary { background: var(--accent); border-color: var(--accent); color: white; }
+.btn-primary:hover { background: var(--accent2); border-color: var(--accent2); }
+.btn-danger { background: var(--red-bg); border-color: #f0b8b4; color: var(--red); }
+.btn-danger:hover { background: #fad8d6; }
+.btn-sm { padding: 4px 10px; font-size: 12px; }
+.form-msg { font-size: 12px; margin-top: 6px; font-weight: 600; }
+.form-msg.ok { color: var(--green); }
+.form-msg.err { color: var(--red); }
+
+/* Legend */
+.legend { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--border); }
+.legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text2); }
+.legend-swatch { width: 16px; height: 12px; border-radius: 3px; flex-shrink: 0; }
+
+.empty { text-align: center; color: var(--text3); font-size: 13px; padding: 28px 0; }
+
+/* Edit mode */
+.form-card-title-wrap { display:flex; align-items:center; justify-content:space-between; }
+.form-mode-badge { font-size:11px; font-weight:700; padding:3px 10px; border-radius:99px; background:var(--amber-bg); color:var(--amber); border:1px solid #f5d9a0; }
+.ev-actions { display:flex; flex-direction:column; gap:4px; padding:8px 6px; background:inherit; }
+.manage-list-item { display:flex; align-items:stretch; }
+.manage-list-item .ev-block { flex:1; margin-bottom:0 !important; }
+
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--bg3); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
+
+/* ======================== MODAL KONFIRMASI HAPUS ======================== */
+.del-confirm-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:5000; display:flex; align-items:center; justify-content:center; opacity:0; pointer-events:none; transition:opacity 0.2s; }
+.del-confirm-overlay.show { opacity:1; pointer-events:auto; }
+.del-confirm-box { background:white; border-radius:12px; padding:28px 28px 22px; width:380px; max-width:94vw; box-shadow:0 12px 40px rgba(0,0,0,0.22); transform:scale(0.92); transition:transform 0.2s; }
+.del-confirm-overlay.show .del-confirm-box { transform:scale(1); }
+.del-confirm-icon { width:52px; height:52px; background:var(--red-bg); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:24px; margin:0 auto 14px; border:2px solid #f0b8b4; }
+.del-confirm-title { font-size:16px; font-weight:700; color:var(--text); text-align:center; margin-bottom:8px; }
+.del-confirm-name { font-size:13px; color:var(--accent); font-weight:700; text-align:center; background:var(--blue-bg); border-radius:6px; padding:7px 14px; margin:0 0 8px; word-break:break-word; }
+.del-confirm-sub { font-size:12px; color:var(--text3); text-align:center; margin-bottom:20px; line-height:1.6; }
+.del-confirm-btns { display:flex; gap:10px; justify-content:center; }
+.del-confirm-btns .btn { min-width:110px; }
+
+/* ======================== EKSTRAKURIKULER ======================== */
+.ekskul-cal-section { display:grid; grid-template-columns:repeat(2,1fr); gap:14px; }
+@media (max-width:700px) { .ekskul-cal-section { grid-template-columns:1fr; } }
+
+.ekskul-month-block { background:white; border:1px solid var(--border); border-radius:var(--radius); overflow:hidden; box-shadow:var(--shadow); }
+.ekskul-month-header { display:flex; align-items:center; justify-content:space-between; background:white; border-bottom:2px solid var(--accent); padding:10px 14px; }
+.ekskul-month-header-title { font-size:14px; font-weight:700; color:var(--text); }
+.ekskul-month-header-badge { font-size:11px; font-weight:600; color:var(--accent); background:var(--blue-bg); padding:2px 8px; border-radius:99px; }
+
+/* Kalender mini ekskul */
+.ekskul-cal-wrap { padding:10px 12px; }
+.ekskul-mini-cal { width:100%; border-collapse:collapse; table-layout:fixed; font-size:10px; }
+.ekskul-mini-cal th { text-align:center; padding:4px 2px; font-size:9px; font-weight:700; color:white; background:var(--accent); border:1px solid rgba(255,255,255,0.2); }
+.ekskul-mini-cal th.wknd { background:#c0392b; }
+.ekskul-mini-cal td { border:1px solid var(--border); vertical-align:middle; padding:3px 2px; height:38px; overflow:hidden; position:relative; text-align:center; }
+.ekskul-mini-cal td.wknd-col { background:#fff5f5; }
+.ekskul-mini-cal td.empty-col { background:var(--bg3); }
+
+/* Tabel manual ekskul — simpel */
+.ekskul-tbl-section { border-top:1px solid var(--border); padding:10px 12px; }
+.ekskul-tbl-section-title { font-size:11px; font-weight:700; color:var(--text3); text-transform:uppercase; letter-spacing:.04em; margin-bottom:8px; }
+.ekskul-manual-tbl { width:100%; border-collapse:collapse; font-size:12px; }
+.ekskul-manual-tbl th { background:var(--bg3); border:1px solid var(--border); padding:5px 8px; text-align:left; font-size:11px; font-weight:700; color:var(--text2); }
+.ekskul-manual-tbl td { border:1px solid var(--border); padding:4px 6px; vertical-align:middle; background:white; }
+.ekskul-manual-tbl tr:nth-child(even) td { background:#fafbfd; }
+.emtbl-inp { width:100%; border:none; background:transparent; font-size:12px; font-family:var(--font); color:var(--text); outline:none; padding:2px 3px; }
+.emtbl-inp:focus { background:white; border-radius:2px; box-shadow:0 0 0 2px rgba(26,86,219,.15); }
+.emtbl-date-inp { border:1px solid var(--border); background:white; border-radius:3px; font-size:11px; font-family:var(--font); color:var(--text); padding:3px 5px; outline:none; width:100%; }
+.emtbl-date-inp:focus { border-color:var(--accent); }
+.emtbl-del { background:none; border:none; cursor:pointer; color:var(--text3); font-size:13px; padding:2px 5px; border-radius:3px; }
+.emtbl-del:hover { background:var(--red-bg); color:var(--red); }
+.emtbl-add-btn { margin-top:8px; font-size:12px; background:var(--blue-bg); color:var(--accent); border:1px solid #b8cef8; border-radius:var(--radius-sm); padding:5px 12px; cursor:pointer; font-family:var(--font); font-weight:600; }
+.emtbl-add-btn:hover { background:#ccdcfd; }
+
+/* Chips */
+.eks-chip { font-size:9px; font-weight:700; padding:1px 3px; border-radius:2px; margin-top:1px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%; display:block; }
+.ekskul-ev-chip { font-size:8px; font-weight:600; padding:1px 3px; border-radius:2px; margin-top:1px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%; display:block; }
+.ekskul-ev-chip.kegiatan { background:var(--c-kegiatan-bg); color:var(--c-kegiatan-text); }
+.ekskul-ev-chip.libur { background:var(--c-libur-bg); color:var(--c-libur-text); }
+.ekskul-ev-chip.ujian { background:var(--c-ujian-bg); color:var(--c-ujian-text); }
+.ekskul-ev-chip.rapat { background:var(--c-rapat-bg); color:var(--c-rapat-text); }
+
+/* Toolbar ekskul */
+.ekskul-toolbar { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px; margin-bottom:14px; }
+.ekskul-toolbar-title { font-size:15px; font-weight:700; color:var(--text); }
+
+/* Ringkasan ekskul di atas */
+.ekskul-summary-bar { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px; }
+.ekskul-sum-chip { display:flex; align-items:center; gap:6px; background:white; border:1px solid var(--border); border-radius:var(--radius); padding:8px 14px; font-size:12px; font-weight:600; color:var(--text2); box-shadow:var(--shadow); }
+.ekskul-sum-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+
+.import-textarea { width:100%; min-height:140px; padding:10px 12px; border:1px solid var(--border); border-radius:var(--radius-sm); font-size:13px; font-family:var(--font); color:var(--text); background:white; resize:vertical; outline:none; line-height:1.7; transition:border-color .15s; }
+.import-textarea:focus { border-color:var(--accent); box-shadow:0 0 0 2px rgba(26,86,219,.1); }
+.import-hint { font-size:11px; color:var(--text3); margin-top:5px; line-height:1.6; }
+.import-hint code { background:var(--bg3); border:1px solid var(--border); border-radius:3px; padding:1px 5px; font-family:monospace; font-size:11px; color:var(--text2); }
+
+.bulk-table-wrap { overflow-x:auto; margin-top:10px; }
+.bulk-table { width:100%; border-collapse:collapse; font-size:13px; }
+.bulk-table thead th { background:var(--bg3); border:1px solid var(--border); padding:7px 10px; text-align:left; font-size:11px; font-weight:700; color:var(--text2); text-transform:uppercase; letter-spacing:.04em; white-space:nowrap; }
+.bulk-table th.col-no  { width:36px; text-align:center; }
+.bulk-table th.col-del { width:38px; }
+.bulk-table tbody td { border:1px solid var(--border); padding:5px 6px; vertical-align:middle; background:white; }
+.bulk-table tbody tr:hover td { background:var(--bg3); }
+.bulk-table tbody tr.row-done td { background:#f0faf5; }
+.bulk-table tbody tr.row-done .bulk-name-inp { color:var(--green); }
+.col-no-td  { text-align:center; font-size:11px; color:var(--text3); font-weight:700; }
+.bulk-name-inp { width:100%; border:none; background:transparent; font-size:13px; font-family:var(--font); color:var(--text); outline:none; padding:2px 4px; }
+.bulk-name-inp:focus { background:white; border-radius:3px; box-shadow:0 0 0 2px rgba(26,86,219,.15); }
+.bulk-date-inp { border:1px solid var(--border); background:white; border-radius:var(--radius-sm); font-size:12px; font-family:var(--font); color:var(--text); padding:4px 6px; outline:none; width:148px; transition:border-color .15s; }
+.bulk-date-inp:focus { border-color:var(--accent); }
+.bulk-date-inp.missing { border-color:var(--red); background:var(--red-bg); }
+.bulk-type-sel { border:1px solid var(--border); background:white; border-radius:var(--radius-sm); font-size:12px; font-family:var(--font); color:var(--text); padding:4px 6px; outline:none; width:100%; cursor:pointer; min-width:130px; }
+.bulk-type-sel:focus { border-color:var(--accent); }
+.bulk-del-btn { background:none; border:none; cursor:pointer; color:var(--text3); font-size:16px; padding:2px 6px; border-radius:3px; transition:all .15s; }
+.bulk-del-btn:hover { background:var(--red-bg); color:var(--red); }
+.bulk-status { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px; margin-top:10px; }
+.bulk-status-text { font-size:12px; color:var(--text3); }
+.bulk-status-text strong { color:var(--accent); }
+.bulk-copy-date-btn { font-size:11px; background:var(--blue-bg); color:var(--accent); border:1px solid #b8cef8; border-radius:3px; padding:2px 7px; cursor:pointer; font-family:var(--font); font-weight:600; }
+.bulk-copy-date-btn:hover { background:#ccdcfd; }
+.bulk-notif-inp { border:1px solid var(--border); background:white; border-radius:var(--radius-sm); font-size:12px; font-family:var(--font); color:var(--text); padding:4px 6px; outline:none; width:70px; text-align:center; transition:border-color .15s; }
+.bulk-notif-inp:focus { border-color:var(--accent); }
+.bulk-notif-label { font-size:11px; color:var(--text3); margin-left:3px; }
+.bulk-he-sel:focus { border-color:var(--accent); }
+.bulk-he-sel.he-tidak { background:var(--red-bg); color:var(--red); border-color:#f0b8b4; }
+.bulk-he-sel.he-ya { background:var(--green-bg); color:var(--green); border-color:#b8e0cc; }
+.he-badge-ya { display:inline-block; font-size:10px; font-weight:700; padding:2px 7px; border-radius:3px; background:var(--green-bg); color:var(--green); border:1px solid #b8e0cc; }
+.he-badge-tidak { display:inline-block; font-size:10px; font-weight:700; padding:2px 7px; border-radius:3px; background:var(--red-bg); color:var(--red); border:1px solid #f0b8b4; }
+
+/* Auto-save toast */
+.autosave-toast { position:fixed; bottom:20px; right:20px; background:#1a7a4a; color:white; font-size:12px; font-weight:600; padding:8px 16px; border-radius:99px; box-shadow:0 2px 12px rgba(0,0,0,0.15); opacity:0; transform:translateY(8px); transition:opacity 0.25s, transform 0.25s; z-index:999; pointer-events:none; }
+.autosave-toast.show { opacity:1; transform:translateY(0); }
+
+/* ====== LOCK SYSTEM ====== */
+body.locked .lock-hide { display:none !important; }
+body.locked .lock-disable { pointer-events:none !important; opacity:0.55 !important; background:var(--bg3) !important; cursor:default !important; }
+body.locked #tab-input .card:first-child { opacity:0.5; pointer-events:none; }
+body.locked #bulk-editor-card { opacity:0.5; pointer-events:none; }
+
+/* Tab Ekskul — saat terkunci: interaksi diblokir, teks tetap jelas terbaca */
+body.locked .emtbl-date-inp,
+body.locked .emtbl-inp,
+body.locked .emtbl-select {
+  pointer-events:none !important;
+  opacity:1 !important;
+  background:var(--bg3) !important;
+  color:var(--text) !important;
+  cursor:default !important;
+  border-color:var(--border) !important;
+}
+body.locked .ekskul-manual-tbl td { background:white !important; }
+body.locked .ekskul-manual-tbl tr:nth-child(even) td { background:#fafbfd !important; }
+body.locked .ekskul-cal-section select {
+  pointer-events:none !important;
+  opacity:1 !important;
+  background:var(--bg3) !important;
+  color:var(--text) !important;
+  cursor:default !important;
+}
+body.locked .ekskul-cal-section input {
+  pointer-events:none !important;
+  opacity:1 !important;
+  background:var(--bg3) !important;
+  color:var(--text) !important;
+  cursor:default !important;
+}
+.lock-banner { background:#fff8e1; border:1px solid #ffc107; border-radius:var(--radius-sm); padding:9px 14px; font-size:12px; font-weight:600; color:#7a5c00; display:flex; align-items:center; gap:8px; margin-bottom:12px; }
+.lock-btn { position:relative; background:white; border:1px solid var(--border); border-radius:var(--radius-sm); width:38px; height:38px; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:17px; transition:all 0.15s; flex-shrink:0; }
+.lock-btn:hover { background:var(--amber-bg); border-color:#f5d9a0; }
+.lock-btn.locked-active { background:var(--amber-bg); border-color:#f5d9a0; }
+
+/* Notifikasi bell button */
+.notif-bell-btn { position:relative; background:white; border:1px solid var(--border); border-radius:var(--radius-sm); width:38px; height:38px; display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--text2); transition:all 0.15s; flex-shrink:0; }
+.notif-bell-btn:hover { background:var(--blue-bg); color:var(--accent); border-color:#b8cef8; }
+.notif-bell-btn.active { background:var(--accent); color:white; border-color:var(--accent); }
+.notif-bell-badge { position:absolute; top:-5px; right:-5px; background:var(--red); color:white; border-radius:99px; min-width:16px; height:16px; font-size:10px; font-weight:700; display:flex; align-items:center; justify-content:center; padding:0 3px; line-height:1; border:2px solid white; }
+.notif-bell-badge:empty { display:none; }
+
+/* Notifikasi slide panel */
+.notif-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.25); z-index:1000; opacity:0; pointer-events:none; transition:opacity 0.25s; }
+.notif-overlay.show { opacity:1; pointer-events:auto; }
+.notif-panel { position:fixed; top:0; right:0; height:100vh; width:360px; max-width:95vw; background:white; box-shadow:-4px 0 24px rgba(0,0,0,0.12); z-index:1001; transform:translateX(100%); transition:transform 0.28s cubic-bezier(.4,0,.2,1); overflow-y:auto; }
+.notif-panel.show { transform:translateX(0); }
+.notif-panel-header { display:flex; align-items:center; justify-content:space-between; padding:16px; border-bottom:1px solid var(--border); position:sticky; top:0; background:white; z-index:1; }
+.notif-panel-title { font-size:15px; font-weight:700; color:var(--text); }
+.notif-panel-close { background:none; border:none; cursor:pointer; font-size:18px; color:var(--text3); line-height:1; padding:2px 6px; border-radius:4px; }
+.notif-panel-close:hover { background:var(--bg3); color:var(--text); }
+
+/* Print button */
+.print-btn { background:white; border-color:var(--border); color:var(--text2); }
+.print-btn:hover { background:var(--bg3); }
+
+/* Print styles — dikelola JS per-tab */
+@media print {
+  * { -webkit-print-color-adjust:exact !important; print-color-adjust:exact !important; }
+
+  /* Mode print kalender: sembunyikan semua kecuali konten kalender */
+  body.kaldik-printing > header,
+  body.kaldik-printing > main,
+  body.kaldik-printing > footer,
+  body.kaldik-printing #panel-timetable,
+  body.kaldik-printing #panel-teacher,
+  body.kaldik-printing #panel-meeting,
+  body.kaldik-printing #panel-supervision,
+  body.kaldik-printing #panel-mytask { display: none !important; }
+
+  /* Panel kalender: lepas fixed agar konten bisa multi-halaman */
+  body.kaldik-printing #panel-calendar {
+    position: static !important;
+    overflow: visible !important;
+    background: #fff !important;
+    height: auto !important;
+  }
+
+  /* Sembunyikan panel header (tombol kembali) */
+  body.kaldik-printing #panel-calendar .panel-header { display: none !important; }
+
+  /* kaldik-container: pastikan overflow visible */
+  body.kaldik-printing #kaldik-container {
+    overflow: visible !important;
+    min-height: unset !important;
+  }
+
+  /* Sembunyikan elemen UI navigasi kaldik */
+  body.kaldik-printing .tabs,
+  body.kaldik-printing #kaldik-container .header,
+  body.kaldik-printing .autosave-toast,
+  body.kaldik-printing .notif-bell-btn,
+  body.kaldik-printing .lock-btn,
+  body.kaldik-printing .lock-banner,
+  body.kaldik-printing .detail-overlay,
+  body.kaldik-printing .detail-panel,
+  body.kaldik-printing .notif-overlay,
+  body.kaldik-printing .notif-panel,
+  body.kaldik-printing #lock-modal,
+  body.kaldik-printing #edit-modal-overlay,
+  body.kaldik-printing .del-confirm-overlay,
+  body.kaldik-printing .month-nav button,
+  body.kaldik-printing .month-nav .action-bar,
+  body.kaldik-printing .ekskul-toolbar .action-bar,
+  body.kaldik-printing .action-btn,
+  body.kaldik-printing .no-print { display: none !important; }
+
+  /* Layout & spacing */
+  body.kaldik-printing .app { max-width: 100% !important; padding: 8px !important; }
+  body.kaldik-printing .card { box-shadow: none !important; border: 1px solid #ccc !important; page-break-inside: avoid; }
+  body.kaldik-printing .sem-month-card { page-break-inside: avoid; }
+  body.kaldik-printing .semester-months-grid { grid-template-columns: repeat(3,1fr) !important; }
+  body.kaldik-printing .ekskul-cal-section { grid-template-columns: repeat(2,1fr) !important; }
+  body.kaldik-printing .month-nav { justify-content: center; }
+  body.kaldik-printing .month-nav-btn { display: none !important; }
+
+  /* Warna kalender bulanan */
+  body.kaldik-printing .cal-ev-chip.kegiatan { background: #4ade80 !important; color: #052e16 !important; }
+  body.kaldik-printing .cal-ev-chip.libur    { background: #f87171 !important; color: #450a0a !important; }
+  body.kaldik-printing .cal-ev-chip.ujian    { background: #60a5fa !important; color: #0f1e6b !important; }
+  body.kaldik-printing .cal-ev-chip.rapat    { background: #fbbf24 !important; color: #431407 !important; }
+
+  /* Warna kalender semester */
+  body.kaldik-printing .sem-td-ev.kegiatan { background: #4ade80 !important; color: #052e16 !important; }
+  body.kaldik-printing .sem-td-ev.libur    { background: #f87171 !important; color: #450a0a !important; }
+  body.kaldik-printing .sem-td-ev.ujian    { background: #60a5fa !important; color: #0f1e6b !important; }
+  body.kaldik-printing .sem-td-ev.rapat    { background: #fbbf24 !important; color: #431407 !important; }
+
+  /* Warna event block */
+  body.kaldik-printing .ev-hitem.kegiatan .ev-hitem-bar  { background: #059c52 !important; }
+  body.kaldik-printing .ev-hitem.kegiatan .ev-hitem-body { background: #4ade80 !important; color: #052e16 !important; }
+  body.kaldik-printing .ev-hitem.libur .ev-hitem-bar     { background: #dc2626 !important; }
+  body.kaldik-printing .ev-hitem.libur .ev-hitem-body    { background: #f87171 !important; color: #450a0a !important; }
+  body.kaldik-printing .ev-hitem.ujian .ev-hitem-bar     { background: #2563eb !important; }
+  body.kaldik-printing .ev-hitem.ujian .ev-hitem-body    { background: #60a5fa !important; color: #0f1e6b !important; }
+  body.kaldik-printing .ev-hitem.rapat .ev-hitem-bar     { background: #d97706 !important; }
+  body.kaldik-printing .ev-hitem.rapat .ev-hitem-body    { background: #fbbf24 !important; color: #431407 !important; }
+
+  /* Header tabel */
+  body.kaldik-printing .cal-table th            { background: #1a56db !important; color: white !important; }
+  body.kaldik-printing .cal-table th.weekend-hdr { background: #dc2626 !important; color: white !important; }
+  body.kaldik-printing .bulk-table thead th     { background: #1a56db !important; color: white !important; }
+  body.kaldik-printing .sem-month-card .sem-month-title { background: #1a56db !important; color: white !important; }
+  body.kaldik-printing .ekskul-month-header     { background: #1a56db !important; color: white !important; }
+
+  /* Input fields bersih */
+  body.kaldik-printing .bulk-date-inp,
+  body.kaldik-printing .bulk-name-inp,
+  body.kaldik-printing .emtbl-date-inp,
+  body.kaldik-printing .emtbl-inp  { border: none !important; background: transparent !important; }
+  body.kaldik-printing .bulk-type-sel,
+  body.kaldik-printing .bulk-he-sel,
+  body.kaldik-printing .emtbl-select { border: none !important; }
+}
+
+@media (max-width: 640px) {
+  .form-grid { grid-template-columns: 1fr; }
+  .semester-months-grid { grid-template-columns: 1fr; }
+  .metrics { grid-template-columns: 1fr 1fr; }
+  .app { padding: 12px; }
+  .notif-row { flex-wrap: wrap; }
+}
+@media (max-width: 860px) {
+  .semester-months-grid { grid-template-columns: 1fr 1fr; }
+}
+
+/* Print rekap default (tab rekap) — dikelola JS */
+
+</style>
+<style>
+#timetable-container {
+  min-height: calc(100vh - 60px);
+}
+
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f2efe9;--white:#fff;--surf:#faf9f7;--surf2:#f0ede6;
+  --brd:#ddd9d0;--brd2:#ebe7de;
+  --txt:#1c1a16;--txt2:#6b6456;--txt3:#a09880;
+  --grn:#2a5c3f;--grn-l:#edf5f0;--grn-b:#b8d8c4;
+  --red:#c0392b;--red-l:#fdf0ee;--red-b:#f0b8b0;
+  --amb:#c07800;--amb-l:#fef8e8;--amb-b:#f0d890;
+  --blu:#1e5080;--blu-l:#e8f0f8;--blu-b:#b0cce8;
+  --r:12px;--rs:8px;
+  --sh:0 2px 8px rgba(0,0,0,.07),0 1px 2px rgba(0,0,0,.04);
+}
+body.timetable-open{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--txt);font-size:14px;height:100vh;overflow:hidden;display:flex;flex-direction:column}
+#panel-timetable{flex-direction:column}
+#panel-timetable.open{display:flex}
+/* TOPBAR */
+.topbar{height:52px;background:var(--txt);color:#fff;display:flex;align-items:center;padding:0 20px;gap:14px;flex-shrink:0}
+.logo{font-size:14px;font-weight:700}
+.logo span{opacity:.45;font-weight:400;font-size:12px}
+#timetable-container .tabs{display:flex;gap:2px;margin-left:auto}
+#timetable-container .tab{padding:5px 13px;border-radius:6px;border:none;background:transparent;color:rgba(255,255,255,.5);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:.12s}
+#timetable-container .tab.on{background:rgba(255,255,255,.15);color:#fff}
+#timetable-container .tab:hover:not(.on){color:rgba(255,255,255,.8)}
+.nb{background:var(--red);color:#fff;border-radius:8px;font-size:9px;font-weight:700;padding:1px 5px;margin-left:3px}
+/* PAGES */
+.page{display:none;flex:1;overflow:hidden;flex-direction:column}
+.page.on{display:flex}
+/* MASTER */
+.master-wrap{flex:1;overflow:hidden;display:grid;grid-template-columns:180px 1fr}
+.master-nav{background:var(--white);border-right:1px solid var(--brd);padding:10px 8px;display:flex;flex-direction:column;gap:2px;overflow-y:auto}
+.master-nav h4{font-size:10px;font-weight:700;color:var(--txt3);text-transform:uppercase;letter-spacing:.6px;padding:8px 8px 4px;margin-top:4px}
+.mnav{display:flex;align-items:center;gap:7px;padding:7px 9px;border-radius:var(--rs);border:none;background:transparent;font-family:inherit;font-size:12px;font-weight:600;color:var(--txt2);cursor:pointer;text-align:left;width:100%;transition:.1s}
+.mnav:hover{background:var(--surf2);color:var(--txt)}
+.mnav.on{background:var(--grn-l);color:var(--grn)}
+.mnav .ico{width:22px;height:22px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0}
+.master-body{overflow-y:auto;padding:20px 22px}
+.msec{display:none}.msec.on{display:block}
+.msec-title{font-size:15px;font-weight:700;margin-bottom:3px}
+.msec-sub{font-size:12px;color:var(--txt3);margin-bottom:14px;line-height:1.5}
+.mcard{background:var(--white);border:1px solid var(--brd);border-radius:var(--r);padding:16px;box-shadow:var(--sh);margin-bottom:12px}
+.mtable{width:100%;border-collapse:collapse;font-size:12px}
+.mtable th{font-size:11px;font-weight:700;color:var(--txt3);text-transform:uppercase;letter-spacing:.5px;padding:8px 10px;border-bottom:2px solid var(--brd2);text-align:left;background:var(--surf2);position:sticky;top:0;z-index:3}
+.mtable td{padding:9px 10px;border-bottom:1px solid var(--brd2);vertical-align:middle;font-size:13px}
+.mtable tr:last-child td{border-bottom:none}
+.mtable tr:hover td{background:var(--surf)}
+.mtable-wrap{max-height:420px;overflow:auto;border:1px solid var(--brd2);border-radius:var(--rs);margin-bottom:10px}
+.tag{display:inline-block;padding:2px 7px;border-radius:8px;font-size:10px;font-weight:700}
+.tag-ct{background:var(--grn-l);color:var(--grn)}
+.tag-st{background:var(--amb-l);color:var(--amb)}
+.spill{display:inline-flex;align-items:center;gap:3px;padding:2px 7px;border-radius:8px;font-size:10px;font-weight:700;border:1.5px solid transparent}
+.add-row{display:flex;gap:6px;align-items:stretch}
+.fi{padding:7px 10px;border-radius:var(--rs);border:1.5px solid var(--brd);font-family:inherit;font-size:12px;color:var(--txt);background:var(--surf);outline:none;transition:.12s}
+.fi:focus{border-color:var(--grn)}
+.btn{padding:7px 13px;border-radius:var(--rs);border:none;font-family:inherit;font-size:12px;font-weight:600;cursor:pointer;transition:.12s;display:inline-flex;align-items:center;gap:5px;white-space:nowrap}
+.btn-grn{background:var(--grn);color:#fff}.btn-grn:hover{background:#3a7a52}
+.btn-ghost{background:transparent;border:1.5px solid var(--brd);color:var(--txt2)}.btn-ghost:hover{background:var(--surf2)}
+.btn-red{background:var(--red-l);color:var(--red);border:1px solid var(--red-b)}
+.btn-xs{padding:3px 8px;font-size:10px;border-radius:5px}
+.btn-sm{padding:5px 11px;font-size:12px}
+.del-btn{background:none;border:none;cursor:pointer;color:var(--txt3);font-size:13px;padding:2px 4px;border-radius:4px;opacity:.5;transition:.1s}
+.del-btn:hover{opacity:1;color:var(--red)}
+.subj-panel{background:var(--surf2);border:1px solid var(--brd2);border-radius:var(--rs);padding:10px;margin-top:8px;display:none}
+.subj-panel.show{display:block}
+.group-card{background:var(--surf2);border:1px solid var(--brd2);border-radius:var(--rs);padding:10px 12px;margin-bottom:7px;display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+/* SETUP */
+.setup-wrap{display:grid;grid-template-columns:var(--sidebar-w,180px) 5px 1fr;flex:1;overflow:hidden}.sidebar-resizer{width:5px;background:var(--brd2);cursor:col-resize;flex-shrink:0;transition:background .15s;z-index:10}.sidebar-resizer:hover,.sidebar-resizer.dragging{background:var(--grn)}
+#jadwal-resizer:hover{background:var(--grn)!important}
+.sidebar{background:var(--white);border-right:1px solid var(--brd);display:flex;flex-direction:column;overflow:hidden}
+.sidebar-head{padding:12px 14px;border-bottom:1px solid var(--brd2);flex-shrink:0}
+.sidebar-head h3{font-size:12px;font-weight:700;color:var(--txt2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px}
+.sidebar-head p{font-size:11px;color:var(--txt3);line-height:1.5}
+.sidebar-body{flex:1;overflow-y:auto;padding:10px}
+.sb-section{font-size:10px;font-weight:700;color:var(--txt3);text-transform:uppercase;letter-spacing:.6px;padding:8px 2px 5px;margin-top:6px}
+.sb-section:first-child{margin-top:0;padding-top:2px}
+.guru-item{display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:var(--rs);border:1px solid var(--brd2);background:var(--surf2);margin-bottom:5px}
+.guru-item.assigned{opacity:.55}
+.guru-item .gi-name{font-size:12px;font-weight:700;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.guru-item .gi-sub{font-size:10px;color:var(--txt3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* Kelas table */
+.kelas-panel{display:flex;flex-direction:column;overflow:hidden}
+.kelas-toolbar{padding:8px 14px;background:var(--white);border-bottom:1px solid var(--brd);display:flex;align-items:center;gap:8px;flex-shrink:0}
+.kelas-toolbar h3{font-size:12px;font-weight:700;color:var(--txt2);text-transform:uppercase;letter-spacing:.5px}
+.kelas-scroll{flex:1;overflow-y:auto;padding:16px 20px}
+.ktable{width:100%;border-collapse:collapse;background:var(--white);border-radius:var(--r);overflow:hidden;box-shadow:var(--sh)}
+.ktable thead th{background:var(--txt);color:#fff;padding:9px 10px;font-size:11px;font-weight:600;text-align:center;position:sticky;top:0;z-index:5;border-right:1px solid rgba(255,255,255,.2)}
+.ktable thead th:last-child{border-right:none}
+.ktable tbody tr{border-bottom:2px solid var(--brd)}
+.ktable tbody tr:nth-child(even) td{background:var(--surf2)}
+.ktable tbody tr:hover td{background:var(--grn-l)!important}
+.ktable tbody td{padding:9px 10px;border-right:2px solid var(--brd);text-align:center;vertical-align:middle;position:relative}
+.ktable tbody td:last-child{border-right:none}
+/* JADWAL */
+.jadwal-toolbar{padding:10px 18px;background:var(--white);border-bottom:1px solid var(--brd);display:flex;align-items:center;gap:10px;flex-shrink:0;flex-wrap:wrap}
+.jadwal-toolbar label{font-size:11px;font-weight:700;color:var(--txt2);text-transform:uppercase;letter-spacing:.4px}
+.tsel{padding:6px 10px;border-radius:var(--rs);border:1.5px solid var(--brd);background:var(--surf2);font-family:inherit;font-size:12px;color:var(--txt);outline:none}
+.tsel:focus{border-color:var(--grn)}
+.jbadge{padding:4px 10px;border-radius:12px;font-size:11px;font-weight:700}
+.jbadge.ok{background:var(--grn-l);color:var(--grn)}
+.jbadge.warn{background:var(--red-l);color:var(--red)}
+.grid-scroll{flex:1;overflow:auto;padding:16px 20px}
+/* Jadwal table */
+.jtable{border-collapse:collapse;width:100%;min-width:400px}
+.jtable th{background:var(--txt);color:#fff;padding:8px 10px;font-size:11px;font-weight:600;text-align:center;position:sticky;top:0;z-index:5;border-right:1px solid rgba(255,255,255,.2);white-space:nowrap;min-width:110px}
+.jtable th:last-child{border-right:none}
+.jtable td{border:1px solid var(--brd);padding:0;vertical-align:middle;min-width:110px}
+.jtable td.jtime{background:var(--surf2);padding:5px 8px;border-right:2px solid var(--brd);text-align:center;white-space:nowrap;min-width:0}
+.jtable td.jpnum{background:var(--surf2);padding:5px 8px;font-weight:700;font-size:12px;text-align:center;border-right:2px solid var(--brd);width:36px}
+.jtable td.jbrk{background:#fef8e0;text-align:center;font-size:11px;color:var(--amb);font-style:italic}
+.jtable td.jpre{background:#f0ecfc}
+.jtable td.jdim{background:#f0eee8;cursor:default}
+.jtable td.jrecess{background:#ff9800;text-align:center;cursor:default}
+.jtable td.jlunch{background:#29b6f6;text-align:center;cursor:default}
+.jtable td.jsolat{background:#ab47bc;text-align:center;cursor:default}
+.jtable td.jdismiss{background:#ef5350;text-align:center;cursor:default}
+.jtable td.jactive:hover .cell-del{opacity:1!important}
+.jtable td.jactive:hover{background:var(--grn-l)}
+.jcell-inner{padding:5px 7px;min-height:40px;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;position:relative}
+.jcell-inner .js{font-size:13px;font-weight:800}
+.jcell-inner .jt{font-size:10px;opacity:.75;margin-top:2px;max-width:105px;word-break:break-word;white-space:normal;line-height:1.3}
+.jcell-empty{color:var(--txt3);font-size:16px;opacity:.3}
+/* Conflict indicators */
+@keyframes conflict-pulse{0%,100%{box-shadow:inset 0 0 0 2.5px #e74c3c}50%{box-shadow:inset 0 0 0 3px #e74c3c,0 0 8px rgba(231,76,60,.4)}}
+.jtable td.jactive.conflict{animation:conflict-pulse 1.4s ease-in-out infinite}
+.jtable td.jactive.conflict .jcell-inner::after{content:'⚠ BENTROK';position:absolute;bottom:2px;left:0;right:0;text-align:center;font-size:7.5px;font-weight:800;color:#e74c3c;letter-spacing:.5px;background:rgba(255,255,255,.85);padding:1px 0;border-radius:2px}
+.jtable td.jactive.no-teacher{box-shadow:inset 0 0 0 2px var(--amb)}
+/* Sticky Time column (class view has no JP col) */
+.jtable td.jpnum{position:sticky;left:0;z-index:2;background:var(--surf2);border-right:1px solid var(--brd2)}
+.jtable td.jtime{position:sticky;left:0;z-index:2;border-right:2px solid var(--brd)!important;width:105px;white-space:nowrap;background:var(--surf2)}
+.jtable thead th.th-jp{position:sticky;left:0;z-index:8;width:36px;text-align:center}
+.jtable thead th.th-time{position:sticky;left:0;z-index:8;width:105px}
+/* Day tabs */
+.day-tabs{display:flex;gap:4px;flex-wrap:wrap}
+.day-tab{padding:5px 14px;border-radius:8px;border:1.5px solid var(--brd);background:var(--surf2);font-size:12px;font-weight:700;cursor:pointer;color:var(--txt2);transition:.12s;font-family:inherit}
+.day-tab.on{background:var(--grn);color:#fff;border-color:var(--grn)}
+.day-tab:hover:not(.on){background:var(--grn-l);border-color:var(--grn-b);color:var(--grn)}
+/* Toolbar split */
+.jadwal-toolbar{flex-wrap:wrap;gap:6px 10px;padding:8px 14px}
+.jtoolbar-left{display:flex;align-items:center;gap:10px;flex-wrap:wrap;flex:1;min-width:0}
+.jtoolbar-right{display:flex;align-items:center;gap:6px;flex-shrink:0}
+/* Better cells */
+.jcell-inner{padding:5px 7px;min-height:40px;gap:2px}
+.jcell-inner .js{font-size:12px;font-weight:700}
+.jcell-inner .jt{font-size:9px;opacity:.7;margin-top:1px;max-width:105px;word-break:break-word;white-space:normal;line-height:1.3}
+/* view toggle */
+.view-toggle{display:flex;border:1.5px solid var(--brd);border-radius:8px;overflow:hidden;background:var(--surf2)}
+.vtab{padding:4px 12px;font-size:11px;font-weight:700;cursor:pointer;border:none;background:transparent;font-family:inherit;color:var(--txt2);transition:.1s}
+.vtab.on{background:var(--txt);color:#fff}
+/* subject colors */
+.sc-rq{background:#edeaff;color:#3d2ea0;border-color:#c5bef5!important}
+.sc-tah{background:#e2f5eb;color:#0d5c38;border-color:#9fd8b5!important}
+.sc-mat{background:#e2effc;color:#1a5c96;border-color:#9dc4ee!important}
+.sc-bi{background:#fef0e7;color:#7a3010;border-color:#f0c49a!important}
+.sc-pe{background:#e8f5e0;color:#2d5f10;border-color:#aad890!important}
+.sc-sc{background:#fef8e0;color:#7a5800;border-color:#eeda78!important}
+.sc-is{background:#fce8f0;color:#7a1840;border-color:#eea8cc!important}
+.sc-esp{background:#eeeef0;color:#383838;border-color:#c5c5c5!important}
+.sc-art{background:#feeee8;color:#8a1818;border-color:#f0aaaa!important}
+.sc-plbj{background:#f4f0e5;color:#5a4820;border-color:#d5c585!important}
+.sc-pkn{background:#fce8f8;color:#6a1060;border-color:#e8a8e0!important}
+.sc-eks{background:#e0f5ee;color:#0a4a3a;border-color:#88d5c5!important}
+.sc-dh{background:#f0f0f0;color:#484848;border-color:#bebebe!important}
+.sc-rest{background:#f8f8f6;color:#909090;border-color:#ddddd8!important}
+.sc-other{background:#f0eafc;color:#4a2080;border-color:#c0b0f0!important}
+/* CEK & SETTINGS */
+.plain-page{flex:1;overflow-y:auto;padding:20px 24px}
+.plain-page h2{font-size:15px;font-weight:700;margin-bottom:14px}
+.cf-card{padding:10px 13px;border-radius:var(--rs);margin-bottom:6px;border-left:3px solid}
+.cf-card.conflict{background:var(--red-l);border-color:var(--red)}
+.cf-card.warning{background:var(--amb-l);border-color:var(--amb)}
+.cf-card h4{font-size:12px;font-weight:700}
+.cf-card p{font-size:11px;color:var(--txt2);margin-top:2px}
+.no-issue{text-align:center;padding:48px;color:var(--txt3)}
+.set-card{background:var(--white);border:1px solid var(--brd);border-radius:var(--r);padding:16px;margin-bottom:12px;box-shadow:var(--sh)}
+.set-card h4{font-size:11px;font-weight:700;color:var(--txt2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px}
+.days-row{display:flex;gap:6px;flex-wrap:wrap}
+.dtog{padding:5px 12px;border-radius:16px;border:1px solid var(--brd);background:var(--surf2);font-size:12px;cursor:pointer;color:var(--txt2);transition:.12s;font-family:inherit}
+.dtog.on{background:var(--grn);color:#fff;border-color:var(--grn)}
+.slot-row{display:flex;align-items:center;gap:10px;padding:7px 10px;border-radius:var(--rs);margin-bottom:4px;border:1.5px solid var(--brd2);background:var(--white)}
+.slot-row.brk-row{border-color:var(--amb-b);background:var(--amb-l)}
+/* MODALS */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:.15s}
+.overlay.on{opacity:1;pointer-events:all}
+.modal{background:var(--white);border-radius:14px;padding:22px;width:440px;max-height:90vh;overflow-y:auto;box-shadow:0 24px 72px rgba(0,0,0,.22)}
+.modal h3{font-size:15px;font-weight:700;margin-bottom:3px}
+.msub{font-size:12px;color:var(--txt2);margin-bottom:14px}
+.fld{margin-bottom:10px}
+.fld label{display:block;font-size:11px;font-weight:700;color:var(--txt2);text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px}
+.fld select,.fld input{width:100%;padding:8px 10px;border-radius:var(--rs);border:1.5px solid var(--brd);font-family:inherit;font-size:13px;color:var(--txt);background:var(--surf2);outline:none}
+.fld select:focus,.fld input:focus{border-color:var(--grn)}
+.mhint{border-radius:var(--rs);padding:8px 11px;font-size:12px;line-height:1.5;margin:8px 0;border:1px solid}
+.mhint.info{background:var(--grn-l);color:var(--grn);border-color:var(--grn-b)}
+.mfooter{display:flex;gap:7px;margin-top:16px}
+.mfooter .btn{flex:1;justify-content:center;padding:9px}
+.warn-detail{background:var(--red-l);border:1px solid var(--red-b);border-radius:var(--rs);padding:9px 12px;font-size:12px;color:var(--red);line-height:1.6;margin-bottom:12px;display:none}
+.warn-detail.show{display:block}
+.ag-item{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 12px;border-radius:var(--rs);border:1px solid var(--brd2);background:var(--surf2);margin-bottom:7px}
+.ag-item.done{border-color:var(--grn-b);background:var(--grn-l)}
+.ag-item-info{flex:1;min-width:0}
+.ag-item-name{font-size:13px;font-weight:700}
+.ag-item-sub{font-size:11px;color:var(--txt3);margin-top:1px}
+/* Tahun Ajaran */
+.ta-selector{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.1);border-radius:8px;padding:4px 10px;margin-right:8px}
+.ta-selector select{background:transparent;border:none;color:#fff;font-family:inherit;font-size:12px;font-weight:700;outline:none;cursor:pointer;max-width:140px}
+.ta-selector select option{color:var(--txt);background:#fff}
+.ta-label{font-size:10px;color:rgba(255,255,255,.55);font-weight:600;text-transform:uppercase;letter-spacing:.4px;white-space:nowrap}
+.ta-badge{font-size:9px;font-weight:700;padding:1px 6px;border-radius:6px;background:var(--grn);color:#fff;margin-left:2px}
+.jp-btn{display:flex;flex-direction:column;align-items:center;padding:5px 8px;border-radius:8px;border:2px solid var(--brd2);background:var(--surf2);cursor:pointer;min-width:64px;transition:.1s;font-family:inherit}
+.jp-btn:hover{opacity:.85}
+/* Auto-Generate modal radio style */
+input[name="ag-mode"]:checked ~ div > .ag-mode-title { color: var(--grn); }
+/* Print styles */
+@media print{body:not(.kaldik-printing) *{visibility:hidden}#print-area,#print-area *{visibility:visible}#print-area{position:fixed;inset:0;background:#fff;padding:24px;z-index:9999}.print-hide{display:none!important}}
+/* Rekap Kelas compact table */
+.rk-table{width:100%;border-collapse:collapse;font-size:12px;font-family:'Plus Jakarta Sans',sans-serif}
+.rk-table th{background:#1c1a16;color:#fff;padding:9px 10px;text-align:center;font-size:11px;font-weight:700;letter-spacing:.4px;white-space:nowrap}
+.rk-table th.rk-left{text-align:left}
+.rk-table td{padding:7px 9px;border:1px solid #dedad2;text-align:center;vertical-align:middle;font-size:12px}
+.rk-table tr:nth-child(even) td{background:#f9f8f5}
+.rk-pre{background:#ede8fa!important;color:#5a3ea0;font-weight:700}
+.rk-break{background:#ff9800!important;color:#fff;font-weight:700}
+.rk-lunch{background:#29b6f6!important;color:#fff;font-weight:700}
+.rk-solat{background:#ab47bc!important;color:#fff;font-weight:700}
+.rk-dismiss{background:#ef5350!important;color:#fff;font-weight:700}
+.rk-empty{color:#d0cdc7}.rk-dim{background:#f0eee8!important}
+::-webkit-scrollbar-track{background:var(--brd2);border-radius:4px}
+::-webkit-scrollbar-thumb{background:var(--txt3);border-radius:4px}
+::-webkit-scrollbar-thumb:hover{background:var(--txt2)}
+/* Jadwal scroll area — bigger scrollbar */
+.grid-scroll::-webkit-scrollbar{height:12px}
+.grid-scroll::-webkit-scrollbar-track{background:var(--brd2);border-radius:6px}
+.grid-scroll::-webkit-scrollbar-thumb{background:var(--grn);border-radius:6px;border:2px solid var(--bg)}
+.grid-scroll::-webkit-scrollbar-thumb:hover{background:#3a7a52}
+.grid-scroll{scrollbar-width:thin;scrollbar-color:var(--grn) var(--brd2)}
+
+</style>
+</head>
+<body>
+
+<!-- ── HEADER ── -->
+<!-- ── PROFILE POPUP MODAL ── -->
+<div class="popup-overlay" id="popup-overlay">
+  <div class="popup-modal" id="popup-modal">
+    <div class="popup-logo">
+      <img src="" id="popup-logo-img" alt="Logo" style="width:72px;height:72px;object-fit:contain;border-radius:50%;border:3px solid #f5a623;">
+    </div>
+    <div class="popup-school">Bojana Tirta Islamic School</div>
+    <div class="popup-salam">السَّلَامُ عَلَيْكُمْ وَرَحْمَةُ اللهِ وَبَرَكَاتُهُ</div>
+    <div class="popup-subtitle">Silakan lengkapi profil Anda sebelum masuk</div>
+
+    <div class="popup-avatar-preview" id="popup-avatar-preview">?</div>
+    <div style="font-size:.75rem;color:#6b7280;margin-bottom:.5rem;">Pilih warna avatar</div>
+    <div class="avatar-colors" id="popup-avatar-colors" style="justify-content:center;margin-bottom:1.25rem;">
+      <div class="avc selected" data-color="#1a3a6b" style="background:#1a3a6b;" onclick="popupSelectColor(this)"></div>
+      <div class="avc" data-color="#e8620a" style="background:#e8620a;" onclick="popupSelectColor(this)"></div>
+      <div class="avc" data-color="#059c52" style="background:#059c52;" onclick="popupSelectColor(this)"></div>
+      <div class="avc" data-color="#7c3aed" style="background:#7c3aed;" onclick="popupSelectColor(this)"></div>
+      <div class="avc" data-color="#0891b2" style="background:#0891b2;" onclick="popupSelectColor(this)"></div>
+      <div class="avc" data-color="#d97706" style="background:#d97706;" onclick="popupSelectColor(this)"></div>
+      <div class="avc" data-color="#c0392b" style="background:#c0392b;" onclick="popupSelectColor(this)"></div>
+      <div class="avc" data-color="#2d6a4f" style="background:#2d6a4f;" onclick="popupSelectColor(this)"></div>
+    </div>
+
+    <div class="popup-field">
+      <label class="profile-label">Nama Lengkap</label>
+      <input class="profile-input" id="popup-nama" type="text" placeholder="Masukkan nama Anda..." maxlength="40" onkeyup="popupUpdateInitials()">
+    </div>
+    <div class="popup-field">
+      <label class="profile-label">Jabatan / Peran</label>
+      <select class="profile-input" id="popup-jabatan">
+        <option value="">— Pilih jabatan —</option>
+        <option value="Kepala Sekolah">Kepala Sekolah</option>
+        <option value="Wakil Kepala Sekolah">Wakil Kepala Sekolah</option>
+        <option value="Guru">Guru</option>
+        <option value="Staf Tata Usaha">Staf Tata Usaha</option>
+        <option value="Admin">Admin</option>
+        <option value="Operator">Operator</option>
+      </select>
+    </div>
+    <div class="popup-err" id="popup-err"></div>
+    <button class="profile-save-btn" onclick="popupSave()" style="margin-top:.75rem;">Masuk ke Aplikasi →</button>
+  </div>
+</div>
+
+<header>
+  <div class="logo-group">
+    <div style="display:flex;width:92px;height:92px;flex-shrink:0;">
+      <div id="logo-preview" style="border:none;background:transparent;width:92px;height:92px;overflow:hidden;">
+        <img id="logo-img" src="logo-sekolah.png" alt="Logo Bojana Tirta" style="display:block;width:100%;height:100%;object-fit:contain;border-radius:0;" onerror="this.style.display='none';">
+      </div>
+    </div>
+    <div>
+      <div class="logo-title">BTIS <span>Manager</span></div>
+      <div class="logo-sub">Bojana Tirta Islamic School</div>
+    </div>
+  </div>
+
+  <div class="header-right">
+    <div class="avatar" id="avatar-btn" title="Profil Saya" onclick="openProfilePanel()">A</div>
+  </div>
+</header>
+
+<!-- ── PROFILE PANEL OVERLAY ── -->
+<div class="profile-overlay" id="profile-overlay" onclick="closeProfilePanel()"></div>
+<div class="profile-panel" id="profile-panel">
+  <div class="profile-panel-header">
+    <span class="profile-panel-title">👤 Profil Saya</span>
+    <button class="profile-panel-close" onclick="closeProfilePanel()">✕</button>
+  </div>
+  <div class="profile-panel-body">
+    <!-- Avatar preview besar -->
+    <div style="display:flex;flex-direction:column;align-items:center;gap:.75rem;margin-bottom:1.5rem;">
+      <div class="avatar-preview" id="avatar-preview">A</div>
+      <div style="font-size:.75rem;color:#6b7280;">Pilih warna avatar</div>
+      <div class="avatar-colors" id="avatar-colors">
+        <div class="avc" data-color="#1a3a6b" style="background:#1a3a6b;" onclick="selectColor(this)"></div>
+        <div class="avc" data-color="#e8620a" style="background:#e8620a;" onclick="selectColor(this)"></div>
+        <div class="avc" data-color="#059c52" style="background:#059c52;" onclick="selectColor(this)"></div>
+        <div class="avc" data-color="#7c3aed" style="background:#7c3aed;" onclick="selectColor(this)"></div>
+        <div class="avc" data-color="#0891b2" style="background:#0891b2;" onclick="selectColor(this)"></div>
+        <div class="avc" data-color="#d97706" style="background:#d97706;" onclick="selectColor(this)"></div>
+        <div class="avc" data-color="#c0392b" style="background:#c0392b;" onclick="selectColor(this)"></div>
+        <div class="avc" data-color="#2d6a4f" style="background:#2d6a4f;" onclick="selectColor(this)"></div>
+      </div>
+    </div>
+
+    <!-- Form -->
+    <div class="profile-field">
+      <label class="profile-label">Nama Lengkap</label>
+      <input class="profile-input" id="pf-nama" type="text" placeholder="Masukkan nama Anda..." maxlength="40">
+    </div>
+    <div class="profile-field">
+      <label class="profile-label">Jabatan / Peran</label>
+      <select class="profile-input" id="pf-jabatan">
+        <option value="">— Pilih jabatan —</option>
+        <option value="Kepala Sekolah">Kepala Sekolah</option>
+        <option value="Wakil Kepala Sekolah">Wakil Kepala Sekolah</option>
+        <option value="Guru">Guru</option>
+        <option value="Staf Tata Usaha">Staf Tata Usaha</option>
+        <option value="Admin">Admin</option>
+        <option value="Operator">Operator</option>
+      </select>
+    </div>
+
+    <!-- Tombol simpan -->
+    <button class="profile-save-btn" onclick="saveProfile()">💾 Simpan Profil</button>
+    <button class="profile-save-btn" onclick="openPinSettings()" style="margin-top:.6rem;background:#f3f4f6;color:#1a3a6b;border:1px solid #d1d5db;">🔐 Ubah PIN Modul</button>
+    <div class="profile-save-msg" id="profile-save-msg"></div>
+
+  </div>
+</div>
+
+<!-- ── MAIN DASHBOARD ── -->
+<main id="dashboard">
+  <!-- Greeting Bar -->
+  <div class="greeting-bar">
+    <div class="greeting-stats">
+      <div class="gstat">
+        <span class="gstat-val">7</span>
+        <span class="gstat-lbl">Modul</span>
+      </div>
+      <div class="gstat">
+        <span class="gstat-val" id="gs-ta">2025</span>
+        <span class="gstat-lbl">Tahun Ajaran</span>
+      </div>
+    </div>
+    <div class="greeting-text" style="text-align:right;">
+      <h3 id="greeting-title">السَّلَامُ عَلَيْكُمْ وَرَحْمَةُ اللهِ وَبَرَكَاتُهُ</h3>
+    </div>
+  </div>
+
+  <div class="modules">
+
+    <!-- 1. Academic Calendar -->
+    <div class="module-card c1" onclick="openPanel('calendar')">
+      <div class="card-header">
+        <div class="card-icon-wrap bg1"><svg viewBox="0 0 40 40" width="26" height="26" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="5" width="34" height="31" rx="4" fill="white" stroke="#db2777" stroke-width="2"/><rect x="3" y="5" width="34" height="12" rx="4" fill="#db2777"/><rect x="3" y="13" width="34" height="4" fill="#db2777"/><rect x="12" y="2" width="4" height="8" rx="2" fill="#fbcfe8"/><rect x="24" y="2" width="4" height="8" rx="2" fill="#fbcfe8"/><text x="20" y="31" text-anchor="middle" font-size="14" font-weight="700" fill="#db2777" font-family="sans-serif">16</text></svg></div>
+        <div class="card-title">Academic Calendar Manager</div>
+      </div>
+      <div class="card-desc">Kelola kalender akademik, hari efektif, dan kegiatan sekolah</div>
+      <div class="card-arrow">Buka →</div>
+    </div>
+
+    <!-- 2. Timetable -->
+    <div class="module-card c2" onclick="openPanel('timetable')">
+      <div class="card-header">
+        <div class="card-icon-wrap bg2"><svg viewBox="0 0 40 40" width="26" height="26" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="5" width="34" height="30" rx="3" fill="#7c3aed"/><rect x="3" y="5" width="34" height="9" rx="3" fill="#6d28d9"/><line x1="3" y1="14" x2="37" y2="14" stroke="#c4b5fd" stroke-width="1"/><line x1="15" y1="14" x2="15" y2="35" stroke="#c4b5fd" stroke-width="1"/><line x1="25" y1="14" x2="25" y2="35" stroke="#c4b5fd" stroke-width="1"/><line x1="3" y1="22" x2="37" y2="22" stroke="#c4b5fd" stroke-width="1"/><line x1="3" y1="29" x2="37" y2="29" stroke="#c4b5fd" stroke-width="1"/><rect x="5" y="16" width="8" height="5" rx="1" fill="#ddd6fe" opacity=".7"/><rect x="17" y="24" width="6" height="4" rx="1" fill="#ddd6fe" opacity=".7"/><rect x="27" y="16" width="8" height="11" rx="1" fill="#a78bfa" opacity=".9"/></svg></div>
+        <div class="card-title">Timetable Manager</div>
+      </div>
+      <div class="card-desc">Atur jadwal pelajaran dan distribusi jam mengajar</div>
+      <div class="card-arrow">Buka →</div>
+    </div>
+
+    <!-- 3. Meeting -->
+    <div class="module-card c3" onclick="openPanel('meeting')">
+      <div class="card-header">
+        <div class="card-icon-wrap bg3">🤝</div>
+        <div class="card-title">Meeting Manager</div>
+      </div>
+      <div class="card-desc">Jadwalkan dan catat rapat serta notulensi pertemuan</div>
+      <div class="card-arrow">Buka →</div>
+    </div>
+
+    <!-- 4. Teacher -->
+    <div class="module-card c4" onclick="openPanel('teacher')">
+      <div class="card-header">
+        <div class="card-icon-wrap bg4"><svg viewBox="0 0 40 40" width="26" height="26" xmlns="http://www.w3.org/2000/svg"><circle cx="14" cy="14" r="6" fill="#15803d"/><circle cx="27" cy="12" r="5" fill="#16a34a" opacity=".75"/><path d="M4 34 Q4 24 14 24 Q24 24 24 34Z" fill="#15803d"/><path d="M22 27 Q26 22 34 26 Q34 34 27 34 Q22 34 22 27Z" fill="#16a34a" opacity=".75"/></svg></div>
+        <div class="card-title">Teacher Manager</div>
+      </div>
+      <div class="card-desc">Data guru, jadwal mengajar, dan beban tugas</div>
+      <div class="card-arrow">Buka →</div>
+    </div>
+
+    <!-- 5. My Task (locked) -->
+    <div class="module-card c5 locked-card" onclick="openLockedPanel('mytask')">
+      <div class="card-header">
+        <div class="card-icon-wrap bg5"><svg viewBox="0 0 40 40" width="26" height="26" xmlns="http://www.w3.org/2000/svg"><rect x="5" y="4" width="28" height="33" rx="3" fill="#059669"/><rect x="9" y="12" width="13" height="2.5" rx="1.2" fill="#a7f3d0"/><rect x="9" y="18" width="18" height="2.5" rx="1.2" fill="#a7f3d0"/><rect x="9" y="24" width="10" height="2.5" rx="1.2" fill="#a7f3d0"/><circle cx="29" cy="28" r="7" fill="#f5c842"/><path x="24" y="27" d="M25 28 L28 31 L33 25" stroke="white" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div class="card-title">My Task</div>
+        <span class="lock-badge">🔒</span>
+      </div>
+      <div class="card-desc">Kelola dan pantau tugas pribadi, tenggat waktu, dan progres pekerjaan</div>
+      <div class="card-arrow">Buka →</div>
+    </div>
+
+    <!-- 6. Supervision (locked) -->
+    <div class="module-card c6 locked-card" onclick="openLockedPanel('supervision')">
+      <div class="card-header">
+        <div class="card-icon-wrap bg6"><svg viewBox="0 0 40 40" width="26" height="26" xmlns="http://www.w3.org/2000/svg"><circle cx="17" cy="16" r="10" fill="none" stroke="#ea580c" stroke-width="2.5"/><circle cx="17" cy="16" r="4" fill="#ea580c"/><circle cx="17" cy="16" r="1.5" fill="white"/><line x1="25" y1="24" x2="35" y2="34" stroke="#ea580c" stroke-width="3" stroke-linecap="round"/></svg></div>
+        <div class="card-title">Supervision</div>
+        <span class="lock-badge">🔒</span>
+      </div>
+      <div class="card-desc">Pantau dan evaluasi kinerja pengawasan kegiatan akademik</div>
+      <div class="card-arrow">Buka →</div>
+    </div>
+
+    <!-- 7. Tahfidz -->
+    <div class="module-card c7" onclick="openPanel('tahfidz')">
+      <div class="card-header">
+        <div class="card-icon-wrap bg7"><svg viewBox="0 0 40 40" width="26" height="26" xmlns="http://www.w3.org/2000/svg"><path d="M3 7Q3 5 5 5L18 5V34L5 34Q3 34 3 32Z" fill="#1d4ed8"/><path d="M22 5L35 5Q37 5 37 7V32Q37 34 35 34L22 34Z" fill="#1d4ed8"/><path d="M18 5Q20 7.5 22 5V34Q20 32 18 34Z" fill="#1e40af"/><line x1="5" y1="11" x2="15" y2="11" stroke="#93c5fd" stroke-width="1.3" stroke-linecap="round"/><line x1="5" y1="15" x2="15" y2="15" stroke="#93c5fd" stroke-width="1.3" stroke-linecap="round"/><line x1="5" y1="19" x2="13" y2="19" stroke="#93c5fd" stroke-width="1.3" stroke-linecap="round"/><line x1="25" y1="11" x2="35" y2="11" stroke="#93c5fd" stroke-width="1.3" stroke-linecap="round"/><line x1="25" y1="15" x2="35" y2="15" stroke="#93c5fd" stroke-width="1.3" stroke-linecap="round"/><line x1="25" y1="19" x2="33" y2="19" stroke="#93c5fd" stroke-width="1.3" stroke-linecap="round"/><polygon points="20,1 21,4 24,4 21.8,5.8 22.5,9 20,7.2 17.5,9 18.2,5.8 16,4 19,4" fill="#f5c842"/></svg></div>
+        <div class="card-title">Tahfidz Manager</div>
+      </div>
+      <div class="card-desc">Kelola target hafalan, setoran, dan progres tahfidz siswa</div>
+      <div class="card-arrow">Buka -></div>
+    </div>
+
+  </div>
+</main>
+<footer>
+  <p>© 2026 <strong>BTIS Manager</strong> — School Management System</p>
+</footer>
+<script>
+  // Live date
+  // Greeting bar
+  (function() {
+    const now = new Date();
+    const hour = now.getHours();
+    const greet = 'السَّلَامُ عَلَيْكُمْ وَرَحْمَةُ اللهِ وَبَرَكَاتُهُ';
+    const el = document.getElementById('greeting-title');
+    if (el) el.textContent = greet + ' 👋';
+
+    // Tahun Ajaran
+    const taEl = document.getElementById('gs-ta');
+    const m = now.getMonth();
+    const y = now.getFullYear();
+    const ta = m >= 6 ? y + '/' + (y+1) : (y-1) + '/' + y;
+    if (taEl) taEl.textContent = ta;
+  })();
+
+  // Logo upload
+  function handleLogoUpload(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(ev) {
+      const img = document.getElementById('logo-img');
+      const icon = document.querySelector('.logo-preview .upload-icon');
+      img.src = ev.target.result;
+      img.style.display = 'block';
+      if (icon) icon.style.display = 'none';
+      document.getElementById('logo-preview').style.border = 'none';
+    };
+    reader.readAsDataURL(file);
+  }
+
+  // Panel navigation — arahkan ke file HTML masing-masing modul
+  function openPanel(key) {
+    window.location.href = key + '.html';
+  }
+
+  function closePanel(key) {
+    window.location.href = 'index.html';
+  }
+
+  // ── PROFILE PANEL ──
+  let profileColor = '#1a3a6b';
+  let lastProfileHash = '';
+  const PROFILE_API = '/api/auth/profile';
+
+  // Token disimpan otomatis saat profil pertama kali disimpan
+  function getAuthToken() {
+    try { return localStorage.getItem('btis_token') || ''; } catch(e) { return ''; }
+  }
+
+  // ✅ Header autentikasi untuk semua request ke API
+  function authHeaders(extra) {
+    return Object.assign({ 'Authorization': 'Bearer ' + getAuthToken(), 'Accept': 'application/json' }, extra || {});
+  }
+
+  // ✅ Diperbaiki: tangani wrapper { success, data } dari backend
+  //    dan petakan avatar_color → color agar konsisten di frontend
+  function normalizeProfile(raw) {
+    // Backend mengembalikan { success: true, data: { nama, jabatan, avatar_color, ... } }
+    const profile = (raw && raw.data) ? raw.data : raw;
+    if (!profile || !profile.nama) return null;
+    return {
+      nama:    String(profile.nama).trim(),
+      jabatan: String(profile.jabatan || '').trim(),
+      // ✅ Backend menyimpan warna sebagai avatar_color, bukan color
+      color:   String(profile.avatar_color || profile.color || '#1a3a6b').trim() || '#1a3a6b'
+    };
+  }
+
+  function profileHash(profile) {
+    const p = normalizeProfile(profile);
+    if (!p) return '';
+    return JSON.stringify([p.nama, p.jabatan, p.color]);
+  }
+
+  // ✅ Diperbaiki: kirim Authorization header
+  async function fetchProfileFromServer() {
+    const res = await fetch(PROFILE_API, { headers: authHeaders() });
+    if (!res.ok) {
+      const err = new Error('Gagal mengambil profil');
+      err.status = res.status;
+      throw err;
+    }
+    return normalizeProfile(await res.json());
+  }
+
+  // ✅ Diperbaiki:
+  //    1. Kirim Authorization header
+  //    2. Petakan color → avatar_color sesuai field di database
+  //    3. Kembalikan data dari server, bukan payload lokal
+  async function saveProfileToServer(profile) {
+    const normalized = normalizeProfile(profile);
+    const res = await fetch(PROFILE_API, {
+      method: 'PUT',
+      headers: authHeaders({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify({
+        nama:         normalized.nama,
+        jabatan:      normalized.jabatan,
+        avatar_color: normalized.color   // ✅ Nama field yang benar di backend
+      })
+    });
+    if (!res.ok) throw new Error('Gagal menyimpan profil');
+    const json = await res.json();
+    // ✅ Gunakan data terbaru dari server
+    return normalizeProfile(json);
+  }
+
+  function openProfilePanel() {
+    loadProfileUI();
+    document.getElementById('profile-panel').classList.add('show');
+    document.getElementById('profile-overlay').classList.add('show');
+  }
+
+  function closeProfilePanel() {
+    document.getElementById('profile-panel').classList.remove('show');
+    document.getElementById('profile-overlay').classList.remove('show');
+  }
+
+  function selectColor(el) {
+    document.querySelectorAll('.avc').forEach(e => e.classList.remove('selected'));
+    el.classList.add('selected');
+    profileColor = el.dataset.color;
+    document.getElementById('avatar-preview').style.background = profileColor;
+  }
+
+  function getInitials(name) {
+    if (!name) return '?';
+    const parts = name.trim().split(' ').filter(Boolean);
+    if (parts.length === 1) return parts[0][0].toUpperCase();
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+  }
+
+  function loadProfileUI() {
+    let saved = null;
+    try { saved = normalizeProfile(JSON.parse(localStorage.getItem('btis_profile') || '{}')); } catch(e) {}
+    if (saved && saved.nama) document.getElementById('pf-nama').value = saved.nama;
+    if (saved && saved.jabatan) document.getElementById('pf-jabatan').value = saved.jabatan;
+    if (saved && saved.color) {
+      profileColor = saved.color;
+      document.querySelectorAll('.avc').forEach(el => {
+        el.classList.toggle('selected', el.dataset.color === saved.color);
+      });
+    } else {
+      document.querySelector('.avc').classList.add('selected');
+    }
+    const initials = saved && saved.nama ? getInitials(saved.nama) : 'A';
+    document.getElementById('avatar-preview').textContent = initials;
+    document.getElementById('avatar-preview').style.background = profileColor;
+  }
+
+  async function saveProfile() {
+    const nama = document.getElementById('pf-nama').value.trim();
+    const jabatan = document.getElementById('pf-jabatan').value;
+    const msg = document.getElementById('profile-save-msg');
+
+    if (!nama) {
+      msg.style.color = '#c0392b';
+      msg.textContent = '⚠️ Nama tidak boleh kosong';
+      return;
+    }
+
+    const profile = { nama, jabatan, color: profileColor };
+    try {
+      const savedProfile = await saveProfileToServer(profile);
+      try { localStorage.setItem('btis_profile', JSON.stringify(savedProfile)); } catch(e) {}
+      lastProfileHash = profileHash(savedProfile);
+      applyProfileToHeader(savedProfile);
+    } catch (e) {
+      msg.style.color = '#c0392b';
+      msg.textContent = 'Gagal simpan ke server. Coba lagi.';
+      return;
+    }
+
+    msg.style.color = '#059c52';
+    msg.textContent = '✅ Profil berhasil disimpan!';
+    setTimeout(() => { msg.textContent = ''; closeProfilePanel(); }, 1200);
+  }
+
+  // ── TIMETABLE LOCK SYSTEM ──
+  var ttLocked = true; // default: mode lihat
+  var TT_LOCK_KEY = 'btis_tt_lock';
+  function applyTTLockState() {
+    var btnMaster = document.getElementById('tt-tab-master');
+    var btnSetup  = document.getElementById('tt-tab-setup');
+    var lockBtn   = document.getElementById('tt-lock-btn');
+    var banner    = document.getElementById('tt-lock-banner');
+
+    if (ttLocked) {
+      if (btnMaster) btnMaster.style.display = 'none';
+      if (btnSetup)  btnSetup.style.display  = 'none';
+      if (lockBtn) { lockBtn.textContent = '🔒 Mode Lihat'; lockBtn.classList.remove('tt-edit-mode'); lockBtn.title = 'Klik untuk masuk mode edit'; }
+      if (banner)  banner.classList.add('show');
+      // Jika sedang di tab yang disembunyikan, pindah ke jadwal
+      var cur = document.querySelector('#timetable-container .tab.on');
+      if (cur && (cur.id === 'tt-tab-master' || cur.id === 'tt-tab-setup')) goTab('jadwal');
+    } else {
+      if (btnMaster) btnMaster.style.display = '';
+      if (btnSetup)  btnSetup.style.display  = '';
+      if (lockBtn) { lockBtn.textContent = '🔓 Mode Edit'; lockBtn.classList.add('tt-edit-mode'); lockBtn.title = 'Klik untuk mengunci'; }
+      if (banner)  banner.classList.remove('show');
+    }
+    try { localStorage.setItem(TT_LOCK_KEY, ttLocked ? '1' : '0'); } catch(e) {}
+  }
+
+  function toggleTTLock() {
+    if (ttLocked) {
+      // Minta password untuk masuk mode edit
+      openTTPinModal();
+    } else {
+      // Kunci kembali
+      ttLocked = true;
+      applyTTLockState();
+    }
+  }
+
+  function openTTPinModal() {
+    var modal = document.getElementById('tt-lock-modal');
+    var input = document.getElementById('tt-pass-input');
+    var msg   = document.getElementById('tt-pass-msg');
+    if (msg) { msg.textContent = ''; msg.style.color = '#c0392b'; }
+    if (input) input.value = '';
+    if (modal) {
+      modal.style.display = 'flex';
+      setTimeout(function() { if (input) input.focus(); }, 100);
+    }
+  }
+
+  function closeTTLockModal() {
+    var modal = document.getElementById('tt-lock-modal');
+    if (modal) modal.style.display = 'none';
+    var input = document.getElementById('tt-pass-input');
+    if (input) input.value = '';
+  }
+
+  function doTTUnlock() {
+    var input = document.getElementById('tt-pass-input');
+    var msg   = document.getElementById('tt-pass-msg');
+    var pass  = input ? input.value : '';
+    if (pass !== getPin()) { // ✅ Diperbaiki: ADMIN_PIN tidak terdefinisi, gunakan getPin()
+      if (msg) { msg.style.color = '#c0392b'; msg.textContent = '❌ Password salah. Coba lagi.'; }
+      if (input) { input.value = ''; input.focus(); }
+      return;
+    }
+    ttLocked = false;
+    applyTTLockState();
+    closeTTLockModal();
+  }
+
+  // Escape closes TT modal
+  document.addEventListener('keydown', function(e) {
+    var modal = document.getElementById('tt-lock-modal');
+    if (modal && modal.style.display === 'flex' && e.key === 'Escape') closeTTLockModal();
+  });
+
+  // Init TT lock
+  (function initTTLock() {
+    try {
+      var saved = localStorage.getItem(TT_LOCK_KEY);
+      ttLocked = saved !== '0'; // default terkunci
+    } catch(e) { ttLocked = true; }
+    // Terapkan setelah panel terbuka
+    var origOpen = window.openPanel;
+    window.openPanel = function(key) {
+      origOpen(key);
+      if (key === 'timetable') setTimeout(applyTTLockState, 50);
+    };
+  })();
+
+  // ── POPUP MODAL ──
+  let popupColor = '#1a3a6b';
+
+  function popupSelectColor(el) {
+    document.querySelectorAll('#popup-avatar-colors .avc').forEach(e => e.classList.remove('selected'));
+    el.classList.add('selected');
+    popupColor = el.dataset.color;
+    document.getElementById('popup-avatar-preview').style.background = popupColor;
+  }
+
+  function popupUpdateInitials() {
+    const nama = document.getElementById('popup-nama').value.trim();
+    document.getElementById('popup-avatar-preview').textContent = nama ? getInitials(nama) : '?';
+  }
+
+  async function popupSave() {
+    const nama = document.getElementById('popup-nama').value.trim();
+    const jabatan = document.getElementById('popup-jabatan').value;
+    const err = document.getElementById('popup-err');
+    if (!nama) { err.textContent = '⚠️ Nama tidak boleh kosong'; return; }
+    if (!jabatan) { err.textContent = '⚠️ Pilih jabatan terlebih dahulu'; return; }
+    err.textContent = '';
+    const profile = { nama, jabatan, color: popupColor };
+    try {
+      const savedProfile = await saveProfileToServer(profile);
+      try { localStorage.setItem('btis_profile', JSON.stringify(savedProfile)); } catch(e) {}
+      lastProfileHash = profileHash(savedProfile);
+      applyProfileToHeader(savedProfile);
+    } catch (e) {
+      err.textContent = 'Gagal simpan ke server. Coba lagi.';
+      return;
+    }
+    document.getElementById('popup-overlay').classList.add('hidden');
+  }
+
+  function applyProfileToHeader(profile) {
+    const initials = getInitials(profile.nama);
+    const avatarBtn = document.getElementById('avatar-btn');
+    avatarBtn.textContent = initials;
+    avatarBtn.style.background = profile.color || '#1a3a6b';
+    avatarBtn.title = profile.nama + (profile.jabatan ? ' — ' + profile.jabatan : '');
+    // Nama label
+    let label = document.getElementById('avatar-name-label');
+    if (!label) {
+      label = document.createElement('div');
+      label.id = 'avatar-name-label';
+      label.className = 'avatar-name-label';
+      avatarBtn.parentNode.style.display = 'flex';
+      avatarBtn.parentNode.style.flexDirection = 'column';
+      avatarBtn.parentNode.style.alignItems = 'center';
+      avatarBtn.parentNode.style.gap = '.15rem';
+      avatarBtn.parentNode.appendChild(label);
+    }
+    label.textContent = profile.nama.split(' ')[0];
+    // Update greeting
+    const gt = document.getElementById('greeting-title');
+    if (gt) gt.textContent = 'السَّلَامُ عَلَيْكُمْ وَرَحْمَةُ اللهِ وَبَرَكَاتُهُ';
+  }
+
+  // ── SISTEM KUNCI MODUL ────────────────────────────────────────
+  // Tidak ada password login. PIN modul disimpan di server.
+  let pinTarget = null;
+
+  // Muat PIN modul dari server saat halaman dibuka
+  (async function initPin() {
+    try {
+      const res = await fetch('/api/auth/pin', { headers: authHeaders() });
+      if (res.ok) {
+        const json = await res.json();
+        if (json && json.pin) {
+          try { localStorage.setItem('btis_module_pin', json.pin); } catch(e) {}
+        }
+      }
+    } catch(e) { /* gunakan cache lokal */ }
+  })();
+
+  function getPin() {
+    try {
+      return localStorage.getItem('btis_module_pin') || 'btis';
+    } catch(e) { return 'btis'; }
+  }
+
+  function openLockedPanel(key) {
+    const labels = { mytask: { icon:'✅', title:'My Task' }, supervision: { icon:'🔍', title:'Supervision' } };
+    const info = labels[key] || { icon:'🔒', title:'Modul Terkunci' };
+    pinTarget = key;
+    document.getElementById('pin-icon').textContent = info.icon;
+    document.getElementById('pin-title').textContent = info.title;
+    document.getElementById('pin-err').textContent = '';
+    const inp = document.getElementById('lock-password-input');
+    if (inp) inp.value = '';
+    document.getElementById('pin-overlay').classList.remove('hidden');
+    setTimeout(() => { if (inp) inp.focus(); }, 80);
+  }
+
+  function closePinModal() {
+    document.getElementById('pin-overlay').classList.add('hidden');
+    pinTarget = null;
+  }
+
+  function checkPin() {
+    const inputEl = document.getElementById('lock-password-input');
+    const typed = inputEl ? inputEl.value : '';
+    if (typed === getPin()) {
+      document.getElementById('pin-overlay').classList.add('hidden');
+      openPanel(pinTarget);
+      pinTarget = null;
+    } else {
+      document.getElementById('pin-err').textContent = '❌ Password salah, coba lagi';
+      if (inputEl) {
+        inputEl.value = '';
+        inputEl.focus();
+      }
+    }
+  }
+
+  // Keyboard support untuk password modal
+  document.addEventListener('keydown', function(e) {
+    const overlay = document.getElementById('pin-overlay');
+    if (overlay && !overlay.classList.contains('hidden')) {
+      if (e.key === 'Enter') checkPin();
+      else if (e.key === 'Escape') closePinModal();
+    }
+  });
+
+  // Ubah PIN kunci modul
+  function openPinSettings() {
+    document.getElementById('ps-old').value = '';
+    document.getElementById('ps-new').value = '';
+    document.getElementById('ps-confirm').value = '';
+    document.getElementById('ps-err').textContent = '';
+    document.getElementById('pin-settings-overlay').classList.remove('hidden');
+  }
+
+  async function savePinSettings() {
+    const oldPin = document.getElementById('ps-old').value;
+    const newPin = document.getElementById('ps-new').value;
+    const confirm = document.getElementById('ps-confirm').value;
+    const err = document.getElementById('ps-err');
+
+    if (oldPin !== getPin()) { err.textContent = '❌ PIN lama tidak sesuai'; return; }
+    if (newPin.length < 4) { err.textContent = '⚠️ PIN minimal 4 karakter'; return; }
+    if (newPin !== confirm) { err.textContent = '⚠️ Konfirmasi PIN tidak cocok'; return; }
+
+    // Simpan ke API
+    try {
+      const res = await fetch('/api/auth/pin', {
+        method: 'PUT',
+        headers: authHeaders({ 'Content-Type': 'application/json' }),
+        body: JSON.stringify({ oldPin, newPin })
+      });
+      if (!res.ok) { err.textContent = '❌ Gagal menyimpan ke server. Coba lagi.'; return; }
+    } catch(e) {
+      err.textContent = '⚠️ Offline — PIN disimpan lokal saja.';
+    }
+    try { localStorage.setItem('btis_module_pin', newPin); } catch(e) {}
+    err.style.color = '#059c52';
+    err.textContent = '✅ PIN berhasil diubah!';
+    setTimeout(() => {
+      document.getElementById('pin-settings-overlay').classList.add('hidden');
+      err.style.color = '#c0392b';
+    }, 1200);
+  }
+
+  // ── Load profil saat halaman dibuka
+  // ── INIT PROFIL — tampilkan popup jika belum ada profil ─────
+  (async function initProfile() {
+    let profile = null;
+
+    // Pastikan punya token dulu (auto-request jika belum ada)
+    if (!getAuthToken()) {
+      try {
+        const r = await fetch('/api/auth/token', { method: 'POST' });
+        if (r.ok) {
+          const j = await r.json();
+          if (j.token) try { localStorage.setItem('btis_token', j.token); } catch(e) {}
+        }
+      } catch(e) {}
+    }
+
+    // Coba ambil profil dari server
+    try {
+      profile = await fetchProfileFromServer();
+      if (profile) {
+        try { localStorage.setItem('btis_profile', JSON.stringify(profile)); } catch(e) {}
+      }
+    } catch (e) {
+      // Fallback ke cache lokal jika server tidak bisa dijangkau
+      try { profile = normalizeProfile(JSON.parse(localStorage.getItem('btis_profile') || '{}')); } catch(err) {}
+    }
+
+    if (profile && profile.nama) {
+      // Profil sudah ada — sembunyikan popup, tampilkan dashboard
+      document.getElementById('popup-overlay').classList.add('hidden');
+      applyProfileToHeader(profile);
+      lastProfileHash = profileHash(profile);
+    } else {
+      // Belum ada profil — tampilkan popup isi profil seperti biasa
+      const logoImg = document.getElementById('logo-img');
+      const popupLogoImg = document.getElementById('popup-logo-img');
+      if (logoImg && popupLogoImg) popupLogoImg.src = logoImg.src;
+    }
+  })();
+
+  // ── Sync profil setiap 15 detik ──────────────────────────────
+  setInterval(async function syncProfile() {
+    try {
+      const profile = await fetchProfileFromServer();
+      const hash = profileHash(profile);
+      if (!hash || hash === lastProfileHash) return;
+      lastProfileHash = hash;
+      try { localStorage.setItem('btis_profile', JSON.stringify(profile)); } catch(e) {}
+      applyProfileToHeader(profile);
+      document.getElementById('popup-overlay').classList.add('hidden');
+    } catch (e) {}
+  }, 15000);
+</script>
+
+<!-- ── PIN MODAL ── -->
+<div class="pin-overlay hidden" id="pin-overlay">
+  <div class="pin-modal" id="pin-modal">
+    <div class="pin-icon" id="pin-icon">🔒</div>
+    <div class="pin-title" id="pin-title">Akses Terbatas</div>
+    <div class="pin-subtitle" id="pin-subtitle">Masukkan password untuk membuka modul ini</div>
+    <div style="width:100%;margin-bottom:.85rem;">
+      <input class="profile-input" id="lock-password-input" type="password" placeholder="Masukkan password..." style="width:100%;">
+    </div>
+    <div class="pin-err" id="pin-err"></div>
+    <button class="profile-save-btn" onclick="checkPin()" style="margin-bottom:.5rem;">Masuk</button>
+    <button class="pin-cancel-btn" onclick="closePinModal()">Batal</button>
+    <div class="pin-hint">💡 Default Password: <strong>1234</strong> — bisa diubah di pengaturan</div>
+  </div>
+</div>
+
+<!-- ── PIN SETTINGS MODAL ── -->
+<div class="pin-overlay hidden" id="pin-settings-overlay">
+  <div class="pin-modal" style="max-width:340px;">
+    <div class="pin-icon">⚙️</div>
+    <div class="pin-title">Ubah Password</div>
+    <div class="pin-subtitle">Masukkan password baru untuk modul terkunci</div>
+    <div style="margin:1rem 0;">
+      <label class="profile-label" style="text-align:left;display:block;">Password Lama</label>
+      <input class="profile-input" id="ps-old" type="password" placeholder="Password saat ini">
+      <label class="profile-label" style="text-align:left;display:block;margin-top:.75rem;">Password Baru</label>
+      <input class="profile-input" id="ps-new" type="password" placeholder="Minimal 4 karakter">
+      <label class="profile-label" style="text-align:left;display:block;margin-top:.75rem;">Konfirmasi Password Baru</label>
+      <input class="profile-input" id="ps-confirm" type="password" placeholder="Ulangi password baru">
+    </div>
+    <div class="pin-err" id="ps-err"></div>
+    <button class="profile-save-btn" onclick="savePinSettings()">Simpan Password Baru</button>
+    <button class="pin-cancel-btn" onclick="document.getElementById('pin-settings-overlay').classList.add('hidden')" style="margin-top:.5rem;">Batal</button>
+  </div>
+</div>
+
+
+<!-- ── TIMETABLE PASSWORD MODAL ── -->
+<div id="tt-lock-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:3000;align-items:center;justify-content:center;">
+  <div style="background:white;border-radius:12px;padding:22px;width:360px;max-width:95vw;box-shadow:0 8px 32px rgba(0,0,0,0.2);">
+    <div style="font-size:15px;font-weight:700;color:#1c1a16;margin-bottom:16px;">🔑 Time Table — Masuk Mode Edit</div>
+    <div style="margin-bottom:14px;">
+      <label style="display:block;font-size:12px;font-weight:700;color:#4a5068;margin-bottom:5px;">Password Admin:</label>
+      <input type="password" id="tt-pass-input" placeholder="Masukkan password..."
+        style="width:100%;padding:8px 10px;border:1px solid #d0d5e0;border-radius:8px;font-size:14px;font-family:inherit;outline:none;"
+        onkeydown="if(event.key==='Enter') doTTUnlock()">
+    </div>
+    <div id="tt-pass-msg" style="font-size:12px;font-weight:600;margin-bottom:10px;min-height:1rem;"></div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;">
+      <button onclick="closeTTLockModal()" style="padding:7px 16px;border:1px solid #d0d5e0;border-radius:8px;background:white;cursor:pointer;font-family:inherit;font-size:13px;">Batal</button>
+      <button onclick="doTTUnlock()" style="padding:7px 16px;border:none;border-radius:8px;background:#1a5c3f;color:white;cursor:pointer;font-family:inherit;font-size:13px;font-weight:600;">Masuk</button>
+    </div>
+    <div style="font-size:11px;color:#9098b0;margin-top:12px;text-align:center;">Hanya Admin yang dapat mengakses Master Data &amp; Setup Kelas.</div>
+  </div>
+</div>
+
+</body>
+</html>
+

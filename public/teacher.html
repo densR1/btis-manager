@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Teacher Manager — BTIS Manager</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --blue:       #1a3a6b;
+    --blue-mid:   #2257a8;
+    --blue-light: #e8f0fb;
+    --orange:     #e8620a;
+    --yellow:     #f5a623;
+    --white:      #ffffff;
+    --muted:      #6b7280;
+    --border:     #e2e8f0;
+    --accent:     #059c52;
+    --accent-bg:  #dcfce7;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: #fdf8f0;
+    color: #1a3a6b;
+    min-height: 100vh;
+  }
+
+  /* ── HEADER ── */
+  header {
+    background: var(--white);
+    border-bottom: 3px solid var(--yellow);
+    padding: 0 2.5rem;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 2px 12px rgba(26,58,107,.08);
+    position: sticky;
+    top: 0;
+    z-index: 50;
+  }
+
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .back-btn {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    font-size: .88rem;
+    font-weight: 600;
+    color: var(--blue);
+    cursor: pointer;
+    background: none;
+    border: none;
+    padding: .4rem .85rem;
+    border-radius: 8px;
+    transition: background .15s;
+    text-decoration: none;
+  }
+  .back-btn:hover { background: var(--blue-light); }
+  .back-btn .arrow { font-size: 1rem; }
+
+  .divider-v {
+    width: 1px;
+    height: 28px;
+    background: var(--border);
+  }
+
+  .page-title {
+    display: flex;
+    align-items: center;
+    gap: .6rem;
+    font-family: 'Eras Bold ITC', 'Eras ITC', 'Century Gothic', 'Gill Sans', 'Trebuchet MS', sans-serif;
+    font-size: 1.05rem;
+    font-weight: 700;
+    font-style: italic;
+    color: var(--blue);
+  }
+
+  .page-title .icon-wrap {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: var(--accent-bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+  }
+
+  /* ── CONTENT ── */
+  main {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 4rem 2rem 6rem;
+    text-align: center;
+  }
+
+  .coming-soon-wrap {
+    animation: fadeUp .4s ease both;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .cs-icon-big {
+    width: 96px;
+    height: 96px;
+    border-radius: 24px;
+    background: var(--accent-bg);
+    border: 2px solid #059c5222;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.8rem;
+    margin: 0 auto 1.75rem;
+  }
+
+  .cs-title {
+    font-family: 'Eras Bold ITC', 'Eras ITC', 'Century Gothic', 'Gill Sans', 'Trebuchet MS', sans-serif;
+    font-size: 1.9rem;
+    font-weight: 700;
+    font-style: italic;
+    color: var(--blue);
+    margin-bottom: .6rem;
+  }
+
+  .cs-accent {
+    color: var(--accent);
+  }
+
+  .cs-desc {
+    font-size: .95rem;
+    color: var(--muted);
+    max-width: 460px;
+    margin: 0 auto 2rem;
+    line-height: 1.7;
+  }
+
+  .cs-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: .4rem;
+    background: var(--accent-bg);
+    color: var(--accent);
+    border: 1.5px solid #059c5233;
+    border-radius: 99px;
+    padding: .45rem 1.1rem;
+    font-size: .82rem;
+    font-weight: 700;
+    letter-spacing: .03em;
+  }
+
+  .cs-divider {
+    width: 60px;
+    height: 4px;
+    background: var(--accent);
+    border-radius: 2px;
+    margin: 1.5rem auto;
+    opacity: .7;
+  }
+
+  .back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: .45rem;
+    margin-top: 2.5rem;
+    padding: .65rem 1.4rem;
+    background: var(--blue);
+    color: #fff;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: .9rem;
+    text-decoration: none;
+    transition: background .2s, transform .15s;
+  }
+  .back-link:hover { background: var(--blue-mid); transform: translateY(-2px); }
+
+  footer {
+    text-align: center;
+    padding: 1.25rem 2rem;
+    font-size: .76rem;
+    color: var(--muted);
+    border-top: 1px solid var(--border);
+    background: var(--white);
+  }
+  footer strong { color: var(--blue); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-left">
+    <a class="back-btn" href="index.html">
+      <span class="arrow">←</span> Kembali
+    </a>
+    <div class="divider-v"></div>
+    <div class="page-title">
+      <div class="icon-wrap">👨‍🏫</div>
+      Teacher Manager
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="coming-soon-wrap">
+    <div class="cs-icon-big">👨‍🏫</div>
+    <h1 class="cs-title">Teacher Manager</h1>
+    <div class="cs-divider"></div>
+    <p class="cs-desc">Kelola data guru, jadwal mengajar, beban tugas, dan informasi kepegawaian.</p>
+    <div class="cs-badge">🚧 Halaman ini sedang dalam pengembangan</div>
+    <br>
+    <a class="back-link" href="index.html">← Kembali ke Dashboard</a>
+  </div>
+</main>
+
+<footer>
+  <strong>BTIS Manager</strong> — School Management System
+</footer>
+
+</body>
+</html>

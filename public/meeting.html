@@ -1,0 +1,2027 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Meeting Manager — BTIS Manager</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+:root {
+  --blue:       #1a3a6b;
+  --blue-mid:   #2257a8;
+  --blue-light: #e8f0fb;
+  --orange:     #e8620a;
+  --yellow:     #f5a623;
+  --green:      #16a34a;
+  --green-bg:   #dcfce7;
+  --red:        #dc2626;
+  --red-bg:     #fee2e2;
+  --white:      #ffffff;
+  --muted:      #6b7280;
+  --border:     #e2e8f0;
+  --accent:     #0891b2;
+  --accent-bg:  #e0f7fa;
+  --surface:    #fdf8f0;
+  --card:       #ffffff;
+  --shadow:     0 2px 16px rgba(26,58,107,.09);
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'DM Sans', sans-serif; background: var(--surface); color: var(--blue); min-height: 100vh; }
+
+/* ── HEADER ── */
+header {
+  background: var(--white); border-bottom: 3px solid var(--yellow);
+  padding: 0 2rem; height: 64px;
+  display: flex; align-items: center; justify-content: space-between;
+  box-shadow: 0 2px 12px rgba(26,58,107,.08);
+  position: sticky; top: 0; z-index: 200;
+}
+.header-left { display: flex; align-items: center; gap: 1rem; }
+.back-btn {
+  display: flex; align-items: center; gap: .5rem;
+  font-size: .88rem; font-weight: 600; color: var(--blue);
+  background: none; border: none; padding: .4rem .85rem;
+  border-radius: 8px; transition: background .15s; text-decoration: none;
+}
+.back-btn:hover { background: var(--blue-light); }
+.divider-v { width: 1px; height: 28px; background: var(--border); }
+.page-title {
+  display: flex; align-items: center; gap: .6rem;
+  font-family: 'Eras Bold ITC', 'Eras ITC', 'Century Gothic', 'Gill Sans', 'Trebuchet MS', sans-serif;
+  font-size: 1.05rem; font-weight: 700; color: var(--blue);
+  font-style: italic;
+  cursor: pointer; padding: .35rem .75rem; border-radius: 10px;
+  border: 1.5px solid transparent;
+  transition: background .15s, border-color .15s; user-select: none;
+}
+.page-title:hover { background: var(--blue-light); border-color: #c7d9f5; }
+.page-title .icon-wrap {
+  width: 32px; height: 32px; border-radius: 8px; background: var(--accent-bg);
+  display: flex; align-items: center; justify-content: center; font-size: 1rem;
+}
+.title-hint { font-size: .62rem; font-weight: 400; opacity: .55; margin-left: .15rem; }
+.header-right { display: flex; align-items: center; gap: .75rem; }
+
+/* ── TAHUN AJARAN ── */
+.tahun-ajaran-wrap {
+  display: flex; flex-direction: column; align-items: flex-end; gap: 4px;
+}
+.ta-label { font-size: 11px; font-weight: 700; color: var(--muted); letter-spacing: .03em; white-space: nowrap; }
+.ta-input-row { display: flex; align-items: center; gap: 6px; }
+.ta-input {
+  width: 72px; padding: 5px 8px; border: 1px solid var(--border); border-radius: 5px;
+  font-size: 13px; font-weight: 700; font-family: 'DM Sans', sans-serif; color: var(--accent);
+  outline: none; text-align: center; background: #fff;
+}
+.ta-input:focus { border-color: var(--accent); }
+.ta-suffix { font-size: 13px; font-weight: 700; color: var(--muted); }
+
+/* ── NOTIF BELL ── */
+.notif-btn {
+  position: relative; background: none; border: 1.5px solid var(--border);
+  border-radius: 10px; padding: .4rem .6rem; cursor: pointer;
+  font-size: 1.1rem; line-height: 1; transition: background .15s;
+}
+.notif-btn:hover { background: var(--blue-light); }
+.notif-badge {
+  position: absolute; top: -6px; right: -6px;
+  background: var(--red); color: #fff; font-size: .6rem; font-weight: 700;
+  border-radius: 99px; min-width: 18px; height: 18px;
+  display: flex; align-items: center; justify-content: center;
+  padding: 0 4px; border: 2px solid #fff;
+}
+.notif-badge.hidden { display: none; }
+
+/* ── DASHBOARD SECTION ── */
+.dash-inner { max-width: 1050px; margin: 0 auto; }
+.dash-stats { display: grid; grid-template-columns: repeat(3,1fr); gap: .8rem; margin-bottom: 1.5rem; }
+.dash-stat {
+  background: var(--white); border: 1.5px solid var(--border);
+  border-radius: 14px; padding: 1rem 1.2rem;
+  display: flex; align-items: center; gap: .9rem;
+  box-shadow: var(--shadow);
+}
+.ds-icon { width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; flex-shrink: 0; }
+.ds-icon.blue { background: var(--blue-light); }
+.ds-icon.yellow { background: #fef3c7; }
+.ds-icon.red { background: var(--red-bg); }
+.ds-icon.green { background: var(--green-bg); }
+.ds-num { font-family: 'Playfair Display',serif; font-size: 1.7rem; font-weight: 700; line-height: 1; }
+.ds-label { font-size: .72rem; color: var(--muted); margin-top: .15rem; }
+.dash-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1rem; }
+.dash-col {
+  background: var(--white); border: 1.5px solid var(--border);
+  border-radius: 14px; padding: 1rem 1.1rem; box-shadow: var(--shadow);
+}
+.dash-col-title { font-size: .72rem; font-weight: 700; color: var(--muted); letter-spacing: .05em; text-transform: uppercase; margin-bottom: .6rem; }
+.dash-mtg-item { display: flex; align-items: center; gap: .6rem; padding: .5rem .7rem; background: var(--blue-light); border-radius: 9px; margin-bottom: .3rem; font-size: .8rem; }
+.dash-mtg-date { font-weight: 700; color: var(--blue); min-width: 46px; }
+.dash-task-item { display: flex; align-items: flex-start; gap: .5rem; padding: .45rem .7rem; background: var(--red-bg); border-radius: 9px; margin-bottom: .3rem; font-size: .8rem; color: var(--blue); }
+.dash-empty { font-size: .8rem; color: var(--muted); padding: .4rem 0; }
+
+/* ── NOTIF PANEL ── */
+.notif-panel {
+  position: fixed; top: 72px; right: 1.5rem; width: 340px;
+  background: var(--white); border-radius: 16px; border: 1.5px solid var(--border);
+  box-shadow: 0 8px 32px rgba(26,58,107,.15); z-index: 300;
+  display: none; overflow: hidden; animation: dropIn .2s ease;
+}
+.notif-panel.open { display: block; }
+@keyframes dropIn { from{opacity:0;transform:translateY(-8px);}to{opacity:1;transform:none;} }
+.notif-header { padding: .85rem 1.1rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+.notif-header h3 { font-size: .9rem; font-weight: 700; }
+.notif-close { background:none; border:none; cursor:pointer; font-size:1.1rem; color:var(--muted); }
+.notif-list { max-height: 320px; overflow-y: auto; }
+.notif-item { padding: .7rem 1.1rem; border-bottom: 1px solid var(--border); display: flex; gap: .6rem; align-items: flex-start; }
+.notif-item:last-child { border-bottom: none; }
+.notif-dot { width: 9px; height: 9px; border-radius: 50%; margin-top: 5px; flex-shrink: 0; }
+.notif-dot.urgent { background: var(--red); }
+.notif-dot.soon { background: var(--yellow); }
+.notif-text { font-size: .79rem; line-height: 1.5; }
+.notif-text strong { color: var(--blue); }
+.notif-text span { color: var(--muted); }
+.notif-empty { padding: 1.5rem; text-align: center; color: var(--muted); font-size: .82rem; }
+
+/* ── TABS ── */
+.tabs-bar {
+  background: var(--white); border-bottom: 1px solid var(--border);
+  padding: 0 2rem; display: flex; gap: .1rem; overflow-x: auto;
+  position: sticky; top: 64px; z-index: 100;
+}
+.tab-btn {
+  display: flex; align-items: center; gap: .4rem;
+  padding: .85rem 1.1rem; font-size: .875rem; font-weight: 600;
+  color: var(--muted); border: none; background: none; cursor: pointer;
+  border-bottom: 3px solid transparent; white-space: nowrap;
+  transition: color .15s; margin-bottom: -1px;
+}
+.tab-btn:hover { color: var(--blue); }
+.tab-btn.active { color: var(--blue); border-bottom-color: var(--accent); }
+
+/* ── MAIN ── */
+main { max-width: 1050px; margin: 0 auto; padding: 2rem 1.5rem 5rem; }
+.section { display: none; animation: fadeUp .3s ease both; }
+.section.active { display: block; }
+@keyframes fadeUp { from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:none;} }
+
+.sec-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.2rem; flex-wrap: wrap; gap: .65rem; }
+.sec-title { font-family: 'Eras Bold ITC', 'Eras ITC', 'Century Gothic', 'Gill Sans', 'Trebuchet MS', sans-serif; font-size: 1.25rem; font-weight: 700; font-style: italic; }
+
+.btn-primary {
+  display: flex; align-items: center; gap: .4rem;
+  padding: .55rem 1.1rem; background: var(--blue); color: #fff;
+  border: none; border-radius: 10px; font-size: .855rem; font-weight: 600;
+  cursor: pointer; transition: background .15s, transform .12s; font-family: 'DM Sans',sans-serif;
+}
+.btn-primary:hover { background: var(--blue-mid); transform: translateY(-1px); }
+.btn-primary.orange { background: var(--orange); }
+.btn-primary.orange:hover { background: #c9520a; }
+.btn-primary.accent { background: var(--accent); }
+.btn-primary.accent:hover { background: #0779a0; }
+.btn-primary.green { background: var(--green); }
+.btn-primary.sm { padding: .38rem .8rem; font-size: .79rem; }
+
+.badge {
+  display: inline-flex; align-items: center; gap: .2rem;
+  font-size: .7rem; font-weight: 700; letter-spacing: .02em;
+  border-radius: 99px; padding: .22rem .6rem;
+}
+.badge.blue   { background: var(--blue-light); color: var(--blue); }
+.badge.green  { background: var(--green-bg);   color: var(--green); }
+.badge.red    { background: var(--red-bg);     color: var(--red); }
+.badge.yellow { background: #fef3c7;           color: #92400e; }
+.badge.cyan   { background: var(--accent-bg);  color: var(--accent); }
+.badge.gray   { background: #f1f5f9;           color: var(--muted); }
+
+/* ════════════ TIMELINE PIC ════════════ */
+.pic-section {
+  background: var(--card); border: 1.5px solid var(--border);
+  border-radius: 14px; margin-bottom: .65rem;
+  box-shadow: var(--shadow); overflow: hidden;
+  transition: box-shadow .2s;
+}
+.pic-section:hover { box-shadow: 0 4px 20px rgba(26,58,107,.14); }
+.pic-header {
+  background: var(--blue); color: #fff;
+  padding: .75rem 1.25rem;
+  display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: .5rem;
+  cursor: pointer; user-select: none;
+  transition: background .15s;
+}
+.pic-header:hover { background: var(--blue-mid); }
+.pn { font-weight: 700; font-size: .95rem; display: flex; align-items: center; gap: .4rem; flex-wrap: wrap; }
+.pk { font-size: .75rem; opacity: .75; margin-top: .1rem; }
+.pj { font-size: .7rem; opacity: .6; margin-top: .05rem; }
+.pic-header-right { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; }
+.pic-chevron {
+  font-size: .85rem; opacity: .7;
+  transition: transform .25s cubic-bezier(.4,0,.2,1);
+  display: inline-block;
+}
+.pic-section.open .pic-chevron { transform: rotate(180deg); }
+
+.pic-body {
+  max-height: 0; overflow: hidden;
+  transition: max-height .35s cubic-bezier(.4,0,.2,1);
+}
+.pic-section.open .pic-body { max-height: 3000px; }
+
+.pic-progress-bar { height: 3px; background: rgba(255,255,255,.2); }
+.pic-progress-fill { height: 100%; background: #4ade80; transition: width .4s; }
+
+/* TASK TABLE */
+.task-table-wrap { overflow-x: auto; }
+table.task-tbl { width: 100%; border-collapse: collapse; font-size: .83rem; }
+table.task-tbl thead { background: #f8fafc; }
+table.task-tbl th {
+  padding: .6rem .9rem; text-align: left;
+  font-size: .7rem; font-weight: 700; letter-spacing: .04em;
+  text-transform: uppercase; color: var(--muted);
+  border-bottom: 1.5px solid var(--border); white-space: nowrap;
+}
+table.task-tbl td { padding: .6rem .9rem; border-bottom: 1px solid var(--border); vertical-align: middle; }
+table.task-tbl tr:last-child td { border-bottom: none; }
+table.task-tbl tr.task-row:hover td { background: #f8fafc; }
+table.task-tbl tr.done-row td { opacity: .5; }
+
+tr.add-row td { background: #f0f9ff; border-top: 2px dashed var(--border); }
+tr.add-row input, tr.add-row select {
+  width: 100%; border: 1.5px solid var(--border); border-radius: 7px;
+  padding: .35rem .55rem; font-family: 'DM Sans',sans-serif;
+  font-size: .8rem; color: var(--blue); background: #fff; outline: none;
+}
+tr.add-row input:focus, tr.add-row select:focus { border-color: var(--accent); }
+tr.add-row input::placeholder { color: #94a3b8; }
+
+.status-dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: .3rem; vertical-align: middle; }
+.dot-done    { background: var(--green); }
+.dot-ongoing { background: var(--yellow); }
+.dot-late    { background: var(--red); }
+.dot-todo    { background: #94a3b8; }
+
+.tbl-icon-btn {
+  background: none; border: none; cursor: pointer;
+  font-size: .95rem; padding: .15rem .2rem; border-radius: 5px;
+  transition: background .12s; line-height: 1;
+}
+.tbl-icon-btn:hover { background: var(--blue-light); }
+.tbl-icon-btn.del:hover { background: var(--red-bg); }
+
+/* Task edit mode inputs */
+.task-edit-input {
+  width: 100%; border: 1.5px solid var(--accent); border-radius: 6px;
+  padding: .3rem .5rem; font-family: 'DM Sans',sans-serif;
+  font-size: .82rem; color: var(--blue); background: #f0f9ff; outline: none;
+}
+.task-edit-select {
+  border: 1.5px solid var(--accent); border-radius: 6px;
+  padding: .3rem .5rem; font-family: 'DM Sans',sans-serif;
+  font-size: .8rem; color: var(--blue); background: #f0f9ff; outline: none; cursor: pointer;
+}
+
+/* sync banner */
+.sync-banner {
+  background: var(--accent-bg); border: 1.5px solid #0891b222;
+  border-radius: 11px; padding: .7rem 1rem;
+  display: flex; align-items: center; justify-content: space-between;
+  gap: .75rem; margin-bottom: 1.1rem; flex-wrap: wrap;
+}
+.sync-left { display: flex; align-items: flex-start; gap: .55rem; font-size: .81rem; color: var(--accent); flex: 1; }
+.sync-left strong { color: var(--blue); display: block; }
+
+/* ════════════ RAPAT & NOTULEN ════════════ */
+.meeting-card {
+  background: var(--card); border: 1.5px solid var(--border);
+  border-radius: 14px; margin-bottom: 1rem;
+  box-shadow: var(--shadow); overflow: hidden;
+}
+.meeting-main { display: flex; align-items: stretch; }
+.mtg-date-col {
+  background: var(--blue); color: #fff; min-width: 72px;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: .85rem .5rem; text-align: center; flex-shrink: 0;
+}
+.mtg-day { font-family: 'Playfair Display',serif; font-size: 1.75rem; font-weight: 700; line-height: 1; }
+.mtg-mon { font-size: .63rem; letter-spacing: .07em; text-transform: uppercase; opacity: .8; margin-top: .1rem; }
+.mtg-body { flex: 1; padding: .9rem 1.1rem; min-width: 0; }
+.mtg-title-input {
+  width: 100%; font-weight: 700; font-size: .97rem; font-family: 'DM Sans',sans-serif;
+  border: none; border-bottom: 1.5px solid transparent;
+  padding: .15rem 0; color: var(--blue); background: transparent; outline: none;
+  transition: border-color .15s; display: block; margin-bottom: .35rem;
+}
+.mtg-title-input:focus { border-bottom-color: var(--accent); background: #f8fafc; }
+
+/* Inline meeting fields */
+.mif-row { display: flex; align-items: center; gap: .4rem; margin-bottom: .3rem; flex-wrap: wrap; }
+.mif-label { font-size: .82rem; flex-shrink: 0; line-height: 1; }
+.mif-input {
+  border: 1.5px solid var(--border); border-radius: 7px;
+  padding: .3rem .55rem; font-family: 'DM Sans',sans-serif;
+  font-size: .79rem; color: var(--blue); background: #fff; outline: none;
+  transition: border-color .15s;
+}
+.mif-input:focus { border-color: var(--accent); }
+.mif-input.flex1 { flex: 1; min-width: 0; }
+textarea.mif-input { resize: none; overflow: hidden; min-height: 34px; display: block; }
+.mif-select {
+  border: 1.5px solid var(--border); border-radius: 7px;
+  padding: .3rem .6rem; font-family: 'DM Sans',sans-serif;
+  font-size: .79rem; color: var(--blue); background: #fff; outline: none; cursor: pointer;
+}
+.mtg-actions { padding: .75rem .85rem; display: flex; flex-direction: column; gap: .4rem; align-items: flex-end; justify-content: center; flex-shrink: 0; }
+
+/* notulen accordion */
+.notulen-accordion { border-top: 1.5px solid var(--border); }
+.nt-toggle-btn {
+  width: 100%; padding: .6rem 1.1rem; background: #f8fafc;
+  border: none; cursor: pointer; display: flex; align-items: center; gap: .5rem;
+  font-size: .8rem; font-weight: 600; color: var(--muted);
+  text-align: left; transition: background .12s; font-family: 'DM Sans',sans-serif;
+}
+.nt-toggle-btn:hover { background: var(--blue-light); color: var(--blue); }
+.nt-chevron { margin-left: auto; transition: transform .2s; }
+.nt-toggle-btn.open .nt-chevron { transform: rotate(180deg); }
+.nt-body { display: none; padding: 1rem 1.25rem; border-top: 1px solid var(--border); background: #fcfcfd; }
+.nt-body.open { display: block; }
+
+/* Attendance section */
+.attendance-section {
+  border-top: 1.5px solid var(--border);
+  background: #f8fafc; padding: .75rem 1.1rem;
+}
+.att-main { display: flex; gap: 1rem; align-items: flex-start; margin-bottom: .55rem; flex-wrap: wrap; }
+.att-info { flex: 1; min-width: 200px; }
+.att-header { display: flex; align-items: center; gap: .5rem; margin-bottom: .4rem; font-size: .82rem; font-weight: 700; color: var(--blue); }
+.att-add-input {
+  margin-top: .45rem; width: 100%; border: 1.5px dashed #94a3b8;
+  border-radius: 7px; padding: .32rem .65rem; font-family: 'DM Sans',sans-serif;
+  font-size: .78rem; color: var(--blue); background: transparent; outline: none;
+  transition: all .15s;
+}
+.att-add-input:focus { border-color: var(--accent); border-style: solid; background: #fff; }
+.att-qr { flex-shrink: 0; text-align: center; }
+.att-qr-label { font-size: .68rem; font-weight: 700; color: var(--muted); letter-spacing: .04em; text-transform: uppercase; margin-bottom: .3rem; }
+.att-qr img { border-radius: 8px; border: 1.5px solid var(--border); display: block; }
+.att-qr-btns { display: flex; gap: .3rem; margin-top: .35rem; justify-content: center; flex-wrap: wrap; }
+.material-row {
+  display: flex; align-items: center; gap: .45rem;
+  padding-top: .55rem; border-top: 1px dashed var(--border); flex-wrap: wrap;
+  margin-top: .25rem;
+}
+.material-open-btn {
+  padding: .3rem .7rem; border-radius: 7px; font-size: .75rem; font-weight: 600;
+  background: var(--blue-light); color: var(--blue); border: 1.5px solid #c7d9f5;
+  text-decoration: none; white-space: nowrap; display: inline-flex; align-items: center; gap: .25rem;
+}
+.material-open-btn:hover { background: var(--blue); color: #fff; }
+
+/* notulen inline */
+.nt-inline { padding:1rem 1.25rem 1.25rem;background:#fcfcfd;border-top:1px solid var(--border); }
+.nt-grid2 { display:grid;grid-template-columns:1fr 1fr;gap:.6rem;margin-bottom:.5rem; }
+.nt-field { margin-bottom:.55rem; }
+.nt-field label { display:block;font-size:.68rem;font-weight:700;color:var(--muted);letter-spacing:.04em;text-transform:uppercase;margin-bottom:.28rem; }
+.nt-field input,.nt-field textarea { width:100%;padding:.46rem .72rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.82rem;color:var(--blue);background:#fff;outline:none;transition:border-color .15s; }
+.nt-field input:focus,.nt-field textarea:focus { border-color:var(--accent); }
+.nt-field textarea { resize:none;overflow:hidden;min-height:56px; }
+.nt-confirm-row { display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem;padding:.6rem .9rem;background:#f0fdf4;border:1.5px solid #bbf7d0;border-radius:9px;margin-bottom:.55rem; }
+.nt-confirm-label { font-size:.78rem;font-weight:600;color:#16a34a; }
+.nt-confirm-btns { display:flex;gap:.4rem; }
+.nt-confirm-btn { padding:.3rem .85rem;border-radius:7px;border:1.5px solid var(--border);background:#fff;font-size:.77rem;font-weight:600;cursor:pointer;transition:all .15s;font-family:'DM Sans',sans-serif;color:var(--muted); }
+.nt-confirm-btn.yes { background:var(--green-bg);border-color:#86efac;color:var(--green); }
+.nt-confirm-btn.no  { background:var(--red-bg);border-color:#fca5a5;color:var(--red); }
+.nt-pengesahan-row { display:flex;align-items:flex-end;gap:.65rem;margin-bottom:.4rem; }
+.nt-sah-btn { padding:.44rem 1rem;border-radius:8px;border:1.5px solid var(--border);background:#fff;font-size:.78rem;font-weight:600;cursor:pointer;white-space:nowrap;transition:all .15s;font-family:'DM Sans',sans-serif;color:var(--muted); }
+.nt-sah-btn.sah { background:var(--green-bg);border-color:#86efac;color:var(--green); }
+.nt-hint { font-size:.64rem;color:var(--muted);text-align:right;opacity:.65;margin-top:.3rem; }
+
+/* chip row */
+.chip-row { display: flex; flex-wrap: wrap; gap: .35rem; margin-top: .3rem; }
+.chip { background: var(--blue-light); color: var(--blue); border-radius: 99px; padding: .22rem .65rem; font-size: .72rem; font-weight: 600; display: flex; align-items: center; gap: .3rem; }
+.chip-del { cursor: pointer; opacity: .55; }
+.chip-del:hover { opacity: 1; }
+.chip-sm { background: var(--blue-light); color: var(--blue); border-radius: 99px; padding: .15rem .55rem; font-size: .68rem; font-weight: 600; }
+
+/* ── MODAL ── */
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(26,58,107,.35);
+  z-index: 500; display: none; align-items: center; justify-content: center; padding: 1rem;
+}
+.modal-overlay.open { display: flex; }
+.modal {
+  background: var(--white); border-radius: 18px;
+  width: 100%; max-width: 540px; max-height: 90vh; overflow-y: auto;
+  box-shadow: 0 16px 48px rgba(26,58,107,.2); animation: modalIn .22s ease;
+}
+@keyframes modalIn { from{opacity:0;transform:scale(.96);}to{opacity:1;transform:none;} }
+.modal-head {
+  padding: 1.2rem 1.4rem .9rem; border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+  position: sticky; top: 0; background: #fff; z-index: 1;
+}
+.modal-head h2 { font-family:'Eras Bold ITC', 'Eras ITC', 'Century Gothic', 'Gill Sans', 'Trebuchet MS', sans-serif; font-size: 1.15rem; font-weight: 700; font-style: italic; }
+.modal-close { background:none; border:none; cursor:pointer; font-size:1.2rem; color:var(--muted); border-radius:8px; padding:.25rem; }
+.modal-close:hover { background: var(--blue-light); }
+.modal-body { padding: 1.2rem 1.4rem; }
+.fg { margin-bottom: .95rem; }
+.fg label { display: block; font-size: .8rem; font-weight: 600; margin-bottom: .32rem; color: var(--blue); }
+.fg input, .fg textarea, .fg select {
+  width: 100%; padding: .58rem .85rem; border: 1.5px solid var(--border); border-radius: 10px;
+  font-family: 'DM Sans',sans-serif; font-size: .85rem; color: var(--blue); background: #fff; outline: none;
+}
+.fg input:focus, .fg textarea:focus, .fg select:focus { border-color: var(--accent); }
+.fg textarea { resize: vertical; min-height: 80px; }
+.fg-row { display: grid; grid-template-columns: 1fr 1fr; gap: .7rem; }
+.form-actions { display: flex; gap: .6rem; justify-content: flex-end; margin-top: 1rem; }
+.btn-cancel { padding: .52rem 1.05rem; background: none; border: 1.5px solid var(--border); border-radius: 10px; font-size: .855rem; font-weight: 600; color: var(--muted); cursor: pointer; font-family: 'DM Sans',sans-serif; }
+.btn-cancel:hover { background: var(--surface); }
+
+.empty-state { text-align: center; padding: 3.5rem 1rem; color: var(--muted); }
+.empty-state .ei { font-size: 2.8rem; margin-bottom: .65rem; }
+.empty-state p { font-size: .86rem; max-width: 280px; margin: 0 auto; line-height: 1.6; }
+
+/* ════════════ EVALUASI KEGIATAN ════════════ */
+.eval-link-btn {
+  display: inline-flex; align-items: center; gap: .3rem;
+  font-size: .7rem; font-weight: 600; color: rgba(255,255,255,.85);
+  background: rgba(255,255,255,.12); border: 1.5px solid rgba(255,255,255,.25);
+  border-radius: 7px; padding: .22rem .6rem; cursor: pointer;
+  transition: background .15s; text-decoration: none; white-space: nowrap;
+}
+.eval-link-btn:hover { background: rgba(255,255,255,.25); color: #fff; }
+
+.eval-section {
+  background: var(--card); border: 1.5px solid var(--border);
+  border-radius: 14px; margin-bottom: .65rem;
+  box-shadow: var(--shadow); overflow: hidden;
+  transition: box-shadow .2s;
+}
+.eval-section:hover { box-shadow: 0 4px 20px rgba(26,58,107,.14); }
+.eval-header {
+  background: #2d5a27; color: #fff;
+  padding: .75rem 1.25rem;
+  display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: .5rem;
+  cursor: pointer; user-select: none; transition: background .15s;
+}
+.eval-header:hover { background: #3a7232; }
+.eval-section.open .eval-chevron { transform: rotate(180deg); }
+.eval-chevron {
+  font-size: .85rem; opacity: .7;
+  transition: transform .25s cubic-bezier(.4,0,.2,1); display: inline-block;
+}
+.eval-body {
+  max-height: 0; overflow: hidden;
+  transition: max-height .35s cubic-bezier(.4,0,.2,1);
+}
+.eval-section.open .eval-body { max-height: 3000px; }
+.eval-tbl-wrap { overflow-x: auto; }
+table.eval-tbl { width: 100%; border-collapse: collapse; font-size: .83rem; }
+table.eval-tbl thead { background: #f8fafc; }
+table.eval-tbl th {
+  padding: .6rem .9rem; text-align: left;
+  font-size: .7rem; font-weight: 700; letter-spacing: .04em;
+  text-transform: uppercase; color: var(--muted);
+  border-bottom: 1.5px solid var(--border); white-space: nowrap;
+}
+table.eval-tbl td { padding: .65rem .9rem; border-bottom: 1px solid var(--border); vertical-align: middle; font-size: .82rem; }
+table.eval-tbl tr:last-child td { border-bottom: none; }
+table.eval-tbl tr:hover td { background: #f8fafc; }
+.badge.purple { background: #ede9fe; color: #6d28d9; }
+
+/* ── CUSTOM CONFIRM DIALOG ── */
+.confirm-overlay { position:fixed;inset:0;background:rgba(26,58,107,.45);z-index:900;display:none;align-items:center;justify-content:center;padding:1rem; }
+.confirm-overlay.open { display:flex; }
+.confirm-box { background:#fff;border-radius:16px;padding:1.6rem 1.7rem;max-width:360px;width:100%;box-shadow:0 16px 48px rgba(26,58,107,.22);animation:modalIn .2s ease;text-align:center; }
+.confirm-ico { font-size:2.1rem;margin-bottom:.55rem; }
+.confirm-msg { font-size:.88rem;color:var(--blue);line-height:1.55;margin-bottom:1.2rem;font-weight:500; }
+.confirm-actions { display:flex;gap:.6rem;justify-content:center; }
+
+/* ── PIC HEADER BTNS ── */
+.pic-edit-btn { background:rgba(255,255,255,.14);color:#fff;border:1.5px solid rgba(255,255,255,.28);border-radius:7px;padding:.28rem .55rem;font-size:.78rem;cursor:pointer;transition:background .15s;white-space:nowrap; }
+.pic-edit-btn:hover { background:rgba(255,255,255,.3); }
+.pic-edit-btn.active { background:rgba(255,255,255,.35);border-color:rgba(255,255,255,.6); }
+
+/* ── ABSENSI OVERLAY ── */
+.absensi-overlay {
+  position: fixed; inset: 0;
+  background: linear-gradient(135deg, var(--blue) 0%, var(--accent) 100%);
+  z-index: 1000; display: none; align-items: center; justify-content: center; padding: 1rem;
+}
+.absensi-overlay.open { display: flex; }
+.absensi-box {
+  background: #fff; border-radius: 20px; padding: 2rem 1.75rem;
+  max-width: 420px; width: 100%; text-align: center;
+  box-shadow: 0 20px 60px rgba(0,0,0,.3); animation: modalIn .3s ease;
+}
+.absensi-icon { font-size: 2.8rem; margin-bottom: .5rem; }
+.absensi-meeting-title { font-size: .88rem; color: var(--muted); margin-bottom: 1.2rem; font-weight: 500; }
+.absensi-success { display:none; }
+.absensi-success-icon { font-size: 3rem; margin-bottom: .5rem; }
+
+/* ── PROGRESS LOADER ── */
+.loader-overlay {
+  position: fixed; inset: 0; background: rgba(26,58,107,.55);
+  z-index: 1500; display: none; align-items: center; justify-content: center; flex-direction: column; gap: 1rem;
+}
+.loader-overlay.open { display: flex; }
+.loader-spinner {
+  width: 44px; height: 44px; border: 4px solid rgba(255,255,255,.25);
+  border-top-color: #fff; border-radius: 50%; animation: spin .7s linear infinite;
+}
+@keyframes spin { to{transform:rotate(360deg);} }
+.loader-text { color: #fff; font-size: .9rem; font-weight: 600; }
+
+footer { text-align: center; padding: 1.1rem 2rem; font-size: .75rem; color: var(--muted); border-top: 1px solid var(--border); background: var(--white); }
+footer strong { color: var(--blue); }
+
+@media(max-width:640px){
+  .dash-stats { grid-template-columns: 1fr 1fr; }
+  .dash-row { grid-template-columns: 1fr; }
+  .fg-row { grid-template-columns: 1fr; }
+  .meeting-main { flex-wrap: wrap; }
+  .mtg-date-col { min-width: 100%; flex-direction: row; gap: .5rem; padding: .5rem 1rem; }
+  .att-main { flex-direction: column; }
+  .nt-grid2 { grid-template-columns: 1fr; }
+  .nt-pengesahan-row { flex-direction: column; align-items: stretch; }
+}
+
+/* ── PRINT STYLES ── */
+@media print {
+  header, .tabs-bar, .sync-banner, .sec-header button,
+  .notif-panel, .modal-overlay, .absensi-overlay, .loader-overlay,
+  .confirm-overlay, footer, .att-qr-btns, .att-add-input,
+  .chip-del, .mtg-actions button, .tbl-icon-btn,
+  .btn-primary, .btn-cancel,
+  label[title="Upload file / lampiran"],
+  [id^="mtg_files_"] span span:last-child { display: none !important; }
+  body { background: #fff; }
+  main { padding: 0; max-width: 100%; }
+  .section { display: block !important; }
+  .pic-body { max-height: none !important; overflow: visible !important; }
+  .eval-body { max-height: none !important; overflow: visible !important; }
+  .nt-body { display: block !important; }
+  .meeting-card, .pic-section, .eval-section { break-inside: avoid; box-shadow: none; border: 1px solid #ddd; }
+  .mtg-title-input, .mif-input, .mif-select { border: 1px solid #eee !important; }
+
+  /* ── Targeted: print hanya satu meeting card ── */
+  body.print-single-meeting .meeting-card:not(.print-target) { display: none !important; }
+  body.print-single-meeting .sec-header { display: none !important; }
+  body.print-single-meeting #sec-rapat { display: block !important; }
+  body.print-single-meeting .section:not(#sec-rapat) { display: none !important; }
+
+  /* ── Targeted: print hanya satu eval section ── */
+  body.print-single-eval .eval-section:not(.print-target) { display: none !important; }
+  body.print-single-eval .sec-header { display: none !important; }
+  body.print-single-eval #sec-evaluasi { display: block !important; }
+  body.print-single-eval .section:not(#sec-evaluasi) { display: none !important; }
+  body.print-single-eval .eval-section.print-target .eval-body {
+    max-height: none !important; overflow: visible !important; display: block !important;
+  }
+}
+</style>
+</head>
+<body>
+
+<!-- ══ ABSENSI OVERLAY ══ -->
+<div class="absensi-overlay" id="absensiOverlay">
+  <div class="absensi-box">
+    <div class="absensi-icon">✋</div>
+    <h2 style="font-family:'Eras Bold ITC', 'Eras ITC', 'Century Gothic', 'Gill Sans', 'Trebuchet MS', sans-serif;font-style:italic;font-size:1.25rem;margin-bottom:.35rem;color:var(--blue)">Absensi Rapat</h2>
+    <p class="absensi-meeting-title" id="absensiTitle">—</p>
+    <input type="hidden" id="absensiMid">
+    <div id="absensiForm">
+      <div class="fg" style="text-align:left">
+        <label>Nama Lengkap *</label>
+        <input id="absensiName" type="text" placeholder="Masukkan nama lengkap Anda...">
+      </div>
+      <button class="btn-primary" style="width:100%;justify-content:center;margin-top:.35rem" onclick="submitAbsensi()">✅ Konfirmasi Kehadiran</button>
+    </div>
+    <div class="absensi-success" id="absensiSuccess">
+      <div class="absensi-success-icon">✅</div>
+      <p style="font-weight:700;font-size:1rem;color:var(--green);margin-bottom:.35rem">Kehadiran Tercatat!</p>
+      <p style="font-size:.83rem;color:var(--muted)">Nama Anda telah terdaftar sebagai peserta rapat.</p>
+      <button class="btn-primary" style="margin:1rem auto 0;justify-content:center" onclick="window.close()">Tutup</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ LOADER ══ -->
+<div class="loader-overlay" id="loaderOverlay">
+  <div class="loader-spinner"></div>
+  <div class="loader-text" id="loaderText">Memproses...</div>
+</div>
+
+<!-- ══ HEADER ══ -->
+<header>
+  <div class="header-left">
+    <a class="back-btn" href="index.html">← Kembali</a>
+    <div class="divider-v"></div>
+    <div class="page-title" id="dashTrigger" onclick="showDashboard()">
+      <div class="icon-wrap">🤝</div>
+      Meeting Manager
+    </div>
+  </div>
+  <div class="header-right">
+    <div class="tahun-ajaran-wrap">
+      <label class="ta-label">TAHUN AJARAN</label>
+      <div class="ta-input-row">
+        <input type="number" id="tahunAjaranStart" class="ta-input" min="2020" max="2040" onchange="updateTahunAjaran()">
+        <span class="ta-suffix" id="tahunAjaranSuffix">/2025</span>
+      </div>
+    </div>
+    <button class="notif-btn" onclick="toggleNotif()">🔔
+      <span class="notif-badge hidden" id="notifBadge">0</span>
+    </button>
+  </div>
+</header>
+
+<!-- ══ NOTIF PANEL ══ -->
+<div class="notif-panel" id="notifPanel">
+  <div class="notif-header">
+    <h3>🔔 Notifikasi</h3>
+    <button class="notif-close" onclick="toggleNotif()">✕</button>
+  </div>
+  <div class="notif-list" id="notifList"></div>
+</div>
+
+<!-- ══ TABS ══ -->
+<div class="tabs-bar">
+  <button class="tab-btn" id="tab-timeline"  onclick="switchTab('timeline')">📌 Timeline PIC</button>
+  <button class="tab-btn" id="tab-rapat"     onclick="switchTab('rapat')">📅 Rapat &amp; Notulen</button>
+  <button class="tab-btn" id="tab-evaluasi"  onclick="switchTab('evaluasi')">📋 Evaluasi Kegiatan</button>
+</div>
+
+<!-- ══ MAIN ══ -->
+<main>
+
+  <!-- ─ DASHBOARD ─ -->
+  <div class="section active" id="sec-dashboard">
+    <div class="dash-inner">
+      <div class="sec-header">
+        <div class="sec-title">Dashboard</div>
+      </div>
+      <div class="dash-stats" id="dashStats"></div>
+      <div class="dash-row">
+        <div class="dash-col">
+          <div class="dash-col-title">📅 Meeting Terdekat</div>
+          <div id="dashMtgs"></div>
+        </div>
+        <div class="dash-col">
+          <div class="dash-col-title">🚨 Task Mendesak (≤3 hari)</div>
+          <div id="dashTasks"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─ TIMELINE PIC ─ -->
+  <div class="section" id="sec-timeline">
+    <div class="sec-header">
+      <div class="sec-title">Timeline PIC Kegiatan</div>
+      <button class="btn-primary accent" onclick="openModal('modalPIC')">+ Tambah PIC Manual</button>
+    </div>
+    <div class="sync-banner">
+      <div class="sync-left">
+        <span style="font-size:1.2rem">📅</span>
+        <div>
+          <strong>Integrasi Kalender Akademik</strong>
+          PIC yang diinput di halaman Kalender Akademik otomatis muncul di sini via localStorage (<code>btis_calendar_pics</code>).
+          <span id="syncStatus" style="font-weight:600;margin-left:.25rem"></span>
+        </div>
+      </div>
+      <button class="btn-primary sm accent" onclick="syncFromCalendar()">🔄 Sync Sekarang</button>
+    </div>
+    <div id="timelineList"></div>
+  </div>
+
+  <!-- ─ RAPAT & NOTULEN ─ -->
+  <div class="section" id="sec-rapat">
+    <div class="sec-header">
+      <div class="sec-title">Rapat &amp; Notulen</div>
+      <button class="btn-primary" onclick="openModal('modalMeeting')">+ Buat Rapat</button>
+    </div>
+    <div id="rapatList"></div>
+  </div>
+
+  <!-- ─ EVALUASI KEGIATAN ─ -->
+  <div class="section" id="sec-evaluasi">
+    <div class="sec-header">
+      <div class="sec-title">Evaluasi Kegiatan</div>
+    </div>
+    <div id="evaluasiList"></div>
+  </div>
+
+</main>
+
+<!-- ══ MODAL: BUAT RAPAT (hanya judul) ══ -->
+<div class="modal-overlay" id="modalMeeting">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-head">
+      <h2>📅 Buat Rapat Baru</h2>
+      <button class="modal-close" onclick="closeModal('modalMeeting')">✕</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:.82rem;color:var(--muted);margin-bottom:.9rem;line-height:1.55">Isi judul rapat terlebih dahulu. Detail lainnya (tanggal, waktu, tempat, agenda, peserta) dapat diisi langsung di kartu rapat yang terbentuk.</p>
+      <div class="fg"><label>Judul Rapat *</label><input id="mtgTitle" type="text" placeholder="cth. Rapat Persiapan UAS" autofocus></div>
+      <div class="form-actions">
+        <button class="btn-cancel" onclick="closeModal('modalMeeting')">Batal</button>
+        <button class="btn-primary" onclick="saveMeeting()">🚀 Buat Rapat</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL: TAMBAH PIC ══ -->
+<div class="modal-overlay" id="modalPIC">
+  <div class="modal">
+    <div class="modal-head">
+      <h2>👤 Tambah PIC Manual</h2>
+      <button class="modal-close" onclick="closeModal('modalPIC')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="fg"><label>Nama PIC *</label><input id="picName" type="text" placeholder="cth. Budi Santoso"></div>
+      <div class="fg"><label>Nama Kegiatan *</label><input id="picKeg" type="text" placeholder="cth. Persiapan UAS Semester Genap"></div>
+      <div class="fg"><label>Jabatan / Divisi</label><input id="picJab" type="text" placeholder="cth. Wakasek Kurikulum"></div>
+      <div class="fg"><label>📅 Tanggal Pelaksanaan Kegiatan</label><input id="picTgl" type="date"></div>
+      <div class="form-actions">
+        <button class="btn-cancel" onclick="closeModal('modalPIC')">Batal</button>
+        <button class="btn-primary accent" onclick="savePIC()">Tambah PIC</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL: EDIT PIC ══ -->
+<div class="modal-overlay" id="modalEditPIC">
+  <div class="modal">
+    <div class="modal-head">
+      <h2>✏️ Edit Informasi PIC</h2>
+      <button class="modal-close" onclick="closeModal('modalEditPIC')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="editPicId">
+      <div class="fg"><label>Nama PIC *</label><input id="editPicName" type="text" placeholder="cth. Budi Santoso"></div>
+      <div class="fg"><label>Nama Kegiatan *</label><input id="editPicKeg" type="text" placeholder="cth. Persiapan UAS Semester Genap"></div>
+      <div class="fg"><label>Jabatan / Divisi</label><input id="editPicJab" type="text" placeholder="cth. Wakasek Kurikulum"></div>
+      <div class="fg"><label>📅 Tanggal Pelaksanaan Kegiatan</label><input id="editPicTgl" type="date"></div>
+      <div class="form-actions">
+        <button class="btn-cancel" onclick="closeModal('modalEditPIC')">Batal</button>
+        <button class="btn-primary accent" onclick="saveEditPIC()">💾 Simpan Perubahan</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ CUSTOM CONFIRM ══ -->
+<div class="confirm-overlay" id="confirmOverlay">
+  <div class="confirm-box">
+    <div class="confirm-ico">⚠️</div>
+    <div class="confirm-msg" id="confirmMsg"></div>
+    <div class="confirm-actions">
+      <button class="btn-cancel" onclick="confirmNo()">Batal</button>
+      <button class="btn-primary" style="background:var(--red)" onclick="confirmYes()">Ya, Hapus</button>
+    </div>
+  </div>
+</div>
+
+<footer><strong>BTIS Manager</strong> — School Management System</footer>
+
+<script>
+// ══════════════════════════════════════════════════
+//  STORAGE — API + localStorage cache
+// ══════════════════════════════════════════════════
+const K = { mtg:'btis_meetings', nt:'btis_notulen', pics:'btis_pics', eval:'btis_evaluasi', ta:'btis_tahun_ajaran' };
+const CAL_KEY = 'btis_calendar_pics';
+
+function ld(k){ try{return JSON.parse(localStorage.getItem(k)||'[]');}catch{return[];} }
+function sv(k,v){ try{localStorage.setItem(k,JSON.stringify(v));}catch(e){} }
+function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,6); }
+
+let meetings = ld(K.mtg);
+let notulen  = ld(K.nt);
+let pics     = ld(K.pics);
+let evaluasi = ld(K.eval);
+
+// ── API helpers ──
+function _mtgAuthHeaders(extra){
+  var token=''; try{ token=localStorage.getItem('btis_token')||''; }catch(e){}
+  return Object.assign({'Authorization':'Bearer '+token,'Content-Type':'application/json','Accept':'application/json'},extra||{});
+}
+var _mtgSaveTimer=null;
+function _mtgDebounceSave(fn){ clearTimeout(_mtgSaveTimer); _mtgSaveTimer=setTimeout(fn,800); }
+
+function saveAll(){
+  // Strip base64 dataUrl from files before saving to localStorage (prevents QuotaExceededError)
+  const meetingsSafe=meetings.map(m=>({
+    ...m,
+    files:(m.files||[]).map(f=>({name:f.name,size:f.size})) // store only metadata, not base64
+  }));
+  try{
+    sv(K.mtg,meetingsSafe);
+    sv(K.nt,notulen);
+    sv(K.pics,pics);
+    sv(K.eval,evaluasi);
+  }catch(e){
+    if(e.name==='QuotaExceededError'||e.code===22){
+      try{
+        const ntLite=notulen.map(n=>({...n,pembahasan:n.pembahasan?.slice(0,500)||''}));
+        sv(K.nt,ntLite);
+      }catch(e2){ console.warn('Storage still full, clearing old data'); localStorage.removeItem(K.eval); }
+    }
+  }
+  // Kirim ke API (debounced)
+  _mtgDebounceSave(function(){
+    const payload={
+      meetings: meetingsSafe,
+      notulen,
+      pics,
+      evaluasi
+    };
+    fetch('/api/meetings/data',{
+      method:'PUT',
+      headers:_mtgAuthHeaders(),
+      body:JSON.stringify(payload)
+    }).catch(function(err){ console.warn('[meeting] saveAll failed:',err); });
+  });
+  // Keep full file data (with dataUrl) in memory only
+}
+
+// ── AUTO-SAVE TASK FIELD (no save button needed) ──
+function autoSaveTaskField(picId, taskId, field, value){
+  const pic=pics.find(p=>p.id===picId);
+  const task=pic&&pic.tasks.find(t=>t.id===taskId);
+  if(!task) return;
+  if(field==='name'&&!value.trim()) return; // don't save empty name
+  task[field]=value.trim?value.trim():value;
+  saveAll();
+  // Flash saved indicator
+  const ind=document.getElementById('et_saved_'+taskId);
+  if(ind){ ind.textContent='✓ Tersimpan'; setTimeout(()=>{ if(ind) ind.textContent=''; },1500); }
+  // Refresh progress bar and dashboard without re-rendering whole table (keeps focus)
+  const sec=document.getElementById('pic_'+picId);
+  if(sec){
+    const done=pic.tasks.filter(t=>t.status==='done').length;
+    const total=pic.tasks.length;
+    const pct=total?Math.round(done/total*100):0;
+    const fill=sec.querySelector('.pic-progress-fill');
+    if(fill) fill.style.width=pct+'%';
+    const badge=sec.querySelector('.badge.cyan');
+    if(badge) badge.textContent=`${done}/${total}   ${pct}%`;
+  }
+  renderDashboard(); renderNotifications();
+}
+
+// ── TAHUN AJARAN ──
+function initTahunAjaran(){
+  const inp = document.getElementById('tahunAjaranStart');
+  if (!inp) return;
+  const now = new Date();
+  const defaultStartYear = now.getMonth() >= 6 ? now.getFullYear() : (now.getFullYear() - 1);
+  // Coba ambil dari API, fallback localStorage
+  fetch('/api/calendar/settings', { headers: _mtgAuthHeaders() })
+    .then(function(r){ return r.ok ? r.json() : null; })
+    .then(function(json){
+      const startYear = (json && json.tahun) ? parseInt(json.tahun) :
+        (parseInt(localStorage.getItem('kaldik_tahun') || localStorage.getItem(K.ta), 10) || defaultStartYear);
+      inp.value = startYear;
+      updateTahunAjaran(startYear);
+      try{ localStorage.setItem(K.ta, String(startYear)); localStorage.setItem('kaldik_tahun', String(startYear)); }catch(e){}
+    })
+    .catch(function(){
+      const saved = parseInt(localStorage.getItem('kaldik_tahun') || localStorage.getItem(K.ta), 10);
+      const startYear = Number.isFinite(saved) ? saved : defaultStartYear;
+      inp.value = startYear;
+      updateTahunAjaran(startYear);
+    });
+}
+function updateTahunAjaran(val){
+  const inp = document.getElementById('tahunAjaranStart');
+  const suffix = document.getElementById('tahunAjaranSuffix');
+  if (!inp) return;
+  let year = parseInt(val || inp.value, 10);
+  if (!Number.isFinite(year)) return;
+  year = Math.max(2020, Math.min(2040, year));
+  inp.value = year;
+  if (suffix) suffix.textContent = '/' + (year + 1);
+  // Cache lokal
+  try{ localStorage.setItem(K.ta, String(year)); localStorage.setItem('kaldik_tahun', String(year)); }catch(e){}
+  // Simpan ke API
+  fetch('/api/calendar/settings',{
+    method:'PUT', headers:_mtgAuthHeaders(),
+    body:JSON.stringify({tahun:year})
+  }).catch(function(err){ console.warn('[meeting] save tahun failed:',err); });
+}
+
+// ── SEED DEMO ──
+(function seed(){
+  if(meetings.length&&pics.length) return;
+  const td=new Date(), fmt=d=>d.toISOString().split('T')[0];
+  const add=(d,n)=>{let r=new Date(d);r.setDate(r.getDate()+n);return r;};
+  if(!meetings.length){
+    meetings=[
+      {id:uid(),title:'Rapat Persiapan UAS',date:fmt(add(td,4)),time:'09:00',location:'Ruang Kepala Sekolah',participants:['Budi Santoso','Sari Dewi','Ahmad Fauzi'],agenda:'Pembahasan jadwal UAS, distribusi soal, pengawas.',status:'upcoming',material:''},
+      {id:uid(),title:'Evaluasi Program Semester',date:fmt(add(td,-6)),time:'13:00',location:'Aula Sekolah',participants:['Kepala Sekolah','Wakasek','Wali Kelas'],agenda:'Review capaian program semester genap.',status:'done',material:''},
+    ];
+    notulen=[{id:uid(),meetingId:meetings[1].id,tanggal:meetings[1].date,notulis:'Sari Dewi',topik:meetings[1].title,pembahasan:'Rapat membahas capaian program semester genap yang mencapai 87% dari target.',konfirmasi:null,disahkan:false,pengesahan:''}];
+  } else {
+    // migrate existing meetings to add material, attendees, files fields
+    meetings.forEach(m=>{ if(!m.material) m.material=''; if(!m.attendees) m.attendees=[]; if(!m.files) m.files=[]; });
+  }
+  if(!pics.length){
+    pics=[
+      {id:uid(),name:'Budi Santoso',kegiatan:'Persiapan UAS',jabatan:'Wakasek Kurikulum',source:'manual',tanggalPelaksanaan:fmt(add(td,10)),tasks:[
+        {id:uid(),name:'Koordinasi jadwal pengawas',deadline:fmt(add(td,2)),priority:'urgent',status:'todo'},
+        {id:uid(),name:'Cetak soal ujian',deadline:fmt(add(td,5)),priority:'high',status:'todo'},
+        {id:uid(),name:'Distribusi soal ke guru',deadline:fmt(add(td,8)),priority:'normal',status:'todo'},
+        {id:uid(),name:'Finalisasi ruang ujian',deadline:fmt(add(td,-3)),priority:'high',status:'done'},
+      ]},
+      {id:uid(),name:'Sari Dewi',kegiatan:'Dokumentasi Kegiatan',jabatan:'Humas',source:'manual',tanggalPelaksanaan:fmt(add(td,3)),tasks:[
+        {id:uid(),name:'Foto kegiatan upacara',deadline:fmt(add(td,1)),priority:'normal',status:'done'},
+        {id:uid(),name:'Upload ke website sekolah',deadline:fmt(add(td,3)),priority:'normal',status:'todo'},
+      ]},
+    ];
+  }
+  saveAll();
+})();
+
+// ══════════════════════════════════════════════════
+//  ABSENSI LINK SYSTEM
+// ══════════════════════════════════════════════════
+function getAbsensiURL(mid){
+  return window.location.href.split('?')[0]+'?absensi='+mid;
+}
+function getQRImageURL(text){
+  return 'https://api.qrserver.com/v1/create-qr-code/?size=110x110&data='+encodeURIComponent(text)+'&margin=4';
+}
+function copyAbsensiLink(mid){
+  const url=getAbsensiURL(mid);
+  navigator.clipboard.writeText(url).catch(()=>{
+    const ta=document.createElement('textarea');
+    ta.value=url; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
+  });
+  const btn=document.getElementById('copy_link_'+mid);
+  if(btn){ const orig=btn.textContent; btn.textContent='✓ Tersalin!'; setTimeout(()=>btn.textContent=orig,1800); }
+}
+function submitAbsensi(){
+  const mid=document.getElementById('absensiMid').value;
+  const name=document.getElementById('absensiName').value.trim();
+  if(!name){ alert('Silakan isi nama lengkap Anda.'); return; }
+  meetings=ld(K.mtg);
+  const m=meetings.find(m=>m.id===mid);
+  if(!m){ alert('Rapat tidak ditemukan.'); return; }
+  if(!m.attendees) m.attendees=[];
+  if(!m.attendees.includes(name)) m.attendees.push(name);
+  sv(K.mtg,meetings);
+  document.getElementById('absensiForm').style.display='none';
+  document.getElementById('absensiSuccess').style.display='block';
+}
+// Check URL param on load
+(function checkAbsensiParam(){
+  const params=new URLSearchParams(window.location.search);
+  const mid=params.get('absensi');
+  if(!mid) return;
+  // wait for meetings to be seeded
+  setTimeout(()=>{
+    const m=meetings.find(m=>m.id===mid);
+    if(!m){ return; }
+    document.getElementById('absensiMid').value=mid;
+    document.getElementById('absensiTitle').textContent=m.title;
+    document.getElementById('absensiOverlay').classList.add('open');
+  },100);
+})();
+
+// ══════════════════════════════════════════════════
+//  SYNC FROM ACADEMIC CALENDAR
+// ══════════════════════════════════════════════════
+function syncFromCalendar(){
+  const calPics=ld(CAL_KEY);
+  const st=document.getElementById('syncStatus');
+  if(!calPics.length){ st.style.color='var(--red)'; st.textContent='— Belum ada data PIC dari Kalender Akademik.'; return; }
+  let added=0;
+  calPics.forEach(cp=>{
+    if(!cp.name) return;
+    const exists=pics.find(p=>p.name===cp.name&&p.kegiatan===cp.kegiatan&&p.source==='calendar');
+    if(!exists){ pics.push({id:uid(),name:cp.name,jabatan:cp.jabatan||'',kegiatan:cp.kegiatan||'Kegiatan',source:'calendar',tasks:[]}); added++; }
+  });
+  saveAll(); renderAll();
+  st.style.color=added>0?'var(--green)':'var(--accent)';
+  st.textContent=added>0?`— ${added} PIC baru ditambahkan.`:'— Semua PIC sudah tersinkron.';
+}
+
+// ══════════════════════════════════════════════════
+//  TABS & DASHBOARD NAV
+// ══════════════════════════════════════════════════
+function showDashboard(){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('sec-dashboard').classList.add('active');
+  renderDashboard(); renderNotifications();
+}
+function switchTab(id){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('sec-'+id).classList.add('active');
+  document.getElementById('tab-'+id).classList.add('active');
+  renderAll();
+}
+
+// ══════════════════════════════════════════════════
+//  MODALS
+// ══════════════════════════════════════════════════
+function openModal(id){
+  document.getElementById(id).classList.add('open');
+  if(id==='modalMeeting'){ document.getElementById('mtgTitle').value=''; setTimeout(()=>document.getElementById('mtgTitle').focus(),100); }
+}
+function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.modal-overlay').forEach(el=>{
+  el.addEventListener('click',e=>{if(e.target===el)el.classList.remove('open');});
+});
+
+// ── CUSTOM CONFIRM ──
+let _confirmCb=null;
+function showConfirm(msg,cb){ document.getElementById('confirmMsg').textContent=msg; _confirmCb=cb; document.getElementById('confirmOverlay').classList.add('open'); }
+function confirmYes(){ document.getElementById('confirmOverlay').classList.remove('open'); if(_confirmCb)_confirmCb(); _confirmCb=null; }
+function confirmNo(){ document.getElementById('confirmOverlay').classList.remove('open'); _confirmCb=null; }
+
+// ══════════════════════════════════════════════════
+//  SAVE / DELETE MEETINGS
+// ══════════════════════════════════════════════════
+function saveMeeting(){
+  const title=gv('mtgTitle');
+  if(!title){ alert('Judul rapat wajib diisi.'); return; }
+  const today=new Date().toISOString().split('T')[0];
+  meetings.push({id:uid(),title,date:today,time:'',location:'',participants:[],agenda:'',status:'upcoming',material:''});
+  saveAll(); closeModal('modalMeeting'); renderAll();
+}
+function savePIC(){
+  const name=gv('picName'),keg=gv('picKeg');
+  if(!name||!keg){alert('Nama PIC dan Kegiatan wajib diisi.');return;}
+  pics.push({id:uid(),name,kegiatan:keg,jabatan:gv('picJab'),tanggalPelaksanaan:gv('picTgl'),source:'manual',tasks:[]});
+  saveAll(); closeModal('modalPIC'); renderAll();
+}
+function openEditPIC(picId){
+  const pic=pics.find(p=>p.id===picId); if(!pic)return;
+  document.getElementById('editPicId').value=picId;
+  document.getElementById('editPicName').value=pic.name;
+  document.getElementById('editPicKeg').value=pic.kegiatan;
+  document.getElementById('editPicJab').value=pic.jabatan||'';
+  document.getElementById('editPicTgl').value=pic.tanggalPelaksanaan||'';
+  openModal('modalEditPIC');
+}
+function saveEditPIC(){
+  const picId=document.getElementById('editPicId').value;
+  const name=gv('editPicName'),keg=gv('editPicKeg');
+  if(!name||!keg){alert('Nama PIC dan Kegiatan wajib diisi.');return;}
+  const pic=pics.find(p=>p.id===picId); if(!pic)return;
+  const openIds=getOpenPICs();
+  pic.name=name; pic.kegiatan=keg; pic.jabatan=gv('editPicJab'); pic.tanggalPelaksanaan=gv('editPicTgl');
+  saveAll(); closeModal('modalEditPIC'); renderAll();
+  restoreOpenPICs(openIds);
+}
+
+function autoSaveMeeting(mid, field, value){
+  const m=meetings.find(m=>m.id===mid); if(!m)return;
+  m[field]=value; saveAll();
+  if(field==='date'){
+    const dayEl=document.getElementById('mtg_day_'+mid);
+    const monEl=document.getElementById('mtg_mon_'+mid);
+    if(dayEl) dayEl.textContent=value?dayN(value):'—';
+    if(monEl) monEl.textContent=value?monN(value):'';
+  }
+  renderDashboard(); renderNotifications();
+}
+
+function confirmDeleteMeeting(id){ showConfirm('Hapus rapat ini beserta seluruh notulennya?',()=>deleteMeeting(id)); }
+function confirmDeletePIC(id){ showConfirm('Hapus PIC ini beserta semua task-nya?',()=>deletePIC(id)); }
+function confirmDeleteTask(picId,taskId){ showConfirm('Hapus task ini?',()=>deleteTask(picId,taskId)); }
+function confirmDeleteEval(evalId,picId){ showConfirm('Hapus baris catatan evaluasi ini?',()=>deleteEvalRow(evalId,picId)); }
+
+function deleteMeeting(id){ meetings=meetings.filter(m=>m.id!==id); notulen=notulen.filter(n=>n.meetingId!==id); saveAll(); renderAll(); }
+function deletePIC(id){ pics=pics.filter(p=>p.id!==id); evaluasi=evaluasi.filter(e=>e.picId!==id); saveAll(); renderAll(); }
+function deleteTask(picId,taskId){
+  const openIds=getOpenPICs();
+  const p=pics.find(p=>p.id===picId); if(!p)return;
+  p.tasks=p.tasks.filter(t=>t.id!==taskId); saveAll(); renderAll();
+  restoreOpenPICs(openIds);
+}
+
+// ══════════════════════════════════════════════════
+//  PARTICIPANTS (inline in meeting card)
+// ══════════════════════════════════════════════════
+function addMtgParticipant(mid, event){
+  if(event.key!=='Enter') return;
+  const inp=document.getElementById('mtgp_input_'+mid);
+  const name=(inp&&inp.value.trim())||''; if(!name) return;
+  const m=meetings.find(m=>m.id===mid); if(!m)return;
+  if(!m.participants.includes(name)){ m.participants.push(name); saveAll(); }
+  inp.value='';
+  renderMtgParticipants(mid);
+}
+function removeMtgParticipant(mid, idx){
+  const m=meetings.find(m=>m.id===mid); if(!m)return;
+  m.participants.splice(idx,1); saveAll();
+  renderMtgParticipants(mid);
+}
+function renderMtgParticipants(mid){
+  const m=meetings.find(m=>m.id===mid); if(!m)return;
+  const el=document.getElementById('mtg_chips_'+mid);
+  const cnt=document.getElementById('mtg_pcount_'+mid);
+  if(el) el.innerHTML=m.participants.map((p,i)=>
+    `<span class="chip">${esc(p)}<span class="chip-del" onclick="removeMtgParticipant('${mid}',${i})">✕</span></span>`
+  ).join('');
+  if(cnt) cnt.textContent=m.participants.length+' orang';
+}
+
+// ── ABSENSI HADIR (terpisah dari undangan) ──
+function addMtgAttendee(mid, event){
+  if(event.key!=='Enter') return;
+  const inp=document.getElementById('mtga_input_'+mid);
+  const name=(inp&&inp.value.trim())||''; if(!name) return;
+  const m=meetings.find(m=>m.id===mid); if(!m)return;
+  if(!m.attendees) m.attendees=[];
+  if(!m.attendees.includes(name)){ m.attendees.push(name); saveAll(); }
+  inp.value='';
+  renderMtgAttendees(mid);
+}
+function removeMtgAttendee(mid, idx){
+  const m=meetings.find(m=>m.id===mid); if(!m)return;
+  if(!m.attendees) return;
+  m.attendees.splice(idx,1); saveAll();
+  renderMtgAttendees(mid);
+}
+function renderMtgAttendees(mid){
+  const m=meetings.find(m=>m.id===mid); if(!m)return;
+  if(!m.attendees) m.attendees=[];
+  const el=document.getElementById('mtg_att_chips_'+mid);
+  const cnt=document.getElementById('mtg_acount_'+mid);
+  if(el) el.innerHTML=m.attendees.map((p,i)=>
+    `<span class="chip" style="background:var(--green-bg);color:var(--green)">✓ ${esc(p)}<span class="chip-del" onclick="removeMtgAttendee('${mid}',${i})">✕</span></span>`
+  ).join('');
+  if(cnt) cnt.textContent=m.attendees.length+' hadir';
+}
+
+// ── FILE UPLOAD (metadata in localStorage, dataUrl in memory only) ──
+const _fileDataUrls={}; // { "mid_idx": dataUrl } - kept in memory, not persisted
+function handleMaterialUpload(mid, inputEl){
+  const files=inputEl.files; if(!files||!files.length) return;
+  const m=meetings.find(m=>m.id===mid); if(!m)return;
+  if(!m.files) m.files=[];
+  Array.from(files).forEach(f=>{
+    const sizeStr=f.size<1024?f.size+'B':f.size<1048576?(f.size/1024).toFixed(1)+'KB':(f.size/1048576).toFixed(1)+'MB';
+    const reader=new FileReader();
+    reader.onload=ev=>{
+      const idx=m.files.length;
+      m.files.push({name:f.name,size:sizeStr}); // only metadata saved to localStorage
+      _fileDataUrls[mid+'_'+idx]=ev.target.result; // dataUrl only in memory
+      saveAll();
+      renderMtgFiles(mid);
+    };
+    reader.readAsDataURL(f);
+  });
+  inputEl.value='';
+}
+function removeMtgFile(mid, idx){
+  const m=meetings.find(m=>m.id===mid); if(!m||!m.files)return;
+  m.files.splice(idx,1); saveAll();
+  renderMtgFiles(mid);
+}
+function renderMtgFiles(mid){
+  const m=meetings.find(m=>m.id===mid); if(!m)return;
+  const el=document.getElementById('mtg_files_'+mid); if(!el)return;
+  el.innerHTML=(m.files||[]).map((f,i)=>`
+    <span style="display:inline-flex;align-items:center;gap:.3rem;background:#f1f5f9;border:1px solid var(--border);border-radius:7px;padding:.2rem .55rem;font-size:.71rem;font-weight:600;color:var(--blue);cursor:pointer" onclick="downloadMtgFile('${mid}',${i})">
+      📄 ${esc(f.name)} <span style="color:var(--muted);font-size:.65rem">(${f.size})</span>
+      <span style="cursor:pointer;color:var(--red);opacity:.7" onclick="event.stopPropagation();removeMtgFile('${mid}',${i})">✕</span>
+    </span>`).join('');
+}
+function downloadMtgFile(mid, idx){
+  const dataUrl=_fileDataUrls[mid+'_'+idx];
+  const m=meetings.find(m=>m.id===mid); if(!m||!m.files)return;
+  const f=m.files[idx]; if(!f)return;
+  if(!dataUrl){ alert('File tidak tersedia — file hanya tersimpan sementara di sesi ini. Silakan upload ulang.'); return; }
+  const a=document.createElement('a'); a.href=dataUrl; a.download=f.name; a.click();
+}
+
+// ── PRINT / SIMPAN PDF (browser print dialog) ──
+function printMeetingPDF(mid){
+  const ntBody=document.getElementById('ntBody_'+mid);
+  const ntWasOpen=ntBody&&ntBody.classList.contains('open');
+  if(ntBody){ ntBody.classList.add('open'); document.getElementById('ntBtn_'+mid)?.classList.add('open'); }
+  // Mark only this card for printing
+  document.querySelectorAll('.meeting-card').forEach(c=>c.classList.remove('print-target'));
+  document.getElementById('mtgcard_'+mid)?.classList.add('print-target');
+  document.body.classList.add('print-single-meeting');
+  setTimeout(()=>{
+    window.print();
+    document.body.classList.remove('print-single-meeting');
+    document.querySelectorAll('.meeting-card').forEach(c=>c.classList.remove('print-target'));
+    if(!ntWasOpen&&ntBody){ ntBody.classList.remove('open'); document.getElementById('ntBtn_'+mid)?.classList.remove('open'); }
+  },300);
+}
+function printEvalPDF(picId){
+  const el=document.getElementById('eval_'+picId);
+  const wasOpen=el&&el.classList.contains('open');
+  if(el) el.classList.add('open');
+  // Mark only this eval section for printing
+  document.querySelectorAll('.eval-section').forEach(s=>s.classList.remove('print-target'));
+  el?.classList.add('print-target');
+  document.body.classList.add('print-single-eval');
+  setTimeout(()=>{
+    window.print();
+    document.body.classList.remove('print-single-eval');
+    document.querySelectorAll('.eval-section').forEach(s=>s.classList.remove('print-target'));
+    if(!wasOpen&&el) el.classList.remove('open');
+  },300);
+}
+
+// ══════════════════════════════════════════════════
+//  AUTO-SAVE NOTULEN
+// ══════════════════════════════════════════════════
+function autoSaveNotulen(mid){
+  const m=meetings.find(mt=>mt.id===mid);
+  const data={
+    tanggal: m?m.date:'',
+    notulis: document.getElementById('nf_notulis_'+mid)?.value.trim()||'',
+    topik:   m?m.title||'':'',
+    pembahasan: document.getElementById('nf_pembahasan_'+mid)?.value.trim()||'',
+    pengesahan: document.getElementById('nf_pengesahan_'+mid)?.value.trim()||'',
+  };
+  let nt=notulen.find(n=>n.meetingId===mid);
+  if(nt){ Object.assign(nt,data); }
+  else { notulen.push({id:uid(),meetingId:mid,konfirmasi:null,disahkan:false,...data}); }
+  saveAll();
+  const hint=document.getElementById('nt_hint_'+mid);
+  if(hint){ hint.textContent='✓ Tersimpan'; hint.style.color='var(--green)'; setTimeout(()=>{hint.textContent='Otomatis tersimpan saat mengubah field';hint.style.color='';},1600); }
+}
+function setNotulenKonfirmasi(mid,val){
+  let nt=notulen.find(n=>n.meetingId===mid);
+  if(!nt){ autoSaveNotulen(mid); nt=notulen.find(n=>n.meetingId===mid); }
+  if(nt){ nt.konfirmasi=val; saveAll(); }
+  // Update tombol dalam accordion
+  const yBtn=document.getElementById('nf_kyes_'+mid),nBtn=document.getElementById('nf_kno_'+mid);
+  if(yBtn) yBtn.className='nt-confirm-btn'+(val===true?' yes':'');
+  if(nBtn) nBtn.className='nt-confirm-btn'+(val===false?' no':'');
+  // Update badge di header toggle button secara langsung
+  updateNtHeaderBadges(mid);
+}
+function togglePengesahan(mid){
+  let nt=notulen.find(n=>n.meetingId===mid);
+  if(!nt){ autoSaveNotulen(mid); nt=notulen.find(n=>n.meetingId===mid); }
+  if(nt){ nt.disahkan=!nt.disahkan; saveAll(); }
+  // Update tombol pengesahan dalam accordion
+  const btn=document.getElementById('nf_sahbtn_'+mid);
+  if(btn){ btn.className='nt-sah-btn'+(nt&&nt.disahkan?' sah':''); btn.textContent=nt&&nt.disahkan?'✅ Sudah Disahkan':'⏳ Belum Disahkan'; }
+  // Update badge di header toggle button secara langsung
+  updateNtHeaderBadges(mid);
+}
+function updateNtHeaderBadges(mid){
+  const nt=notulen.find(n=>n.meetingId===mid);
+  const ntBtn=document.getElementById('ntBtn_'+mid);
+  if(!ntBtn) return;
+  // Rebuild badge HTML
+  const kBadge=nt&&nt.konfirmasi===true
+    ?`<span class="badge green" style="margin-left:.2rem;font-size:.62rem">✓ Dibaca</span>`
+    :nt&&nt.konfirmasi===false
+    ?`<span class="badge red" style="margin-left:.2rem;font-size:.62rem">✗ Belum Dibaca</span>`
+    :'';
+  const sahBadge=nt&&nt.disahkan
+    ?`<span class="badge green" style="margin-left:.2rem;font-size:.62rem">✅ Disahkan</span>`
+    :`<span class="badge yellow" style="margin-left:.2rem;font-size:.62rem">⏳ Belum Disahkan</span>`;
+  // Update elemen badge yang sudah ada, atau inject baru
+  let badgeWrap=ntBtn.querySelector('.nt-badge-group');
+  if(!badgeWrap){
+    badgeWrap=document.createElement('span');
+    badgeWrap.className='nt-badge-group';
+    // Insert sebelum chevron
+    const chevron=ntBtn.querySelector('.nt-chevron');
+    if(chevron) ntBtn.insertBefore(badgeWrap,chevron);
+    else ntBtn.appendChild(badgeWrap);
+  }
+  badgeWrap.innerHTML=sahBadge+kBadge;
+}
+function initNtTextareas(){
+  document.querySelectorAll('[id^="nf_pembahasan_"]').forEach(el=>{el.style.height='auto';el.style.height=el.scrollHeight+'px';});
+  document.querySelectorAll('[id^="mtg_agenda_"]').forEach(el=>{el.style.height='auto';el.style.height=el.scrollHeight+'px';});
+}
+function toggleNotulen(mid){
+  const body=document.getElementById('ntBody_'+mid),btn=document.getElementById('ntBtn_'+mid);
+  if(!body)return;
+  const isOpen=body.classList.contains('open');
+  body.classList.toggle('open',!isOpen); btn.classList.toggle('open',!isOpen);
+  if(!isOpen) setTimeout(initNtTextareas,50);
+}
+
+// ══════════════════════════════════════════════════
+//  TASK EDITING (INLINE)
+// ══════════════════════════════════════════════════
+const taskEditMode=new Set();
+
+function toggleTaskEditMode(picId){
+  if(taskEditMode.has(picId)) taskEditMode.delete(picId);
+  else taskEditMode.add(picId);
+  const openIds=getOpenPICs();
+  renderTimeline();
+  restoreOpenPICs(openIds);
+  setTimeout(()=>{
+    const sec=document.getElementById('pic_'+picId);
+    if(sec) sec.classList.add('open');
+  },30);
+}
+
+function saveTaskEdit(picId, taskId){
+  const pic=pics.find(p=>p.id===picId);
+  const task=pic&&pic.tasks.find(t=>t.id===taskId);
+  if(!task) return;
+  const nameEl=document.getElementById('et_name_'+taskId);
+  const dlEl=document.getElementById('et_dl_'+taskId);
+  const prioEl=document.getElementById('et_prio_'+taskId);
+  const statEl=document.getElementById('et_stat_'+taskId);
+  if(nameEl&&nameEl.value.trim()) task.name=nameEl.value.trim();
+  if(dlEl&&dlEl.value) task.deadline=dlEl.value;
+  if(prioEl) task.priority=prioEl.value;
+  if(statEl) task.status=statEl.value;
+  saveAll();
+  const openIds=getOpenPICs();
+  renderTimeline();
+  restoreOpenPICs(openIds);
+  setTimeout(()=>{
+    const sec=document.getElementById('pic_'+picId);
+    if(sec) sec.classList.add('open');
+  },30);
+}
+
+// ══════════════════════════════════════════════════
+//  ADD TASK from TABLE inline row
+// ══════════════════════════════════════════════════
+function addTaskFromRow(picId){
+  const name=document.getElementById('tn_'+picId)?.value.trim();
+  const dl=document.getElementById('td_'+picId)?.value;
+  const prio=document.getElementById('tp_'+picId)?.value||'normal';
+  if(!name||!dl){alert('Nama task dan deadline wajib diisi.');return;}
+  const openIds=getOpenPICs();
+  const pic=pics.find(p=>p.id===picId); if(!pic)return;
+  pic.tasks.push({id:uid(),name,deadline:dl,priority:prio,status:'todo'});
+  saveAll(); renderAll();
+  restoreOpenPICs(openIds);
+}
+function toggleTask(picId,taskId){
+  const openIds=getOpenPICs();
+  const p=pics.find(p=>p.id===picId); const t=p&&p.tasks.find(t=>t.id===taskId); if(!t)return;
+  t.status=t.status==='done'?'todo':'done'; saveAll(); renderAll();
+  restoreOpenPICs(openIds);
+}
+
+// ══════════════════════════════════════════════════
+//  PNG / PDF EXPORT
+// ══════════════════════════════════════════════════
+function showLoader(msg){ document.getElementById('loaderText').textContent=msg||'Memproses...'; document.getElementById('loaderOverlay').classList.add('open'); }
+function hideLoader(){ document.getElementById('loaderOverlay').classList.remove('open'); }
+
+async function savePicPNG(picId){
+  if(typeof html2canvas==='undefined'){alert('Library html2canvas belum termuat, coba lagi sebentar.');return;}
+  const sec=document.getElementById('pic_'+picId); if(!sec)return;
+  const wasOpen=sec.classList.contains('open');
+  sec.classList.add('open');
+  showLoader('📸 Menyiapkan gambar...');
+  await new Promise(r=>setTimeout(r,450));
+  try{
+    const canvas=await html2canvas(sec,{backgroundColor:'#ffffff',scale:2,useCORS:true,logging:false});
+    const link=document.createElement('a');
+    const pic=pics.find(p=>p.id===picId);
+    link.download=`timeline-${(pic?pic.name:'pic').replace(/\s+/g,'-')}.png`;
+    link.href=canvas.toDataURL('image/png'); link.click();
+  }finally{
+    hideLoader();
+    if(!wasOpen) sec.classList.remove('open');
+  }
+}
+
+async function saveMeetingPDF(mid){
+  if(typeof html2canvas==='undefined'||typeof window.jspdf==='undefined'){alert('Library PDF belum termuat, coba lagi sebentar.');return;}
+  const el=document.getElementById('mtgcard_'+mid); if(!el)return;
+  const ntBody=document.getElementById('ntBody_'+mid);
+  const ntWasOpen=ntBody&&ntBody.classList.contains('open');
+  if(ntBody){ ntBody.classList.add('open'); document.getElementById('ntBtn_'+mid)?.classList.add('open'); }
+  showLoader('🖨️ Membuat PDF...');
+  await new Promise(r=>setTimeout(r,400));
+  try{
+    const canvas=await html2canvas(el,{backgroundColor:'#ffffff',scale:2,useCORS:true,logging:false});
+    const {jsPDF}=window.jspdf;
+    const pdf=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+    const pdfW=210; const imgH=canvas.height*(pdfW/canvas.width);
+    const imgData=canvas.toDataURL('image/png');
+    let yPos=0; let remainH=imgH;
+    const pageH=297;
+    while(remainH>0){
+      if(yPos>0) pdf.addPage();
+      const sliceH=Math.min(remainH,pageH);
+      pdf.addImage(imgData,'PNG',0,-yPos,pdfW,imgH);
+      yPos+=sliceH; remainH-=sliceH;
+    }
+    const m=meetings.find(m=>m.id===mid);
+    pdf.save(`rapat-${(m?m.title:'meeting').replace(/\s+/g,'-')}.pdf`);
+  }finally{
+    hideLoader();
+    if(!ntWasOpen&&ntBody){ ntBody.classList.remove('open'); document.getElementById('ntBtn_'+mid)?.classList.remove('open'); }
+  }
+}
+
+async function saveEvalPDF(picId){
+  if(typeof html2canvas==='undefined'||typeof window.jspdf==='undefined'){alert('Library PDF belum termuat, coba lagi sebentar.');return;}
+  const el=document.getElementById('eval_'+picId); if(!el)return;
+  const wasOpen=el.classList.contains('open');
+  el.classList.add('open');
+  showLoader('🖨️ Membuat PDF Evaluasi...');
+  await new Promise(r=>setTimeout(r,400));
+  try{
+    const canvas=await html2canvas(el,{backgroundColor:'#ffffff',scale:2,useCORS:true,logging:false});
+    const {jsPDF}=window.jspdf;
+    const pdf=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+    const pdfW=210; const imgH=canvas.height*(pdfW/canvas.width);
+    const imgData=canvas.toDataURL('image/png');
+    pdf.addImage(imgData,'PNG',0,0,pdfW,Math.min(imgH,297));
+    const pic=pics.find(p=>p.id===picId);
+    pdf.save(`evaluasi-${(pic?pic.name:'pic').replace(/\s+/g,'-')}.pdf`);
+  }finally{
+    hideLoader();
+    if(!wasOpen) el.classList.remove('open');
+  }
+}
+
+// ══════════════════════════════════════════════════
+//  TOGGLE PIC ACCORDION
+// ══════════════════════════════════════════════════
+function getOpenPICs(){ return[...document.querySelectorAll('.pic-section.open')].map(el=>el.id.replace('pic_','')); }
+function restoreOpenPICs(ids){ ids.forEach(id=>{const s=document.getElementById('pic_'+id);if(s)s.classList.add('open');}); }
+function togglePIC(id){ const sec=document.getElementById('pic_'+id); if(!sec)return; sec.classList.toggle('open'); }
+
+// ══════════════════════════════════════════════════
+//  RENDER: TIMELINE PIC
+// ══════════════════════════════════════════════════
+function renderTimeline(){
+  const el=document.getElementById('timelineList'); if(!el)return;
+  if(!pics.length){
+    el.innerHTML=`<div class="empty-state"><div class="ei">📌</div><p>Belum ada PIC. Sync dari Kalender Akademik atau klik "+ Tambah PIC Manual".</p></div>`;
+    return;
+  }
+  const today=new Date().toISOString().split('T')[0];
+
+  // Sort PIC berdasarkan tanggalPelaksanaan terdekat (yang belum isi taruh di akhir)
+  const sortedPics=[...pics].sort((a,b)=>{
+    const tA=a.tanggalPelaksanaan||'';
+    const tB=b.tanggalPelaksanaan||'';
+    if(!tA&&!tB) return 0;
+    if(!tA) return 1;
+    if(!tB) return -1;
+    return tA.localeCompare(tB);
+  });
+
+  el.innerHTML=sortedPics.map(pic=>{
+    const done=pic.tasks.filter(t=>t.status==='done').length;
+    const total=pic.tasks.length;
+    const pct=total?Math.round(done/total*100):0;
+    const sorted=[...pic.tasks].sort((a,b)=>a.deadline.localeCompare(b.deadline));
+    const isEditMode=taskEditMode.has(pic.id);
+
+    // Badge tanggal pelaksanaan
+    let tglBadge='';
+    if(pic.tanggalPelaksanaan){
+      const dLeft=daysLeft(pic.tanggalPelaksanaan);
+      let tglColor='background:rgba(255,255,255,.15);color:#fff;border:1.5px solid rgba(255,255,255,.3)';
+      let tglLabel=fmtD(pic.tanggalPelaksanaan);
+      if(dLeft<0) { tglColor='background:#fee2e2;color:#dc2626;border:1.5px solid #fca5a5'; tglLabel='⚠️ '+tglLabel+' (terlambat)'; }
+      else if(dLeft===0) { tglColor='background:#fef3c7;color:#92400e;border:1.5px solid #fde68a'; tglLabel='🔔 Hari ini!'; }
+      else if(dLeft<=7) { tglColor='background:#fef3c7;color:#92400e;border:1.5px solid #fde68a'; tglLabel='📅 '+tglLabel+' ('+dLeft+'h lagi)'; }
+      else { tglLabel='📅 '+tglLabel; }
+      tglBadge=`<span style="display:inline-flex;align-items:center;gap:.3rem;font-size:.7rem;font-weight:700;border-radius:99px;padding:.22rem .7rem;white-space:nowrap;${tglColor}">${tglLabel}</span>`;
+    } else {
+      tglBadge=`<span style="display:inline-flex;align-items:center;gap:.3rem;font-size:.7rem;font-weight:600;border-radius:99px;padding:.22rem .7rem;white-space:nowrap;background:rgba(255,255,255,.1);color:rgba(255,255,255,.6);border:1.5px solid rgba(255,255,255,.2)">📅 Tgl belum diisi</span>`;
+    }
+
+    const rows=sorted.map(t=>{
+      if(isEditMode){
+        return`<tr class="task-row" style="background:#f0f9ff">
+          <td style="min-width:180px">
+            <input id="et_name_${t.id}" class="task-edit-input" type="text" value="${esc(t.name)}"
+              onblur="autoSaveTaskField('${pic.id}','${t.id}','name',this.value)">
+          </td>
+          <td>
+            <input id="et_dl_${t.id}" class="task-edit-input" type="date" value="${t.deadline}" style="width:auto"
+              onchange="autoSaveTaskField('${pic.id}','${t.id}','deadline',this.value)">
+          </td>
+          <td>
+            <select id="et_prio_${t.id}" class="task-edit-select"
+              onchange="autoSaveTaskField('${pic.id}','${t.id}','priority',this.value)">
+              <option value="normal"${t.priority==='normal'?' selected':''}>⚪ Normal</option>
+              <option value="high"${t.priority==='high'?' selected':''}>🟡 Tinggi</option>
+              <option value="urgent"${t.priority==='urgent'?' selected':''}>🔴 Mendesak</option>
+            </select>
+          </td>
+          <td>
+            <select id="et_stat_${t.id}" class="task-edit-select"
+              onchange="autoSaveTaskField('${pic.id}','${t.id}','status',this.value)">
+              <option value="todo"${t.status==='todo'?' selected':''}>⬜ Belum</option>
+              <option value="done"${t.status==='done'?' selected':''}>✅ Selesai</option>
+            </select>
+          </td>
+          <td style="text-align:center;white-space:nowrap">
+            <span style="font-size:.65rem;color:var(--green);font-weight:600" id="et_saved_${t.id}"></span>
+            <button class="tbl-icon-btn del" onclick="event.stopPropagation();confirmDeleteTask('${pic.id}','${t.id}')" title="Hapus">🗑️</button>
+          </td>
+        </tr>`;
+      } else {
+        return`<tr class="task-row${t.status==='done'?' done-row':''}">
+          <td style="min-width:180px">
+            <span class="status-dot ${dotClass(t)}"></span>
+            <span style="${t.status==='done'?'text-decoration:line-through;color:var(--muted)':''}">${esc(t.name)}</span>
+          </td>
+          <td style="white-space:nowrap;font-size:.8rem">${fmtD(t.deadline)}</td>
+          <td>${prioBadge(t.priority)}</td>
+          <td>${dlLabel(t)}</td>
+          <td style="white-space:nowrap;text-align:center">
+            <button class="tbl-icon-btn" onclick="event.stopPropagation();toggleTask('${pic.id}','${t.id}')"
+              title="${t.status==='done'?'Batalkan selesai':'Tandai selesai'}"
+              style="font-size:1rem;font-weight:700;color:${t.status==='done'?'var(--green)':'var(--muted)'}">
+              ${t.status==='done'?'✓':'—'}
+            </button>
+            <button class="tbl-icon-btn del" onclick="event.stopPropagation();confirmDeleteTask('${pic.id}','${t.id}')" title="Hapus">🗑️</button>
+          </td>
+        </tr>`;
+      }
+    }).join('');
+
+    return`<div class="pic-section" id="pic_${pic.id}">
+      <div class="pic-header" onclick="togglePIC('${pic.id}')">
+        <div>
+          <div class="pn">👤 ${esc(pic.name)}
+            ${pic.source==='calendar'?'<span class="badge cyan" style="font-size:.58rem;padding:.15rem .45rem">📅 Kalender</span>':'<span class="badge gray" style="font-size:.58rem;padding:.15rem .45rem">Manual</span>'}
+          </div>
+          <div class="pk">🎯 ${esc(pic.kegiatan)}</div>
+          ${pic.jabatan?`<div class="pj">${esc(pic.jabatan)}</div>`:''}
+        </div>
+        <div class="pic-header-right">
+          ${tglBadge}
+          <span class="badge cyan">${done}/${total} &nbsp;${pct}%</span>
+          <button onclick="event.stopPropagation();switchTab('evaluasi');highlightEval('${pic.id}')" class="eval-link-btn" title="Lihat Evaluasi">📋 Evaluasi</button>
+          <button onclick="event.stopPropagation();toggleTaskEditMode('${pic.id}')" class="pic-edit-btn${isEditMode?' active':''}" title="${isEditMode?'Selesai edit task':'Edit task di bawah'}">
+            ${isEditMode?'✓ Selesai Edit':'✏️ Edit Task'}
+          </button>
+          <button onclick="event.stopPropagation();openEditPIC('${pic.id}')" class="pic-edit-btn" title="Edit Info PIC">👤 Edit PIC</button>
+          <button onclick="event.stopPropagation();savePicPNG('${pic.id}')" class="pic-edit-btn" title="Simpan sebagai PNG">🖼️ PNG</button>
+          <button onclick="event.stopPropagation();confirmDeletePIC('${pic.id}')" style="background:rgba(255,255,255,.12);color:#fff;border:1.5px solid rgba(255,255,255,.25);border-radius:7px;padding:.28rem .5rem;font-size:.8rem;cursor:pointer" title="Hapus PIC">🗑️</button>
+          <span class="pic-chevron">▾</span>
+        </div>
+      </div>
+      <div class="pic-body">
+        <div class="pic-progress-bar"><div class="pic-progress-fill" style="width:${pct}%"></div></div>
+        ${isEditMode?`<div style="padding:.55rem 1rem;background:#e0f2fe;font-size:.78rem;color:var(--accent);font-weight:600;display:flex;align-items:center;gap:.4rem">✏️ Mode Edit Aktif — Perubahan disimpan otomatis saat Anda mengubah setiap kolom</div>`:''}
+        <div class="task-table-wrap">
+          <table class="task-tbl">
+            <thead>
+              <tr>
+                <th>📋 Nama Task</th>
+                <th>📅 Deadline</th>
+                <th>Prioritas</th>
+                <th>${isEditMode?'Status':'Status Waktu'}</th>
+                <th style="text-align:center">Aksi</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${rows||`<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:1rem;font-size:.82rem">Belum ada task — isi baris di bawah untuk menambahkan.</td></tr>`}
+              ${!isEditMode?`<tr class="add-row">
+                <td><input id="tn_${pic.id}" type="text" placeholder="✏️ Nama task baru..."></td>
+                <td><input id="td_${pic.id}" type="date" value="${today}"></td>
+                <td>
+                  <select id="tp_${pic.id}">
+                    <option value="normal">⚪ Normal</option>
+                    <option value="high">🟡 Tinggi</option>
+                    <option value="urgent">🔴 Mendesak</option>
+                  </select>
+                </td>
+                <td colspan="2">
+                  <button class="btn-primary green sm" onclick="addTaskFromRow('${pic.id}')">+ Tambah</button>
+                </td>
+              </tr>`:''}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════════════════
+//  RENDER: RAPAT & NOTULEN
+// ══════════════════════════════════════════════════
+function renderRapat(){
+  const el=document.getElementById('rapatList'); if(!el)return;
+  if(!meetings.length){
+    el.innerHTML=`<div class="empty-state"><div class="ei">📅</div><p>Belum ada rapat. Klik "+ Buat Rapat" untuk mulai.</p></div>`;
+    return;
+  }
+  const sorted=[...meetings].sort((a,b)=>b.date.localeCompare(a.date));
+  el.innerHTML=sorted.map(m=>{
+    const nt=notulen.find(n=>n.meetingId===m.id)||{tanggal:m.date,notulis:'',topik:m.title||'',pembahasan:'',konfirmasi:null,disahkan:false,pengesahan:''};
+    const ntFilled=!!(nt.pembahasan||nt.topik);
+    const kBadge=nt.konfirmasi===true?`<span class="badge green" style="margin-left:.2rem;font-size:.62rem">✓ Dibaca</span>`:nt.konfirmasi===false?`<span class="badge red" style="margin-left:.2rem;font-size:.62rem">✗ Belum Dibaca</span>`:'';
+    const sahBadge=nt.disahkan
+      ?`<span class="badge green" style="margin-left:.2rem;font-size:.62rem">✅ Disahkan</span>`
+      :`<span class="badge yellow" style="margin-left:.2rem;font-size:.62rem">⏳ Belum Disahkan</span>`;
+    const absensiURL=getAbsensiURL(m.id);
+    const qrURL=getQRImageURL(absensiURL);
+
+    return`<div class="meeting-card" id="mtgcard_${m.id}">
+      <!-- Card title bar with delete button -->
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:.45rem .85rem .2rem;background:var(--blue-light);border-bottom:1px solid var(--border)">
+        <span style="font-size:.7rem;font-weight:700;color:var(--muted);letter-spacing:.04em;text-transform:uppercase">📌 Kartu Rapat</span>
+        <button class="tbl-icon-btn del" onclick="confirmDeleteMeeting('${m.id}')" title="Hapus Rapat ini" style="font-size:1rem;padding:.2rem .35rem;border-radius:7px;background:var(--red-bg);color:var(--red);border:1.5px solid #fca5a5">🗑️ Hapus</button>
+      </div>
+      <div class="meeting-main">
+        <div class="mtg-date-col">
+          <div class="mtg-day" id="mtg_day_${m.id}">${m.date?dayN(m.date):'—'}</div>
+          <div class="mtg-mon" id="mtg_mon_${m.id}">${m.date?monN(m.date):''}</div>
+        </div>
+        <div class="mtg-body">
+          <input class="mtg-title-input" value="${esc(m.title)}" placeholder="Judul rapat..."
+            onblur="autoSaveMeeting('${m.id}','title',this.value)">
+          <div class="mif-row">
+            <span class="mif-label">📅</span>
+            <input type="date" class="mif-input" value="${m.date||''}"
+              onchange="autoSaveMeeting('${m.id}','date',this.value)">
+            <span class="mif-label">🕐</span>
+            <input type="time" class="mif-input" value="${m.time||''}"
+              onchange="autoSaveMeeting('${m.id}','time',this.value)">
+          </div>
+          <div class="mif-row">
+            <span class="mif-label">📍</span>
+            <input type="text" class="mif-input flex1" value="${esc(m.location||'')}" placeholder="Tempat / Link meeting"
+              onblur="autoSaveMeeting('${m.id}','location',this.value)">
+          </div>
+          <div class="mif-row">
+            <span class="mif-label">✍️</span>
+            <input type="text" class="mif-input flex1" placeholder="Nama notulis..."
+              id="nf_notulis_${m.id}" value="${esc(nt.notulis||'')}"
+              onblur="autoSaveNotulen('${m.id}')">
+          </div>
+          <div class="mif-row" style="align-items:flex-start">
+            <span class="mif-label" style="margin-top:.35rem">📋</span>
+            <textarea class="mif-input flex1" placeholder="Agenda rapat..."
+              id="mtg_agenda_${m.id}"
+              oninput="autoResize(this)"
+              onblur="autoSaveMeeting('${m.id}','agenda',this.value)">${esc(m.agenda||'')}</textarea>
+          </div>
+          <div class="mif-row">
+            <select class="mif-select" onchange="autoSaveMeeting('${m.id}','status',this.value)">
+              <option value="upcoming"${m.status==='upcoming'?' selected':''}>⏰ Akan Datang</option>
+              <option value="done"${m.status==='done'?' selected':''}>✅ Selesai</option>
+              <option value="cancelled"${m.status==='cancelled'?' selected':''}>❌ Dibatalkan</option>
+            </select>
+          </div>
+        </div>
+        <div class="mtg-actions">
+          <button class="btn-primary sm orange" onclick="printMeetingPDF('${m.id}')" title="Print / Simpan PDF" style="white-space:nowrap">🖨️ Print/PDF</button>
+        </div>
+      </div>
+
+      <!-- ── PESERTA + ABSENSI QR ── -->
+      <div class="attendance-section">
+        <div class="att-main">
+          <!-- Kolom kiri: Absensi Hadir saja -->
+          <div class="att-info" style="flex:1;min-width:0">
+            <!-- Absensi Hadir -->
+            <div class="att-header" style="margin-bottom:.3rem">
+              ✅ Daftar Hadir
+              <span class="badge green" id="mtg_acount_${m.id}">${(m.attendees||[]).length} hadir</span>
+            </div>
+            <div style="font-size:.7rem;color:var(--muted);margin-bottom:.35rem">Diisi otomatis saat peserta scan QR / buka link absensi, atau tambah manual.</div>
+            <div class="chip-row" id="mtg_att_chips_${m.id}">
+              ${(m.attendees||[]).map((p,i)=>`<span class="chip" style="background:var(--green-bg);color:var(--green)">✓ ${esc(p)}<span class="chip-del" onclick="removeMtgAttendee('${m.id}',${i})">✕</span></span>`).join('')}
+            </div>
+            <input type="text" class="att-add-input" placeholder="+ Tambah hadir manual (tekan Enter)"
+              id="mtga_input_${m.id}" onkeydown="addMtgAttendee('${m.id}',event)"
+              style="border-color:#86efac">
+          </div>
+          <!-- Kolom kanan: QR -->
+          <div class="att-qr">
+            <div class="att-qr-label">🔗 Link Absensi Mandiri</div>
+            <img src="${qrURL}" width="110" height="110" alt="QR Absensi" loading="lazy" style="border-radius:8px;border:1.5px solid var(--border)">
+            <div class="att-qr-btns">
+              <button id="copy_link_${m.id}" class="btn-primary sm" style="font-size:.7rem;padding:.3rem .65rem"
+                onclick="copyAbsensiLink('${m.id}')">📋 Salin Link</button>
+              <a href="${absensiURL}" target="_blank" class="btn-primary sm accent" style="font-size:.7rem;padding:.3rem .65rem;text-decoration:none">🔗 Buka</a>
+            </div>
+            <div style="font-size:.65rem;color:var(--muted);text-align:center;margin-top:.4rem;max-width:110px">Peserta scan QR → otomatis tercatat di Absensi Hadir</div>
+          </div>
+        </div>
+        <!-- Material link + Upload -->
+        <div class="material-row">
+          <span class="mif-label">📎</span>
+          <input type="url" class="mif-input flex1" placeholder="Link materi / dokumen (Google Drive, OneDrive, dll)..."
+            value="${esc(m.material||'')}"
+            id="mtg_mat_url_${m.id}"
+            onblur="autoSaveMeeting('${m.id}','material',this.value)">
+          <!-- Upload tombol -->
+          <label title="Upload file / lampiran" style="display:inline-flex;align-items:center;gap:.3rem;padding:.3rem .65rem;border-radius:7px;background:var(--accent-bg);color:var(--accent);border:1.5px solid #a5d8e6;font-size:.73rem;font-weight:600;cursor:pointer;white-space:nowrap">
+            📁 Lampir
+            <input type="file" style="display:none" onchange="handleMaterialUpload('${m.id}',this)">
+          </label>
+          ${m.material?`<a href="${esc(m.material)}" target="_blank" class="material-open-btn">🔗 Buka</a>`:''}
+        </div>
+        <!-- Uploaded files list -->
+        <div id="mtg_files_${m.id}" style="padding:.3rem .9rem .5rem;display:flex;flex-wrap:wrap;gap:.3rem">
+          ${(m.files||[]).map((f,i)=>`<span style="display:inline-flex;align-items:center;gap:.3rem;background:#f1f5f9;border:1px solid var(--border);border-radius:7px;padding:.2rem .55rem;font-size:.71rem;font-weight:600;color:var(--blue)">
+            📄 ${esc(f.name)} <span style="color:var(--muted);font-size:.65rem">(${f.size})</span>
+            <span style="cursor:pointer;color:var(--red);opacity:.7" onclick="removeMtgFile('${m.id}',${i})">✕</span>
+          </span>`).join('')}
+        </div>
+      </div>
+
+      <!-- ── NOTULEN ACCORDION ── -->
+      <div class="notulen-accordion">
+        <button class="nt-toggle-btn" id="ntBtn_${m.id}" onclick="toggleNotulen('${m.id}')">
+          📝 Isi Notulensi Rapat ${ntFilled?`<span class="badge cyan" style="margin-left:.3rem;font-size:.62rem">Terisi</span>`:`<span class="badge gray" style="margin-left:.3rem;font-size:.62rem">Kosong</span>`}
+          <span class="nt-badge-group">${sahBadge}${kBadge}</span>
+          <span class="nt-chevron">▾</span>
+        </button>
+        <div class="nt-body" id="ntBody_${m.id}">
+          <div class="nt-inline">
+            <div class="nt-field"><label>📋 Hasil Rapat &amp; Pembahasan</label><textarea id="nf_pembahasan_${m.id}" placeholder="Tulis hasil pembahasan rapat..." oninput="autoResize(this)" onblur="autoSaveNotulen('${m.id}')">${esc(nt.pembahasan||'')}</textarea></div>
+            <div class="nt-confirm-row">
+              <span class="nt-confirm-label">📖 Konfirmasi Pembacaan Ulang Hasil Rapat</span>
+              <div class="nt-confirm-btns">
+                <button id="nf_kyes_${m.id}" class="nt-confirm-btn${nt.konfirmasi===true?' yes':''}" onclick="setNotulenKonfirmasi('${m.id}',true)">✓ Sudah Dibaca</button>
+                <button id="nf_kno_${m.id}"  class="nt-confirm-btn${nt.konfirmasi===false?' no':''}"  onclick="setNotulenKonfirmasi('${m.id}',false)">✗ Belum</button>
+              </div>
+            </div>
+            <div class="nt-pengesahan-row">
+              <div class="nt-field" style="flex:1;margin-bottom:0"><label>🖊️ Pengesahan Pemimpin Rapat</label><input type="text" id="nf_pengesahan_${m.id}" placeholder="Nama pemimpin rapat..." value="${esc(nt.pengesahan||'')}" onblur="autoSaveNotulen('${m.id}')"></div>
+              <button id="nf_sahbtn_${m.id}" class="nt-sah-btn${nt.disahkan?' sah':''}" onclick="togglePengesahan('${m.id}')">${nt.disahkan?'✅ Sudah Disahkan':'⏳ Belum Disahkan'}</button>
+            </div>
+            <div class="nt-hint" id="nt_hint_${m.id}">Otomatis tersimpan saat mengubah field</div>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+  setTimeout(initNtTextareas, 30);
+}
+
+// ══════════════════════════════════════════════════
+//  RENDER: DASHBOARD
+// ══════════════════════════════════════════════════
+function renderDashboard(){
+  const today=new Date().setHours(0,0,0,0);
+  const upcoming=meetings.filter(m=>m.status==='upcoming'&&new Date(m.date+'T00:00:00')>=today);
+  let urgent=[];
+  pics.forEach(p=>p.tasks.forEach(t=>{
+    if(t.status!=='done'){const d=daysLeft(t.deadline);if(d<=3)urgent.push({...t,picName:p.name});}
+  }));
+  document.getElementById('dashStats').innerHTML=`
+    <div class="dash-stat"><div class="ds-icon blue">🤝</div><div><div class="ds-num">${meetings.length}</div><div class="ds-label">Total Rapat</div></div></div>
+    <div class="dash-stat"><div class="ds-icon yellow">⏰</div><div><div class="ds-num">${upcoming.length}</div><div class="ds-label">Rapat Mendatang</div></div></div>
+    <div class="dash-stat"><div class="ds-icon red">🚨</div><div><div class="ds-num">${urgent.length}</div><div class="ds-label">Task Mendesak</div></div></div>`;
+
+  const nm=[...meetings].filter(m=>m.status==='upcoming').sort((a,b)=>a.date.localeCompare(b.date)).slice(0,4);
+  document.getElementById('dashMtgs').innerHTML=nm.length
+    ?nm.map(m=>`<div class="dash-mtg-item"><span class="dash-mtg-date">${dayN(m.date)} ${monN(m.date)}</span><span>${esc(m.title)}</span></div>`).join('')
+    :`<div class="dash-empty">Tidak ada meeting mendatang.</div>`;
+
+  document.getElementById('dashTasks').innerHTML=urgent.length
+    ?urgent.slice(0,5).map(t=>`<div class="dash-task-item">🔴 <span><strong>${esc(t.picName)}</strong> — ${esc(t.name)} (${dlLabel(t)})</span></div>`).join('')
+    :`<div class="dash-empty">✅ Tidak ada task mendesak.</div>`;
+}
+
+// ══════════════════════════════════════════════════
+//  NOTIFICATIONS
+// ══════════════════════════════════════════════════
+function renderNotifications(){
+  const list=document.getElementById('notifList'),badge=document.getElementById('notifBadge');
+  let items=[];
+  meetings.forEach(m=>{
+    if(m.status!=='upcoming')return;
+    const d=daysLeft(m.date);
+    if(d>=0&&d<=2) items.push({type:d===0?'urgent':'soon',text:`<strong>${esc(m.title)}</strong><br><span>${d===0?'Hari ini':'Dalam '+d+' hari'} — ${m.time||'belum ada waktu'}</span>`});
+  });
+  pics.forEach(p=>p.tasks.forEach(t=>{
+    if(t.status==='done')return;
+    const d=daysLeft(t.deadline);
+    if(d<0) items.push({type:'urgent',text:`<strong>[TERLAMBAT] ${esc(t.name)}</strong><br><span>PIC: ${esc(p.name)} — ${Math.abs(d)} hari lewat deadline</span>`});
+    else if(d<=3) items.push({type:'soon',text:`<strong>${esc(t.name)}</strong><br><span>PIC: ${esc(p.name)} — ${d===0?'Hari ini':d+' hari lagi'}</span>`});
+  }));
+  badge.textContent=items.length;
+  badge.classList.toggle('hidden',items.length===0);
+  list.innerHTML=items.length
+    ?items.map(it=>`<div class="notif-item"><div class="notif-dot ${it.type}"></div><div class="notif-text">${it.text}</div></div>`).join('')
+    :`<div class="notif-empty">✅ Tidak ada notifikasi aktif.</div>`;
+}
+
+function toggleNotif(){ document.getElementById('notifPanel').classList.toggle('open'); }
+document.addEventListener('click',e=>{
+  const np=document.getElementById('notifPanel'),nb=document.querySelector('.notif-btn');
+  if(np.classList.contains('open')&&!np.contains(e.target)&&!nb.contains(e.target)) np.classList.remove('open');
+});
+
+// ══════════════════════════════════════════════════
+//  EVALUASI KEGIATAN
+// ══════════════════════════════════════════════════
+function highlightEval(picId){
+  setTimeout(()=>{
+    const sec=document.getElementById('eval_'+picId);
+    if(sec){ sec.classList.add('open'); sec.scrollIntoView({behavior:'smooth',block:'start'}); }
+  }, 80);
+}
+function toggleEval(picId){
+  const sec=document.getElementById('eval_'+picId);
+  if(sec){ sec.classList.toggle('open'); if(sec.classList.contains('open')) setTimeout(initEvalTextareas,50); }
+}
+
+const ASPEK_OPTS=[
+  {value:'perencanaan',label:'Perencanaan',color:'#3b82f6'},
+  {value:'pelaksanaan',label:'Pelaksanaan',color:'#f59e0b'},
+  {value:'hasil',label:'Hasil',color:'#16a34a'},
+];
+function aspekColor(v){ return(ASPEK_OPTS.find(a=>a.value===v)||{color:'#6b7280'}).color; }
+
+function addEvalRow(picId){
+  const newRow={id:uid(),picId,aspek:'perencanaan',catatan:''};
+  evaluasi.push(newRow); saveAll(); renderEvaluasiPIC(picId);
+  setTimeout(()=>{const s=document.getElementById('eval_'+picId);if(s)s.classList.add('open');},30);
+  setTimeout(()=>{document.getElementById('ecat_'+newRow.id)?.focus();},60);
+}
+function initEvalTextareas(){
+  document.querySelectorAll('[id^="ecat_"]').forEach(el=>{el.style.height='auto';el.style.height=el.scrollHeight+'px';});
+}
+function saveEvalRow(evalId,field,value){
+  const e=evaluasi.find(e=>e.id===evalId); if(!e)return;
+  e[field]=value; saveAll();
+  if(field==='aspek'){
+    const badge=document.getElementById('ebadge_'+evalId);
+    if(badge){badge.textContent=ASPEK_OPTS.find(a=>a.value===value)?.label||value;badge.style.color=aspekColor(value);}
+  }
+}
+function deleteEvalRow(evalId,picId){
+  evaluasi=evaluasi.filter(e=>e.id!==evalId); saveAll();
+  renderEvaluasiPIC(picId);
+  setTimeout(()=>{const s=document.getElementById('eval_'+picId);if(s)s.classList.add('open');},30);
+}
+function renderEvaluasiPIC(picId){
+  const tbody=document.getElementById('evalbody_'+picId); if(!tbody)return;
+  const pic=pics.find(p=>p.id===picId); if(!pic)return;
+  const picEvals=evaluasi.filter(e=>e.picId===picId);
+  tbody.innerHTML=picEvals.map(e=>evalRow(e,picId)).join('')+evalAddRow(picId);
+  const cnt=document.getElementById('evalcnt_'+picId);
+  if(cnt) cnt.textContent=`${picEvals.length} catatan`;
+  setTimeout(initEvalTextareas,30);
+}
+function autoResize(el){ el.style.height='auto'; el.style.height=el.scrollHeight+'px'; }
+
+function evalRow(e,picId){
+  const aspekOpt=ASPEK_OPTS.map(a=>`<option value="${a.value}"${e.aspek===a.value?' selected':''}>${a.label}</option>`).join('');
+  return`<tr id="evalrow_${e.id}">
+    <td style="width:150px;vertical-align:top;padding-top:.65rem">
+      <select id="easpek_${e.id}" onchange="saveEvalRow('${e.id}','aspek',this.value)"
+        style="width:100%;border:1.5px solid var(--border);border-radius:8px;padding:.35rem .5rem;font-family:'DM Sans',sans-serif;font-size:.8rem;font-weight:600;color:${aspekColor(e.aspek)};background:#fff;outline:none;cursor:pointer">
+        ${aspekOpt}
+      </select>
+    </td>
+    <td style="vertical-align:top">
+      <textarea id="ecat_${e.id}" placeholder="Tulis catatan evaluasi…"
+        oninput="autoResize(this)"
+        onfocus="this.style.borderColor=aspekColor(document.getElementById('easpek_${e.id}').value)"
+        onblur="this.style.borderColor='var(--border)';saveEvalRow('${e.id}','catatan',this.value)"
+        style="width:100%;height:auto;overflow:hidden;resize:none;border:1.5px solid var(--border);border-radius:8px;padding:.4rem .6rem;font-family:'DM Sans',sans-serif;font-size:.82rem;color:var(--blue);background:#fff;outline:none;transition:border-color .15s;display:block"
+      >${esc(e.catatan)}</textarea>
+    </td>
+    <td style="width:36px;vertical-align:top;padding-top:.55rem;text-align:center">
+      <button class="tbl-icon-btn del" onclick="confirmDeleteEval('${e.id}','${picId}')" title="Hapus baris">🗑️</button>
+    </td>
+  </tr>`;
+}
+function evalAddRow(picId){
+  return`<tr>
+    <td colspan="3" style="padding:.55rem .9rem;border-top:2px dashed var(--border);background:#f8fafc">
+      <button onclick="addEvalRow('${picId}')"
+        style="display:inline-flex;align-items:center;gap:.35rem;font-size:.8rem;font-weight:600;color:var(--green);background:var(--green-bg);border:1.5px solid #bbf7d0;border-radius:8px;padding:.3rem .8rem;cursor:pointer;font-family:'DM Sans',sans-serif">
+        ＋ Tambah Baris
+      </button>
+    </td>
+  </tr>`;
+}
+
+function renderEvaluasi(){
+  const el=document.getElementById('evaluasiList'); if(!el)return;
+  if(!pics.length){
+    el.innerHTML=`<div class="empty-state"><div class="ei">📋</div><p>Belum ada PIC. Tambahkan PIC terlebih dahulu di tab Timeline PIC.</p></div>`;
+    return;
+  }
+  el.innerHTML=pics.map(pic=>{
+    const picEvals=evaluasi.filter(e=>e.picId===pic.id);
+    const done=pic.tasks.filter(t=>t.status==='done').length;
+    const total=pic.tasks.length;
+    const pct=total?Math.round(done/total*100):0;
+
+    return`<div class="eval-section" id="eval_${pic.id}">
+      <div class="eval-header" onclick="toggleEval('${pic.id}')">
+        <div>
+          <div class="pn" style="color:#fff">👤 ${esc(pic.name)}</div>
+          <div class="pk">🎯 ${esc(pic.kegiatan)}${pic.jabatan?' · '+esc(pic.jabatan):''}</div>
+        </div>
+        <div class="pic-header-right">
+          <span class="badge green">${done}/${total} task (${pct}%)</span>
+          <span class="badge gray" style="font-size:.68rem" id="evalcnt_${pic.id}">${picEvals.length} catatan</span>
+          <button onclick="event.stopPropagation();printEvalPDF('${pic.id}')" class="eval-link-btn" title="Print / Simpan PDF">🖨️ Print/PDF</button>
+          <span class="eval-chevron">▾</span>
+        </div>
+      </div>
+      <div class="eval-body">
+        <div class="eval-tbl-wrap" style="padding:.75rem 1rem 1rem">
+          <table class="eval-tbl" style="width:100%">
+            <thead><tr>
+              <th style="width:150px">Aspek</th>
+              <th>Catatan Evaluasi</th>
+              <th style="width:36px"></th>
+            </tr></thead>
+            <tbody id="evalbody_${pic.id}">
+              ${picEvals.map(e=>evalRow(e,pic.id)).join('')}
+              ${evalAddRow(pic.id)}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+  setTimeout(initEvalTextareas, 30);
+}
+
+// ══════════════════════════════════════════════════
+//  FORMAT HELPERS
+// ══════════════════════════════════════════════════
+const MN=['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+function fmtD(s){if(!s)return'-';const d=new Date(s+'T00:00:00');return`${d.getDate()} ${MN[d.getMonth()]} ${d.getFullYear()}`;}
+function dayN(s){if(!s)return'';return new Date(s+'T00:00:00').getDate();}
+function monN(s){if(!s)return'';return MN[new Date(s+'T00:00:00').getMonth()];}
+function daysLeft(s){return Math.ceil((new Date(s+'T00:00:00')-new Date().setHours(0,0,0,0))/(864e5));}
+function gv(id){const el=document.getElementById(id);return el?el.value.trim():'';}
+function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function statusBadge(s){
+  if(s==='upcoming')return`<span class="badge yellow">⏰ Akan Datang</span>`;
+  if(s==='done')    return`<span class="badge green">✅ Selesai</span>`;
+  if(s==='cancelled')return`<span class="badge red">❌ Dibatalkan</span>`;
+  return'';
+}
+function prioBadge(p){
+  if(p==='urgent')return`<span class="badge red">🔴</span>`;
+  if(p==='high')  return`<span class="badge yellow">🟡</span>`;
+  return`<span class="badge gray">⚪</span>`;
+}
+function dotClass(t){
+  if(t.status==='done')return'dot-done';
+  const d=daysLeft(t.deadline);
+  return d<0?'dot-late':d<=3?'dot-ongoing':'dot-todo';
+}
+function dlLabel(t){
+  if(t.status==='done')return`<span style="color:var(--green);font-size:.74rem">✅ Selesai</span>`;
+  const d=daysLeft(t.deadline);
+  if(d<0) return`<span style="color:var(--red);font-size:.74rem;font-weight:700">Terlambat ${Math.abs(d)}h</span>`;
+  if(d===0)return`<span style="color:var(--red);font-size:.74rem;font-weight:700">Hari ini!</span>`;
+  if(d<=3) return`<span style="color:#92400e;font-size:.74rem">${d} hari lagi</span>`;
+  return`<span style="color:var(--muted);font-size:.74rem">${fmtD(t.deadline)}</span>`;
+}
+
+// ══════════════════════════════════════════════════
+//  RENDER ALL
+// ══════════════════════════════════════════════════
+function renderAll(){
+  renderDashboard();
+  renderTimeline();
+  renderRapat();
+  renderEvaluasi();
+  renderNotifications();
+}
+
+// Init — load data dari API, fallback ke localStorage cache
+(function initMeetingData(){
+  fetch('/api/meetings/data', { headers: _mtgAuthHeaders() })
+    .then(function(r){ return r.ok ? r.json() : null; })
+    .then(function(json){
+      if(json){
+        if(Array.isArray(json.meetings)) meetings = json.meetings;
+        if(Array.isArray(json.notulen))  notulen  = json.notulen;
+        if(Array.isArray(json.pics))     pics     = json.pics;
+        if(Array.isArray(json.evaluasi)) evaluasi = json.evaluasi;
+        // Update cache
+        try{ sv(K.mtg,meetings); sv(K.nt,notulen); sv(K.pics,pics); sv(K.eval,evaluasi); }catch(e){}
+      }
+    })
+    .catch(function(){ /* pakai cache localStorage yang sudah diload di atas */ })
+    .finally(function(){
+      initTahunAjaran();
+      showDashboard();
+    });
+})();
+</script>
+</body>
+</html>

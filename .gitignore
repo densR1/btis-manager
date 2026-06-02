@@ -1,0 +1,4 @@
+node_modules/
+btis.db
+.DS_Store
+*.log

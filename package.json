@@ -1,0 +1,22 @@
+{
+  "name": "btis-manager-backend",
+  "version": "1.0.0",
+  "description": "Backend API untuk BTIS Manager — Bojana Tirta Islamic School",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.18.3",
+    "sql.js": "^1.14.1",
+    "uuid": "^9.0.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

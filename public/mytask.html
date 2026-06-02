@@ -1,0 +1,1221 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Task — BTIS Manager</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --blue:       #1a3a6b;
+    --blue-mid:   #2257a8;
+    --blue-light: #e8f0fb;
+    --orange:     #e8620a;
+    --yellow:     #f5a623;
+    --white:      #ffffff;
+    --muted:      #6b7280;
+    --border:     #e2e8f0;
+    --accent:     #7c3aed;
+    --accent-bg:  #ede9fe;
+    --green:      #16a34a;
+    --green-bg:   #dcfce7;
+    --red:        #dc2626;
+    --red-bg:     #fee2e2;
+    --amber:      #d97706;
+    --amber-bg:   #fef3c7;
+    --sky:        #0284c7;
+    --sky-bg:     #e0f2fe;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: #fdf8f0;
+    color: #1a3a6b;
+    min-height: 100vh;
+  }
+
+  /* ── HEADER ── */
+  header {
+    background: var(--white);
+    border-bottom: 3px solid var(--yellow);
+    padding: 0 2.5rem;
+    height: 64px;
+    display: flex; align-items: center; justify-content: space-between;
+    box-shadow: 0 2px 12px rgba(26,58,107,.08);
+    position: sticky; top: 0; z-index: 50;
+  }
+  .header-left { display: flex; align-items: center; gap: 1rem; }
+  .header-right { display: flex; align-items: center; gap: .55rem; }
+  .back-btn {
+    display: flex; align-items: center; gap: .5rem;
+    font-size: .88rem; font-weight: 600; color: var(--blue);
+    cursor: pointer; background: none; border: none;
+    padding: .4rem .85rem; border-radius: 8px;
+    transition: background .15s; text-decoration: none;
+  }
+  .back-btn:hover { background: var(--blue-light); }
+  .divider-v { width: 1px; height: 28px; background: var(--border); }
+  .page-title {
+    display: flex; align-items: center; gap: .6rem;
+    font-family: 'Eras Bold ITC', 'Eras ITC', 'Century Gothic', 'Gill Sans', 'Trebuchet MS', sans-serif;
+    font-size: 1.05rem; font-weight: 700; font-style: italic; color: var(--blue);
+    letter-spacing: .03em;
+  }
+  .page-title .icon-wrap {
+    width: 32px; height: 32px; border-radius: 8px;
+    background: var(--accent-bg); display: flex;
+    align-items: center; justify-content: center; font-size: 1rem;
+  }
+
+  /* ── LAYOUT ── */
+  .layout {
+    max-width: 1340px; margin: 0 auto;
+    padding: 2rem 1.5rem 5rem;
+    display: grid; grid-template-columns: 260px 1fr;
+    gap: 1.5rem; align-items: start;
+  }
+
+  /* ── SIDEBAR ── */
+  .sidebar { display: flex; flex-direction: column; gap: 1rem; }
+
+  .card {
+    background: var(--white); border-radius: 14px;
+    border: 1px solid var(--border);
+    box-shadow: 0 2px 10px rgba(26,58,107,.06);
+    overflow: hidden; animation: fadeUp .4s ease both;
+  }
+
+  @keyframes fadeUp {
+    from { opacity:0; transform:translateY(18px); }
+    to   { opacity:1; transform:translateY(0); }
+  }
+
+  .card-header {
+    background: var(--blue); color: #fff;
+    padding: .65rem 1rem; font-size: .82rem;
+    font-weight: 700; letter-spacing: .04em; text-transform: uppercase;
+  }
+
+  /* Calendar */
+  .cal-wrap { padding: .85rem; }
+  .cal-nav { display:flex; align-items:center; justify-content:space-between; margin-bottom:.75rem; }
+  .cal-nav span { font-weight:700; font-size:.9rem; color:var(--blue); }
+  .cal-nav button {
+    border:none; background:var(--blue-light); color:var(--blue);
+    border-radius:6px; width:26px; height:26px;
+    cursor:pointer; font-size:.85rem; font-weight:700; transition:background .15s;
+  }
+  .cal-nav button:hover { background:var(--blue-mid); color:#fff; }
+  .cal-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:2px; text-align:center; }
+  .cal-grid .day-name { font-size:.68rem; font-weight:700; color:var(--muted); padding:.25rem 0; text-transform:uppercase; }
+  .cal-grid .day { font-size:.75rem; padding:.28rem 0; border-radius:6px; cursor:default; transition:background .1s; }
+  .day.empty { pointer-events:none; }
+  .day.today { background:var(--blue); color:#fff; font-weight:700; }
+  .day.has-task { background:var(--orange); color:#fff; font-weight:600; }
+  .day.weekend { color:var(--red); }
+  .day:not(.empty):not(.today):not(.has-task):hover { background:var(--blue-light); }
+
+  /* Status Summary */
+  .stat-table { width:100%; border-collapse:collapse; }
+  .stat-table thead tr { border-bottom:2px solid var(--border); }
+  .stat-table th { font-size:.72rem; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.04em; padding:.5rem .85rem; text-align:left; }
+  .stat-table td { font-size:.83rem; padding:.45rem .85rem; border-bottom:1px solid #f1f5f9; }
+  .stat-table tr:last-child td { border:none; }
+  .stat-table .num { font-weight:700; text-align:right; color:var(--blue); }
+  .stat-row-done .label { color:var(--green); font-weight:600; }
+  .stat-row-prog .label { color:var(--sky); font-weight:600; }
+  .stat-row-pend .label { color:var(--muted); font-weight:600; }
+
+  /* Progress */
+  .prog-wrap { padding:.85rem 1rem; }
+  .prog-label { display:flex; justify-content:space-between; font-size:.78rem; font-weight:600; color:var(--blue); margin-bottom:.45rem; }
+  .prog-bar { height:14px; background:#e2e8f0; border-radius:99px; overflow:hidden; }
+  .prog-fill { height:100%; border-radius:99px; background:linear-gradient(90deg,var(--green) 0%,#22c55e 100%); transition:width .8s cubic-bezier(.4,0,.2,1); }
+  .prog-sub { display:flex; gap:.5rem; flex-wrap:wrap; margin-top:.7rem; }
+  .prog-sub span { font-size:.7rem; padding:.2rem .55rem; border-radius:99px; font-weight:600; }
+
+  /* ── MAIN TABLE AREA ── */
+  .table-area { animation: fadeUp .4s .1s ease both; }
+
+  /* ── REALTIME CLOCK WIDGET ── */
+  .clock-bar { margin-bottom: 1rem; }
+
+  .clock-widget {
+    display: inline-flex;
+    align-items: center;
+    gap: 1.1rem;
+    background: linear-gradient(135deg, #0f2855 0%, #1a3a6b 45%, #2a57b8 100%);
+    border-radius: 18px;
+    padding: .9rem 1.6rem .9rem 1.2rem;
+    box-shadow: 0 6px 28px rgba(26,58,107,.28), 0 1px 6px rgba(26,58,107,.14);
+    position: relative; overflow: hidden;
+    border: 1px solid rgba(255,255,255,.08);
+  }
+  .clock-widget::before {
+    content:''; position:absolute; inset:0;
+    background: radial-gradient(ellipse at 20% 0%, rgba(255,255,255,.10) 0%, transparent 60%);
+    pointer-events:none;
+  }
+  .clock-widget::after {
+    content:''; position:absolute;
+    bottom:-18px; right:-18px;
+    width:80px; height:80px; border-radius:50%;
+    background: rgba(255,255,255,.04);
+    pointer-events:none;
+  }
+
+  .clock-icon-wrap {
+    width: 44px; height: 44px;
+    border-radius: 12px;
+    background: rgba(255,255,255,.10);
+    border: 1px solid rgba(255,255,255,.12);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.5rem; flex-shrink: 0;
+    backdrop-filter: blur(4px);
+  }
+
+  .clock-body { display:flex; flex-direction:column; gap:.14rem; }
+
+  .clock-date-line {
+    font-size: .7rem; font-weight: 600; letter-spacing: .07em;
+    color: rgba(255,255,255,.65); text-transform: uppercase;
+  }
+
+  .clock-time-display {
+    font-family: 'Courier New', Consolas, monospace;
+    font-size: 1.65rem; font-weight: 700; color: #fff;
+    letter-spacing: .1em; line-height: 1;
+    text-shadow: 0 2px 10px rgba(0,0,0,.3);
+  }
+  .clock-time-display .blink {
+    animation: sep-blink 1s step-end infinite;
+  }
+  @keyframes sep-blink { 50% { opacity: .15; } }
+
+  .clock-greeting {
+    font-size: .72rem; color: rgba(255,255,255,.55);
+    letter-spacing: .03em;
+  }
+
+  .clock-sep-line {
+    width: 1px; height: 42px; flex-shrink: 0;
+    background: rgba(255,255,255,.15);
+  }
+
+  .clock-right { display:flex; flex-direction:column; align-items:flex-end; gap:.18rem; }
+  .clock-day-name {
+    font-size: .85rem; font-weight: 800; letter-spacing: .06em;
+    color: var(--yellow); text-transform: uppercase;
+  }
+  .clock-full-date-text {
+    font-size: .76rem; color: rgba(255,255,255,.6);
+    white-space: nowrap; letter-spacing: .02em;
+  }
+
+  /* ── NOTIFICATION ICON BAR ── */
+  .notif-icon-bar {
+    margin-bottom: .85rem;
+    display: flex;
+    align-items: center;
+    gap: .55rem;
+  }
+  .notif-icon-label {
+    font-size: .75rem; font-weight: 600; color: var(--muted);
+    letter-spacing: .04em; text-transform: uppercase; margin-right:.2rem;
+  }
+  .notif-icon-btn {
+    position: relative;
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 40px; height: 40px;
+    border-radius: 12px;
+    border: 1.5px solid var(--border);
+    background: var(--white);
+    cursor: pointer;
+    font-size: 1.15rem;
+    box-shadow: 0 2px 8px rgba(26,58,107,.07);
+    transition: transform .15s, box-shadow .15s, border-color .15s;
+    flex-shrink: 0;
+  }
+  .notif-icon-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 14px rgba(26,58,107,.14); border-color: var(--blue-mid); }
+  .notif-icon-btn .badge {
+    position: absolute; top: -6px; right: -6px;
+    background: var(--red); color: #fff;
+    border-radius: 99px; min-width: 18px; height: 18px;
+    font-size: .62rem; font-weight: 800; line-height: 18px;
+    text-align: center; padding: 0 4px;
+    border: 2px solid #fdf8f0;
+    pointer-events: none;
+  }
+  .notif-icon-btn.btn-ok    { border-color: #bbf7d0; background: #f0fdf4; }
+  .notif-icon-btn.btn-urgent{ border-color: #fca5a5; background: #fff1f2; }
+  .notif-icon-btn.btn-info  { border-color: #bfdbfe; background: #eff6ff; }
+  .notif-icon-btn.btn-urgent .badge { background: var(--red); }
+  .notif-icon-btn.btn-info .badge   { background: var(--sky); }
+
+  /* pulse ring on urgent */
+  .notif-icon-btn.btn-urgent::before {
+    content:''; position:absolute; inset:-3px; border-radius:14px;
+    border: 2px solid rgba(220,38,38,.4);
+    animation: pulse-ring 1.8s ease-out infinite;
+    pointer-events:none;
+  }
+  @keyframes pulse-ring {
+    0%   { opacity:1; transform:scale(1); }
+    70%  { opacity:0; transform:scale(1.2); }
+    100% { opacity:0; }
+  }
+
+  /* ── NOTIFICATION SLIDE PANEL ── */
+  .notif-overlay {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(15,28,55,.35);
+    backdrop-filter: blur(2px);
+    z-index: 200;
+    animation: fadeIn .2s ease;
+  }
+  .notif-overlay.open { display: block; }
+  @keyframes fadeIn { from{opacity:0} to{opacity:1} }
+
+  .notif-panel {
+    position: fixed; top: 0; right: 0; bottom: 0;
+    width: 380px; max-width: 95vw;
+    background: var(--white);
+    box-shadow: -8px 0 40px rgba(15,28,55,.18);
+    z-index: 201;
+    display: flex; flex-direction: column;
+    transform: translateX(100%);
+    transition: transform .32s cubic-bezier(.4,0,.2,1);
+  }
+  .notif-panel.open { transform: translateX(0); }
+
+  .notif-panel-hdr {
+    background: var(--blue);
+    color: #fff;
+    padding: 1rem 1.2rem;
+    display: flex; align-items: center; justify-content: space-between;
+    flex-shrink: 0;
+  }
+  .notif-panel-hdr-title {
+    display: flex; align-items: center; gap: .6rem;
+    font-weight: 700; font-size: 1rem; letter-spacing: .02em;
+  }
+  .notif-panel-close {
+    background: rgba(255,255,255,.15); border: none; color: #fff;
+    width: 32px; height: 32px; border-radius: 8px;
+    cursor: pointer; font-size: 1rem;
+    display: flex; align-items: center; justify-content: center;
+    transition: background .15s;
+  }
+  .notif-panel-close:hover { background: rgba(255,255,255,.28); }
+
+  .notif-panel-body {
+    flex: 1; overflow-y: auto;
+    padding: 1rem;
+    display: flex; flex-direction: column; gap: .7rem;
+  }
+
+  /* Notification cards inside panel */
+  .notif-card {
+    border-radius: 13px; padding: .85rem 1rem;
+    display: flex; align-items: flex-start; gap: .8rem;
+    position: relative; overflow: hidden;
+    animation: fadeUp .3s ease both;
+  }
+  .notif-urgent {
+    background: linear-gradient(135deg,#fff1f2 0%,#fff8f8 100%);
+    border: 1.5px solid #fca5a5;
+    box-shadow: 0 2px 12px rgba(220,38,38,.09);
+  }
+  .notif-info {
+    background: linear-gradient(135deg,#eff6ff 0%,#f0f9ff 100%);
+    border: 1.5px solid #bfdbfe;
+    box-shadow: 0 2px 10px rgba(34,87,168,.07);
+  }
+  .notif-ok {
+    background: linear-gradient(135deg,#f0fdf4 0%,#f0fdf4 100%);
+    border: 1.5px solid #bbf7d0;
+    box-shadow: 0 2px 10px rgba(22,163,74,.07);
+  }
+  .notif-icon { font-size:1.3rem; flex-shrink:0; margin-top:.06rem; }
+  .notif-body { flex:1; min-width:0; overflow:hidden; }
+  .notif-label { font-size:.68rem; font-weight:700; letter-spacing:.07em; text-transform:uppercase; margin-bottom:.18rem; }
+  .notif-urgent .notif-label { color:var(--red); }
+  .notif-info   .notif-label { color:var(--blue-mid); }
+  .notif-ok     .notif-label { color:var(--green); }
+  .notif-title  { font-size:.86rem; font-weight:600; color:var(--blue); margin-bottom:.16rem; word-break:break-word; white-space:normal; overflow-wrap:break-word; }
+  .notif-meta   { font-size:.74rem; color:var(--muted); display:flex; gap:.65rem; flex-wrap:wrap; }
+  .notif-badge  {
+    flex-shrink:0; font-size:.69rem; font-weight:700; letter-spacing:.04em;
+    padding:.22rem .75rem; border-radius:99px; align-self:flex-start; margin-top:.2rem;
+    white-space:nowrap;
+  }
+  /* Wrap badge to new line on long titles */
+  .notif-card { flex-wrap:wrap; }
+  .notif-urgent .notif-badge { background:var(--red-bg); color:var(--red); }
+  .notif-info   .notif-badge { background:var(--sky-bg); color:var(--sky); }
+  .notif-ok     .notif-badge { background:var(--green-bg); color:var(--green); }
+
+  /* ── AUTOSAVE INDICATOR ── */
+  .save-indicator {
+    position: fixed; bottom: 1.5rem; right: 1.5rem;
+    background: var(--blue); color: #fff;
+    border-radius: 10px; padding: .5rem 1rem;
+    font-size: .78rem; font-weight: 600;
+    display: flex; align-items: center; gap: .45rem;
+    box-shadow: 0 4px 18px rgba(26,58,107,.22);
+    opacity: 0; pointer-events: none;
+    transform: translateY(10px);
+    transition: opacity .25s, transform .25s;
+    z-index: 300;
+  }
+  .save-indicator.show { opacity: 1; transform: translateY(0); pointer-events: auto; }
+  .save-indicator.saved { background: var(--green); }
+
+  /* ── TABLE TOOLBAR ── */
+  .table-toolbar {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: .75rem; flex-wrap: wrap; gap: .6rem;
+  }
+  .month-filter-info {
+    display: flex; align-items: center; gap: .55rem;
+  }
+  .month-filter-info .month-badge {
+    background: var(--blue); color: #fff;
+    border-radius: 8px; padding: .32rem .8rem;
+    font-size: .78rem; font-weight: 700; letter-spacing: .04em;
+  }
+  .month-filter-info .task-count {
+    font-size: .78rem; color: var(--muted); font-weight: 500;
+  }
+  .toolbar-btns { display: flex; align-items: center; gap: .5rem; }
+
+  .btn-print {
+    display: flex; align-items: center; gap: .45rem;
+    background: var(--white); color: var(--blue);
+    border: 1.5px solid var(--border); border-radius: 9px;
+    padding: .45rem 1rem; font-size: .82rem; font-weight: 600;
+    font-family: inherit; cursor: pointer;
+    box-shadow: 0 2px 8px rgba(26,58,107,.06);
+    transition: background .15s, border-color .15s, box-shadow .15s;
+  }
+  .btn-print:hover { background: var(--blue-light); border-color: var(--blue-mid); box-shadow: 0 3px 12px rgba(26,58,107,.12); }
+
+  /* ── TABLE ── */
+  .table-card {
+    background:var(--white); border-radius:14px;
+    border:2px solid #c8d6ea;
+    box-shadow:0 2px 10px rgba(26,58,107,.06); overflow:hidden;
+  }
+  table { width:100%; border-collapse:collapse; font-size:.82rem; }
+  thead tr { background:var(--blue); color:#fff; }
+  thead th { padding:.7rem .65rem; font-weight:700; font-size:.72rem; text-transform:uppercase; letter-spacing:.05em; text-align:left; white-space:nowrap; user-select:none; border-right:1px solid rgba(255,255,255,.20); }
+  thead th:last-child { border-right:none; }
+  thead th.center { text-align:center; }
+  tbody tr { border-bottom:2px solid #cfdaea; transition:background .12s; }
+  tbody tr:last-child { border-bottom:none; }
+  tbody tr:hover { background:#eef4fc; }
+  tbody tr.done-row { background:#f4f7fa; }
+  tbody tr.done-row .task-input[type=text], tbody tr.done-row textarea.task-input { text-decoration:line-through; color:var(--muted); }
+  td { border-right:1px solid #cfdaea; }
+  td:last-child { border-right:none; }
+
+  td { padding:.4rem .55rem; vertical-align:top; }
+  td.center { text-align:center; vertical-align:middle; }
+  td.sisa-td { vertical-align:middle; }
+  td.num-cell { color:var(--muted); font-size:.78rem; text-align:center; width:32px; vertical-align:middle; }
+  td.cb-cell  { width:32px; text-align:center; vertical-align:middle; }
+  td.del-cell { width:40px; text-align:center; vertical-align:middle; }
+  input[type=checkbox] { width:16px; height:16px; accent-color:var(--green); cursor:pointer; }
+
+  /* Delete button */
+  .del-btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 30px; height: 30px; border-radius: 8px;
+    border: 1.5px solid var(--border);
+    background: transparent; color: var(--muted);
+    cursor: pointer; font-size: .9rem;
+    transition: background .15s, color .15s, border-color .15s;
+  }
+  .del-btn:hover { background: var(--red-bg); color: var(--red); border-color: #fca5a5; }
+
+  /* Inline inputs */
+  .task-input {
+    width:100%; min-width:140px;
+    border:1.5px solid transparent; border-radius:7px;
+    padding:.32rem .55rem; font-size:.82rem;
+    font-family:inherit; color:var(--blue);
+    background:transparent; outline:none;
+    white-space:normal; word-break:break-word;
+    transition:border-color .15s,background .15s;
+  }
+  .task-input:focus { border-color:var(--blue-mid); background:#fff; box-shadow:0 0 0 3px rgba(34,87,168,.08); }
+  .task-input::placeholder { color:#b0bec5; }
+  input[type=date].task-input { min-width:128px; cursor:pointer; color:#374151; }
+  select.task-input { min-width:106px; cursor:pointer; appearance:auto; }
+
+  /* Keterangan textarea */
+  .ket-input {
+    width:100%; min-width:120px;
+    border:1.5px solid transparent; border-radius:7px;
+    padding:.32rem .55rem; font-size:.79rem;
+    font-family:inherit; color:#374151;
+    background:transparent; outline:none;
+    resize:none; overflow:hidden;
+    min-height:30px; line-height:1.55;
+    display:block;
+    transition:border-color .15s,background .15s;
+  }
+  .ket-input:focus { border-color:var(--blue-mid); background:#fff; box-shadow:0 0 0 3px rgba(34,87,168,.08); }
+  .ket-input::placeholder { color:#b0bec5; }
+
+  /* Sisa Waktu cell */
+  .sisa-cell {
+    font-size:.78rem; font-weight:600; text-align:center;
+    white-space:nowrap; color:var(--green);
+  }
+  .sisa-cell.overdue { color:var(--red); }
+  .sisa-cell.neutral { color:var(--muted); }
+  .sisa-cell.done-ok { color:var(--green); }
+  .done-pill {
+    display:inline-flex; align-items:center; gap:.28rem;
+    background:var(--green-bg); color:var(--green);
+    border-radius:99px; padding:.2rem .65rem;
+    font-size:.73rem; font-weight:700;
+  }
+
+  /* Dropdown coloring */
+  .sel-status-done     { background:var(--green-bg) !important; color:var(--green) !important; font-weight:700; }
+  .sel-status-progress { background:var(--sky-bg)   !important; color:var(--sky)   !important; font-weight:700; }
+  .sel-status-pending  { background:#f1f5f9         !important; color:var(--muted) !important; font-weight:700; }
+  .sel-prio-high   { background:#fce7f3 !important; color:#be185d !important; font-weight:700; }
+  .sel-prio-medium { background:var(--sky-bg) !important; color:var(--sky) !important; font-weight:700; }
+  .sel-prio-low    { background:#fef9c3 !important; color:#a16207 !important; font-weight:700; }
+
+  td.date-overdue { color:var(--red); font-weight:600; }
+
+  /* Add Row */
+  .btn-add-row {
+    display:flex; align-items:center; justify-content:center;
+    gap:.45rem; width:100%; padding:.65rem 1rem;
+    background:#f8fafc; border:none; border-top:1px dashed var(--border);
+    color:var(--blue-mid); font-size:.83rem; font-weight:600; font-family:inherit;
+    cursor:pointer; transition:background .15s,color .15s;
+    border-radius:0 0 14px 14px;
+  }
+  .btn-add-row:hover { background:var(--blue-light); color:var(--blue); }
+
+  .empty-row td { text-align:center; padding:3rem; color:var(--muted); font-size:.9rem; }
+
+  footer { text-align:center; padding:1.25rem 2rem; font-size:.76rem; color:var(--muted); border-top:1px solid var(--border); background:var(--white); margin-top:2rem; }
+  footer strong { color:var(--blue); }
+
+  /* ── PRINT STYLES ── */
+  @media print {
+    /* Sembunyikan hanya elemen interaktif/navigasi */
+    .notif-panel, .notif-overlay, .save-indicator,
+    .btn-add-row, .del-btn, .del-cell,
+    .back-btn, .divider-v, .header-right { display: none !important; }
+    /* Tampilkan seluruh layout termasuk sidebar dan clock */
+    header { position: static !important; box-shadow: none !important; border-bottom: 2px solid var(--yellow) !important; }
+    .layout { padding: .5rem !important; }
+    body { background: white !important; }
+    .table-card { box-shadow: none !important; }
+    .task-input, .ket-input { border-color: transparent !important; background: transparent !important; }
+    thead th { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    thead tr { -webkit-print-color-adjust: exact; print-color-adjust: exact; background: var(--blue) !important; }
+    .card-header { -webkit-print-color-adjust: exact; print-color-adjust: exact; background: var(--blue) !important; }
+    .clock-widget { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .sel-status-done, .sel-status-progress, .sel-status-pending,
+    .sel-prio-high, .sel-prio-medium, .sel-prio-low { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .btn-print { display: none !important; }
+    td { border-right: 1px solid #cfdaea !important; }
+    tbody tr { border-bottom: 1px solid #cfdaea !important; }
+  }
+
+  @media (max-width:900px) {
+    .layout { grid-template-columns:1fr; }
+    header { padding:0 1rem; }
+    .layout { padding:1rem; }
+    .clock-widget { flex-wrap:wrap; }
+    .notif-panel { width: 100vw; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ── NOTIFICATION SLIDE PANEL ── -->
+<div class="notif-overlay" id="notifOverlay" onclick="closeNotifPanel()"></div>
+<div class="notif-panel" id="notifPanel">
+  <div class="notif-panel-hdr">
+    <div class="notif-panel-hdr-title">🔔 Notifikasi Tugas</div>
+    <button class="notif-panel-close" onclick="closeNotifPanel()">✕</button>
+  </div>
+  <div class="notif-panel-body" id="notifPanelBody"></div>
+</div>
+
+<!-- ── AUTOSAVE INDICATOR ── -->
+<div class="save-indicator" id="saveIndicator">💾 Tersimpan otomatis</div>
+
+<header>
+  <div class="header-left">
+    <a class="back-btn" href="index.html"><span>←</span> Kembali</a>
+    <div class="divider-v"></div>
+    <div class="page-title">
+      <div class="icon-wrap">✅</div>
+      My Task
+    </div>
+  </div>
+  <div class="header-right" id="notifIconBar"></div>
+</header>
+
+<div class="layout">
+
+  <!-- ── SIDEBAR ── -->
+  <aside class="sidebar">
+
+    <div class="card" style="animation-delay:.05s">
+      <div class="card-header" id="calHeader">Oktober 2025</div>
+      <div class="cal-wrap">
+        <div class="cal-nav">
+          <button onclick="changeMonth(-1)">‹</button>
+          <span id="calMonthLabel"></span>
+          <button onclick="changeMonth(1)">›</button>
+        </div>
+        <div class="cal-grid" id="calGrid"></div>
+      </div>
+    </div>
+
+    <div class="card" style="animation-delay:.1s">
+      <div class="card-header">Progress Bulan Ini</div>
+      <div class="prog-wrap">
+        <div class="prog-label">
+          <span>Penyelesaian Tugas</span>
+          <span id="progPct">0%</span>
+        </div>
+        <div class="prog-bar"><div class="prog-fill" id="progFill" style="width:0%"></div></div>
+        <div class="prog-sub" id="progSub"></div>
+      </div>
+    </div>
+
+    <div class="card" style="animation-delay:.15s">
+      <div class="card-header">Status</div>
+      <table class="stat-table">
+        <thead><tr><th>Keterangan</th><th style="text-align:right">Jumlah</th></tr></thead>
+        <tbody id="statBody"></tbody>
+      </table>
+    </div>
+
+  </aside>
+
+  <!-- ── MAIN TABLE ── -->
+  <div class="table-area">
+
+    <!-- REALTIME CLOCK -->
+    <div class="clock-bar" style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap;margin-bottom:1rem;">
+      <div class="clock-widget">
+        <div class="clock-icon-wrap">🗓️</div>
+        <div class="clock-body">
+          <div class="clock-date-line" id="clockDateLine">Memuat tanggal...</div>
+          <div class="clock-time-display">
+            <span id="cH">--</span><span class="blink">:</span><span id="cM">--</span><span class="blink">:</span><span id="cS">--</span>
+          </div>
+          <div class="clock-greeting" id="clockGreet"></div>
+        </div>
+        <div class="clock-sep-line"></div>
+        <div class="clock-right">
+          <div class="clock-day-name" id="clockDayName">---</div>
+          <div class="clock-full-date-text" id="clockFullDate">---</div>
+        </div>
+      </div>
+      <button class="btn-print" onclick="doPrint()">🖨️ Print / Simpan PDF</button>
+    </div>
+
+    <!-- TABLE -->
+    <span id="activeMonthBadge" style="display:none"></span>
+    <span id="activeTaskCount" style="display:none"></span>
+    <div class="table-card">
+      <table>
+        <thead>
+          <tr>
+            <th class="center" style="width:32px">No</th>
+            <th class="center" style="width:32px">✓</th>
+            <th style="min-width:172px">Tugas</th>
+            <th style="min-width:132px">Perencanaan</th>
+            <th class="center" style="min-width:106px">Prioritas</th>
+            <th class="center" style="min-width:116px">Status</th>
+            <th style="min-width:132px">Due Date</th>
+            <th class="center" style="min-width:108px">Sisa Waktu</th>
+            <th style="min-width:148px">Keterangan</th>
+            <th class="center del-cell" style="width:44px">🗑️</th>
+          </tr>
+        </thead>
+        <tbody id="taskBody"></tbody>
+      </table>
+      <button class="btn-add-row" onclick="addRow()">＋ Tambah Baris</button>
+    </div>
+
+  </div>
+</div>
+
+<footer>
+  <strong>BTIS Manager</strong> — School Management System
+</footer>
+
+<script>
+// ── DATA (default — akan di-override oleh localStorage jika ada) ──
+let tasks = [
+  { id:1,  name:"Mengisi sulingjar dan mengingatkan guru-guru",      start:"2025-10-01", deadline:"2025-10-03", prio:"medium", status:"done",     done:true,  ket:"" },
+  { id:2,  name:"Mendampingi persiapan Math and Book Week",          start:"2025-10-01", deadline:"2025-10-13", prio:"medium", status:"done",     done:true,  ket:"" },
+  { id:3,  name:"Mempersiapkan pembelajaran online kelas 4A & 4B",  start:"2025-10-02", deadline:"2025-10-03", prio:"high",   status:"done",     done:true,  ket:"Pembelajaran online dari kelas 4a4b" },
+  { id:4,  name:"Mempersiapkan pembelajaran online selama 1 pekan", start:"2025-10-03", deadline:"2025-10-13", prio:"medium", status:"done",     done:true,  ket:"Kelas 4A & 4B" },
+  { id:5,  name:"Memantau pembelajaran online",                      start:"2025-10-06", deadline:"2025-10-10", prio:"medium", status:"done",     done:true,  ket:"Zoom masuk kelas 6-10 Okt" },
+  { id:6,  name:"Membuat surat himbauan larangan parkir lama",       start:"2025-10-10", deadline:"2025-10-13", prio:"low",    status:"done",     done:true,  ket:"" },
+  { id:7,  name:"Menghubungi LPTQ untuk tahfidz sertifikasi",        start:"2025-10-13", deadline:"2025-10-17", prio:"high",   status:"done",     done:true,  ket:"Sedang ada acara di Kendari" },
+  { id:8,  name:"Menghubungi sertifikat tahfidz UIM",                start:"2025-10-13", deadline:"2025-10-17", prio:"high",   status:"done",     done:true,  ket:"Ternyata harus mengikuti lagi" },
+  { id:9,  name:"Merencanakan pembuatan soal berbasis web",          start:"2025-10-17", deadline:"2025-10-21", prio:"medium", status:"progress", done:false, ket:"" },
+  { id:10, name:"Rapat persiapan Camping grade 5-6, penentuan grup", start:"2025-10-17", deadline:"2025-10-17", prio:"low",    status:"done",     done:true,  ket:"" },
+  { id:11, name:"Rapat dengan Mas Farhan pkl. 07.00 pagi",           start:"2025-10-21", deadline:"2025-10-21", prio:"medium", status:"done",     done:true,  ket:"" },
+];
+
+let nextId = 12;
+let calYear = 2025, calMonth = 9; // Oktober 2025 (0-indexed)
+
+const MONTHS_ID  = ["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
+const DAYS_FULL  = ["Minggu","Senin","Selasa","Rabu","Kamis","Jumat","Sabtu"];
+const DAYS_SHORT = ["Min","Sen","Sel","Rab","Kam","Jum","Sab"];
+
+// ── API + LOCALSTORAGE ──
+function _taskAuthHeaders(){
+  var token=''; try{ token=localStorage.getItem('btis_token')||''; }catch(e){}
+  return {'Authorization':'Bearer '+token,'Content-Type':'application/json','Accept':'application/json'};
+}
+var _taskSaveTimer=null;
+
+function saveData() {
+  // Cache lokal
+  try {
+    localStorage.setItem('mytask_tasks', JSON.stringify(tasks));
+    localStorage.setItem('mytask_nextId', String(nextId));
+    localStorage.setItem('mytask_calYear', String(calYear));
+    localStorage.setItem('mytask_calMonth', String(calMonth));
+    showSaveIndicator();
+  } catch(e) { console.warn('localStorage error', e); }
+  // Kirim ke API (debounced)
+  clearTimeout(_taskSaveTimer);
+  _taskSaveTimer = setTimeout(function(){
+    fetch('/api/tasks', {
+      method: 'PUT',
+      headers: _taskAuthHeaders(),
+      body: JSON.stringify({ tasks, nextId })
+    }).catch(function(err){ console.warn('[mytask] save failed:', err); });
+  }, 800);
+}
+
+function loadData() {
+  // Baca cache lokal sebagai sementara
+  try {
+    const saved = localStorage.getItem('mytask_tasks');
+    if (saved) {
+      tasks   = JSON.parse(saved);
+      nextId  = parseInt(localStorage.getItem('mytask_nextId') || '12');
+      calYear = parseInt(localStorage.getItem('mytask_calYear') || '2025');
+      calMonth= parseInt(localStorage.getItem('mytask_calMonth') || '9');
+    }
+  } catch(e) { console.warn('loadData error', e); }
+}
+
+let saveTimer = null;
+let savedTimer = null;
+function showSaveIndicator() {
+  const el = document.getElementById('saveIndicator');
+  el.classList.remove('saved');
+  el.textContent = '💾 Menyimpan...';
+  el.classList.add('show');
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => {
+    el.textContent = '✓ Tersimpan otomatis';
+    el.classList.add('saved');
+    clearTimeout(savedTimer);
+    savedTimer = setTimeout(() => el.classList.remove('show'), 1800);
+  }, 600);
+}
+
+// ── REALTIME CLOCK ──
+function tickClock() {
+  const n    = new Date();
+  const hh   = String(n.getHours()).padStart(2,'0');
+  const mm   = String(n.getMinutes()).padStart(2,'0');
+  const ss   = String(n.getSeconds()).padStart(2,'0');
+  const day  = DAYS_FULL[n.getDay()];
+  const dd   = String(n.getDate()).padStart(2,'0');
+  const mo   = MONTHS_ID[n.getMonth()];
+  const yyyy = n.getFullYear();
+  const h    = n.getHours();
+
+  document.getElementById('cH').textContent            = hh;
+  document.getElementById('cM').textContent            = mm;
+  document.getElementById('cS').textContent            = ss;
+  document.getElementById('clockDayName').textContent  = day.toUpperCase();
+  document.getElementById('clockDateLine').textContent = `${dd} ${mo} ${yyyy}`;
+  document.getElementById('clockFullDate').textContent = `${dd} ${mo.slice(0,3)}. ${yyyy}`;
+  document.getElementById('clockGreet').textContent    =
+    h < 5  ? 'Dini Hari 🌙' :
+    h < 11 ? 'Selamat Pagi 🌤️' :
+    h < 15 ? 'Selamat Siang ☀️' :
+    h < 18 ? 'Selamat Sore 🌇' : 'Selamat Malam 🌙';
+}
+tickClock();
+setInterval(tickClock, 1000);
+
+// ── HELPERS ──
+function escHtml(s) {
+  return (s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+function fmtDateShort(iso) {
+  if (!iso) return '-';
+  const d = new Date(iso+'T00:00:00');
+  return String(d.getDate()).padStart(2,'0') + ' ' + MONTHS_ID[d.getMonth()].slice(0,3) + '. ' + d.getFullYear();
+}
+
+// ── MONTH FILTER ──
+function getMonthTasks() {
+  return tasks.filter(t => {
+    const start    = t.start    ? new Date(t.start + 'T00:00:00')    : null;
+    const deadline = t.deadline ? new Date(t.deadline + 'T23:59:59') : null;
+    if (!start && !deadline) return false;
+    if (start && !deadline)  return start.getFullYear() === calYear && start.getMonth() === calMonth;
+    if (!start && deadline)  return deadline.getFullYear() === calYear && deadline.getMonth() === calMonth;
+    return (start.getFullYear() === calYear && start.getMonth() === calMonth)
+        || (deadline.getFullYear() === calYear && deadline.getMonth() === calMonth);
+  });
+}
+
+// ── SISA WAKTU ──
+function sisaWaktu(iso, isDone) {
+  if (isDone) return { text: null, cls: 'done-ok' };
+  if (!iso)   return { text: '—', cls: 'neutral' };
+  const dl   = new Date(iso + 'T23:59:59');
+  const now  = new Date();
+  const diff = Math.ceil((dl - now) / 86400000);
+  if (diff < 0)  return { text: Math.abs(diff) + 'h terlambat', cls: 'overdue' };
+  if (diff === 0) return { text: 'Hari ini!', cls: 'overdue' };
+  if (diff === 1) return { text: '1 hari lagi', cls: '' };
+  return { text: diff + ' hari lagi', cls: '' };
+}
+
+function sisaHtml(iso, isDone) {
+  const sw = sisaWaktu(iso, isDone);
+  if (sw.cls === 'done-ok') {
+    return `<td class="sisa-td center"><span class="done-pill">✓ Selesai</span></td>`;
+  }
+  return `<td class="sisa-td sisa-cell ${sw.cls}">${sw.text}</td>`;
+}
+
+// ── DROPDOWN CLASS ──
+function statusClass(s) {
+  return s==='done' ? 'sel-status-done' : s==='progress' ? 'sel-status-progress' : 'sel-status-pending';
+}
+function prioClass(p) {
+  return p==='high' ? 'sel-prio-high' : p==='low' ? 'sel-prio-low' : 'sel-prio-medium';
+}
+
+// ── RENDER TABLE (filtered by active month) ──
+function renderTable() {
+  const tbody     = document.getElementById('taskBody');
+  const filtered  = getMonthTasks();
+  const monthName = MONTHS_ID[calMonth] + ' ' + calYear;
+
+  // Update toolbar labels
+  document.getElementById('activeMonthBadge').textContent = monthName;
+  document.getElementById('activeTaskCount').textContent  =
+    filtered.length
+      ? `${filtered.length} tugas ditemukan`
+      : 'Tidak ada tugas bulan ini';
+
+  if (!filtered.length) {
+    tbody.innerHTML = `<tr class="empty-row"><td colspan="10">Tidak ada tugas di bulan ${monthName}. Klik "＋ Tambah Baris" untuk mulai.</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = filtered.map((t, i) => {
+    const sw      = sisaWaktu(t.deadline, t.done);
+    const isDdOvd = !t.done && t.deadline && sw.cls === 'overdue';
+    return `
+    <tr class="${t.done?'done-row':''}" data-id="${t.id}">
+      <td class="num-cell">${i+1}</td>
+      <td class="cb-cell">
+        <input type="checkbox" ${t.done?'checked':''}
+          onchange="toggleDone(${t.id},this.checked)">
+      </td>
+      <td>
+        <textarea class="task-input ket-input" rows="1"
+          placeholder="Nama tugas..."
+          oninput="autoResize(this);updateField(${t.id},'name',this.value)"
+          style="min-width:160px"
+        >${escHtml(t.name)}</textarea>
+      </td>
+      <td>
+        <input class="task-input" type="date" value="${t.start||''}"
+          onchange="updateField(${t.id},'start',this.value)">
+      </td>
+      <td class="center">
+        <select class="task-input ${prioClass(t.prio)}"
+          onchange="updateField(${t.id},'prio',this.value);applyPrioClass(this)">
+          <option value="high"   ${t.prio==='high'  ?'selected':''}>High</option>
+          <option value="medium" ${t.prio==='medium'?'selected':''}>Medium</option>
+          <option value="low"    ${t.prio==='low'   ?'selected':''}>Low</option>
+        </select>
+      </td>
+      <td class="center">
+        <select class="task-input ${statusClass(t.status)}"
+          onchange="updateField(${t.id},'status',this.value);applyStatusClass(this);syncDone(${t.id})">
+          <option value="progress" ${t.status==='progress'?'selected':''}>In Progress</option>
+          <option value="done"     ${t.status==='done'    ?'selected':''}>Done</option>
+          <option value="pending"  ${t.status==='pending' ?'selected':''}>Pending</option>
+        </select>
+      </td>
+      <td class="${isDdOvd?'date-overdue':''}">
+        <input class="task-input" type="date" value="${t.deadline||''}"
+          onchange="updateField(${t.id},'deadline',this.value);refreshSisaCell(${t.id})">
+      </td>
+      ${sisaHtml(t.deadline, t.done)}
+      <td>
+        <textarea class="ket-input" rows="1"
+          placeholder="Keterangan..."
+          oninput="autoResize(this);updateField(${t.id},'ket',this.value)"
+        >${escHtml(t.ket||'')}</textarea>
+      </td>
+      <td class="del-cell center">
+        <button class="del-btn" onclick="deleteRow(${t.id})" title="Hapus tugas">🗑️</button>
+      </td>
+    </tr>`;
+  }).join('');
+
+  // Auto-resize semua textarea setelah render
+  document.querySelectorAll('.ket-input').forEach(autoResize);
+  document.querySelectorAll('.task-input.ket-input').forEach(autoResize);
+}
+
+// ── AUTO-RESIZE TEXTAREA ──
+function autoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = (el.scrollHeight) + 'px';
+}
+
+// ── DROPDOWN CLASS APPLY ──
+function applyStatusClass(sel) { sel.className = 'task-input ' + statusClass(sel.value); }
+function applyPrioClass(sel)   { sel.className = 'task-input ' + prioClass(sel.value); }
+
+// ── UPDATE FIELD ──
+function updateField(id, field, value) {
+  const t = tasks.find(x => x.id===id);
+  if (!t) return;
+  t[field] = value;
+  updateStats(); buildCalendar(); updateNotif();
+  saveData();
+}
+
+// ── SYNC DONE FROM STATUS DROPDOWN ──
+function syncDone(id) {
+  const t = tasks.find(x => x.id===id);
+  if (!t) return;
+  t.done = (t.status==='done');
+  const row = document.querySelector(`tr[data-id="${id}"]`);
+  if (row) {
+    const cb = row.querySelector('input[type=checkbox]');
+    if (cb) cb.checked = t.done;
+    if (t.done) row.classList.add('done-row');
+    else        row.classList.remove('done-row');
+    refreshSisaCell(id);
+  }
+  updateStats(); updateNotif();
+  saveData();
+}
+
+// ── REFRESH SISA CELL ──
+function refreshSisaCell(id) {
+  const t   = tasks.find(x => x.id===id);
+  if (!t) return;
+  const row = document.querySelector(`tr[data-id="${id}"]`);
+  if (!row) return;
+  const tds = row.querySelectorAll('td');
+  const sisaTd = tds[7];
+  const ddTd   = tds[6];
+  if (!sisaTd) return;
+
+  if (t.done) {
+    sisaTd.className = 'sisa-td center';
+    sisaTd.innerHTML = '<span class="done-pill">✓ Selesai</span>';
+    if (ddTd) ddTd.classList.remove('date-overdue');
+  } else {
+    const sw = sisaWaktu(t.deadline, false);
+    sisaTd.className   = 'sisa-td sisa-cell ' + sw.cls;
+    sisaTd.textContent = sw.text;
+    if (ddTd) {
+      if (sw.cls==='overdue') ddTd.classList.add('date-overdue');
+      else ddTd.classList.remove('date-overdue');
+    }
+  }
+  updateNotif();
+}
+
+// ── TOGGLE DONE (CHECKBOX) ──
+function toggleDone(id, checked) {
+  const t = tasks.find(x => x.id===id);
+  if (!t) return;
+  t.done   = checked;
+  t.status = checked ? 'done' : 'pending';
+
+  const row = document.querySelector(`tr[data-id="${id}"]`);
+  if (row) {
+    if (checked) row.classList.add('done-row');
+    else         row.classList.remove('done-row');
+    const selects = row.querySelectorAll('select');
+    if (selects[1]) { selects[1].value = t.status; applyStatusClass(selects[1]); }
+    const nameInp = row.querySelector('textarea.task-input');
+    if (nameInp) nameInp.style.textDecoration = checked ? 'line-through' : '';
+    refreshSisaCell(id);
+  }
+  updateStats(); buildCalendar(); updateNotif();
+  saveData();
+}
+
+// ── ADD ROW ──
+function addRow() {
+  // Tentukan tanggal default sesuai bulan kalender aktif
+  const defaultDate = calYear + '-' + String(calMonth + 1).padStart(2,'0') + '-01';
+  tasks.push({ id:nextId++, name:'', start:defaultDate, deadline:'', prio:'medium', status:'pending', done:false, ket:'' });
+  renderTable(); updateStats(); buildCalendar(); updateNotif();
+  saveData();
+  const rows = document.querySelectorAll('#taskBody tr');
+  if (rows.length) {
+    const inp = rows[rows.length-1].querySelector('.task-input');
+    if (inp) inp.focus();
+  }
+}
+
+// ── DELETE ROW ──
+function deleteRow(id) {
+  const t = tasks.find(x => x.id === id);
+  const nama = t ? (t.name || '(belum diisi)') : '';
+  const ok = confirm(
+    '⚠️ PERINGATAN: Hapus Tugas?\n\n' +
+    'Tugas: "' + nama + '"\n\n' +
+    'Tindakan ini tidak dapat dibatalkan.\nApakah Anda yakin ingin menghapus tugas ini?'
+  );
+  if (!ok) return;
+  tasks = tasks.filter(x => x.id !== id);
+  renderTable(); updateStats(); buildCalendar(); updateNotif();
+  saveData();
+}
+
+// ── PRINT / SAVE PDF ──
+function doPrint() {
+  window.print();
+}
+
+// ── NOTIFICATION PANEL ──
+function openNotifPanel() {
+  document.getElementById('notifPanel').classList.add('open');
+  document.getElementById('notifOverlay').classList.add('open');
+}
+function closeNotifPanel() {
+  document.getElementById('notifPanel').classList.remove('open');
+  document.getElementById('notifOverlay').classList.remove('open');
+}
+
+// ── UPDATE NOTIFICATION ──
+function updateNotif() {
+  const iconBar  = document.getElementById('notifIconBar');
+  const panelBody= document.getElementById('notifPanelBody');
+  const now      = new Date();
+  let iconHtml   = '';
+  let panelHtml  = '';
+
+  const overdue  = tasks.filter(t => !t.done && t.deadline && new Date(t.deadline+'T23:59:59') < now);
+  const upcoming = tasks
+    .filter(t => !t.done && t.deadline && new Date(t.deadline+'T23:59:59') >= now)
+    .sort((a,b) => new Date(a.deadline) - new Date(b.deadline));
+
+  if (overdue.length) {
+    // Icon
+    iconHtml += `
+      <button class="notif-icon-btn btn-urgent" onclick="openNotifPanel()" title="Tugas Terlambat: ${overdue.length}">
+        🚨<span class="badge">${overdue.length}</span>
+      </button>`;
+
+    // Panel detail — list all overdue
+    const listItems = overdue.map(t => `
+      <div class="notif-card notif-urgent">
+        <div class="notif-icon">🚨</div>
+        <div class="notif-body">
+          <div class="notif-label">Terlambat</div>
+          <div class="notif-title">${escHtml(t.name||'(belum diisi)')}</div>
+          <div class="notif-meta">
+            <span>📅 ${fmtDateShort(t.deadline)}</span>
+            <span>${t.prio==='high'?'🔴 High':t.prio==='low'?'🟡 Low':'🔵 Medium'}</span>
+          </div>
+        </div>
+        <span class="notif-badge">Terlambat</span>
+      </div>`).join('');
+    panelHtml += listItems;
+  }
+
+  if (upcoming.length) {
+    const next     = upcoming[0];
+    const diff     = Math.ceil((new Date(next.deadline+'T23:59:59') - now) / 86400000);
+    const diffText = diff===0 ? 'Hari ini!' : diff===1 ? 'Besok' : diff+' hari lagi';
+    const variant  = diff<=2 ? 'btn-urgent' : 'btn-info';
+    const icon     = diff<=2 ? '⏰' : '📌';
+
+    // Icon
+    iconHtml += `
+      <button class="notif-icon-btn ${variant}" onclick="openNotifPanel()" title="Tugas Mendatang: ${upcoming.length}">
+        ${icon}<span class="badge" style="${diff<=2?'':'background:var(--sky)'}">${upcoming.length}</span>
+      </button>`;
+
+    // Panel detail — list up to 8 upcoming
+    const listItems = upcoming.slice(0, 8).map(t => {
+      const d2    = Math.ceil((new Date(t.deadline+'T23:59:59') - now) / 86400000);
+      const dt    = d2===0 ? 'Hari ini!' : d2===1 ? 'Besok' : d2+' hari lagi';
+      const vr    = d2<=2 ? 'notif-urgent' : 'notif-info';
+      const ic    = d2<=2 ? '⏰' : '📌';
+      return `
+        <div class="notif-card ${vr}">
+          <div class="notif-icon">${ic}</div>
+          <div class="notif-body">
+            <div class="notif-label">Tugas Mendatang</div>
+            <div class="notif-title">${escHtml(t.name||'(belum diisi)')}</div>
+            <div class="notif-meta">
+              <span>📅 ${fmtDateShort(t.deadline)}</span>
+              <span>${t.prio==='high'?'🔴 High':t.prio==='low'?'🟡 Low':'🔵 Medium'}</span>
+              <span>🕐 ${dt}</span>
+            </div>
+          </div>
+          <span class="notif-badge">${dt}</span>
+        </div>`;
+    }).join('');
+    panelHtml += listItems;
+    if (upcoming.length > 8) {
+      panelHtml += `<p style="text-align:center;font-size:.78rem;color:var(--muted);padding:.5rem">...dan ${upcoming.length-8} tugas lainnya</p>`;
+    }
+  }
+
+  // All done
+  if (!overdue.length && !upcoming.length && tasks.length > 0 && tasks.every(t=>t.done)) {
+    iconHtml += `
+      <button class="notif-icon-btn btn-ok" onclick="openNotifPanel()" title="Semua Selesai!">🎉</button>`;
+    panelHtml = `
+      <div class="notif-card notif-ok">
+        <div class="notif-icon">🎉</div>
+        <div class="notif-body">
+          <div class="notif-label">Semua Selesai</div>
+          <div class="notif-title">Semua tugas telah diselesaikan! Kerja bagus.</div>
+          <div class="notif-meta"><span>Tidak ada tugas tersisa.</span></div>
+        </div>
+        <span class="notif-badge">100% ✓</span>
+      </div>`;
+  }
+
+  // No notif
+  if (!iconHtml) {
+    iconHtml = `<span style="font-size:.78rem;color:var(--muted)">Tidak ada notifikasi aktif</span>`;
+    panelHtml = `<p style="text-align:center;padding:2rem;color:var(--muted);font-size:.86rem">Tidak ada notifikasi saat ini.</p>`;
+  }
+
+  iconBar.innerHTML   = iconHtml;
+  panelBody.innerHTML = panelHtml;
+}
+
+// ── CALENDAR ──
+function buildCalendar() {
+  const grid   = document.getElementById('calGrid');
+  const label  = document.getElementById('calMonthLabel');
+  const header = document.getElementById('calHeader');
+  const mn     = MONTHS_ID[calMonth];
+  label.textContent  = mn + ' ' + calYear;
+  header.textContent = mn + ' ' + calYear;
+  grid.innerHTML = '';
+  DAYS_SHORT.forEach(d => {
+    const el = document.createElement('div');
+    el.className='day-name'; el.textContent=d; grid.appendChild(el);
+  });
+  const first  = new Date(calYear,calMonth,1).getDay();
+  const daysIn = new Date(calYear,calMonth+1,0).getDate();
+  const today  = new Date();
+  const ddSet  = new Set();
+  tasks.forEach(t => {
+    if (!t.deadline) return;
+    const d = new Date(t.deadline);
+    if (d.getFullYear()===calYear && d.getMonth()===calMonth && !t.done)
+      ddSet.add(d.getDate());
+  });
+  for (let i=0;i<first;i++) {
+    const el=document.createElement('div'); el.className='day empty'; grid.appendChild(el);
+  }
+  for (let d=1;d<=daysIn;d++) {
+    const el=document.createElement('div');
+    const dow=(first+d-1)%7;
+    let cls='day';
+    if (d===today.getDate()&&calMonth===today.getMonth()&&calYear===today.getFullYear()) cls+=' today';
+    else if (ddSet.has(d)) cls+=' has-task';
+    else if (dow===0||dow===6) cls+=' weekend';
+    el.className=cls; el.textContent=d; grid.appendChild(el);
+  }
+}
+
+function changeMonth(dir) {
+  calMonth += dir;
+  if (calMonth > 11) { calMonth = 0; calYear++; }
+  if (calMonth < 0)  { calMonth = 11; calYear--; }
+  buildCalendar();
+  renderTable();    // filter tabel sesuai bulan baru
+  updateStats();
+}
+
+// ── STATS ──
+function updateStats() {
+  const filtered = getMonthTasks();
+  const total = filtered.length;
+  const done  = filtered.filter(t=>t.status==='done').length;
+  const prog  = filtered.filter(t=>t.status==='progress').length;
+  const pend  = filtered.filter(t=>t.status==='pending').length;
+  const pct   = total ? Math.round(done/total*100) : 0;
+  document.getElementById('progPct').textContent  = pct+'%';
+  document.getElementById('progFill').style.width = pct+'%';
+  document.getElementById('progSub').innerHTML=`
+    <span style="background:var(--green-bg);color:var(--green)">✓ ${done} Selesai</span>
+    <span style="background:var(--sky-bg);color:var(--sky)">↻ ${prog} Progress</span>
+    <span style="background:#f1f5f9;color:var(--muted)">○ ${pend} Pending</span>`;
+  document.getElementById('statBody').innerHTML=`
+    <tr><td class="label">Total</td><td class="num">${total}</td></tr>
+    <tr class="stat-row-done"><td class="label">Selesai</td><td class="num">${done}</td></tr>
+    <tr class="stat-row-prog"><td class="label">In Progress</td><td class="num">${prog}</td></tr>
+    <tr class="stat-row-pend"><td class="label">Pending</td><td class="num">${pend}</td></tr>`;
+}
+
+// ── INIT ──
+// Load dari API, fallback ke localStorage cache
+(function initTaskData(){
+  loadData(); // preload dari cache dulu agar UI langsung muncul
+  buildCalendar(); renderTable(); updateStats(); updateNotif();
+
+  fetch('/api/tasks', { headers: _taskAuthHeaders() })
+    .then(function(r){ return r.ok ? r.json() : null; })
+    .then(function(json){
+      if(json && Array.isArray(json.tasks)){
+        tasks  = json.tasks;
+        nextId = parseInt(json.nextId) || nextId;
+        // Update cache
+        try{ localStorage.setItem('mytask_tasks', JSON.stringify(tasks)); localStorage.setItem('mytask_nextId', String(nextId)); }catch(e){}
+        buildCalendar(); renderTable(); updateStats(); updateNotif();
+      }
+    })
+    .catch(function(){ /* pakai data dari cache */ });
+})();
+</script>
+</body>
+</html>
