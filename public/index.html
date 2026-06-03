@@ -1916,13 +1916,11 @@ input[name="ag-mode"]:checked ~ div > .ag-mode-title { color: var(--grn); }
   }
 
   // Panel navigation — arahkan ke file HTML masing-masing modul
-  function openPanel(key) {
-    window.location.href = key + '.html';
-  }
+    function openPanel(key) {
+window.location.href = '/btis-manager/' + key + '.html';  }
 
   function closePanel(key) {
-    window.location.href = 'index.html';
-  }
+window.location.href = '/btis-manager/index.html';  }
 
   // ── PROFILE PANEL ──
   let profileColor = '#1a3a6b';
