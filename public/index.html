@@ -2006,8 +2006,8 @@ input[name="ag-mode"]:checked ~ div > .ag-mode-title { color: var(--grn); }
       });
     }
     if (!res.ok) throw new Error('Gagal menyimpan profil');
-    const json = await res.json();
-    return normalizeProfile(json);
+    await res.json();
+    return normalized;
   }
 
   function openProfilePanel() {
