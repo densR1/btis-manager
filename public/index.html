@@ -2237,7 +2237,12 @@ input[name="ag-mode"]:checked ~ div > .ag-mode-title { color: var(--grn); }
   // Muat PIN modul dari server saat halaman dibuka
   (async function initPin() {
     try {
-      const res = await fetch('/api/auth/pin', { headers: authHeaders() });
+      let res = await fetch('/api/auth/pin', { headers: authHeaders() });
+      if (res.status === 401) {
+        try { localStorage.removeItem('btis_token'); } catch(e) {}
+        await requestNewToken();
+        res = await fetch('/api/auth/pin', { headers: authHeaders() });
+      }
       if (res.ok) {
         const json = await res.json();
         if (json && json.pin) {
