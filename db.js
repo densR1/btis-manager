@@ -1,212 +1,237 @@
-// db.js — SQLite database menggunakan sql.js (pure JavaScript, tanpa kompilasi)
-const path = require('path');
-const fs   = require('fs');
+// db.js — MySQL database menggunakan mysql2
+const mysql = require('mysql2/promise');
 
-const DB_PATH = path.join(__dirname, 'btis.db');
+let pool;
 
-let _inner = null; // objek sql.js Database
-let _SQL   = null;
-
-// ── Simpan database ke file ───────────────────────────────────────
-function save() {
-  if (!_inner) return;
-  fs.writeFileSync(DB_PATH, Buffer.from(_inner.export()));
-}
-
-// ── Wrapper kompatibel dengan API better-sqlite3 (synchronous) ────
-function makeWrapper() {
-  return {
-    pragma: () => {},
-
-    exec(sql) {
-      _inner.run(sql);
-      save();
-      return this;
-    },
-
-    prepare(sql) {
-      return {
-        // Ambil 1 baris
-        get(...params) {
-          const stmt = _inner.prepare(sql);
-          stmt.bind(params.flat());
-          const result = stmt.step() ? stmt.getAsObject() : undefined;
-          stmt.free();
-          return result;
-        },
-        // Ambil semua baris
-        all(...params) {
-          const stmt = _inner.prepare(sql);
-          stmt.bind(params.flat());
-          const rows = [];
-          while (stmt.step()) rows.push(stmt.getAsObject());
-          stmt.free();
-          return rows;
-        },
-        // Jalankan query (INSERT / UPDATE / DELETE)
-        run(...params) {
-          _inner.run(sql, params.flat());
-          const changes = _inner.getRowsModified();
-          const res     = _inner.exec('SELECT last_insert_rowid()');
-          const lastInsertRowid = res[0]?.values[0]?.[0] || 0;
-          save();
-          return { changes, lastInsertRowid };
-        }
-      };
-    },
-
-    // Transaction: jalankan banyak operasi sekaligus
-    transaction(fn) {
-      return (...args) => {
-        _inner.run('BEGIN');
-        try {
-          fn(...args);
-          _inner.run('COMMIT');
-        } catch (e) {
-          _inner.run('ROLLBACK');
-          throw e;
-        }
-        save();
-      };
-    }
-  };
-}
-
-// ── Inisialisasi database (async, dipanggil 1x dari server.js) ────
 async function init() {
-  const initSqlJs = require('sql.js');
-  _SQL = await initSqlJs();
+  pool = mysql.createPool({
+    host:     process.env.DB_HOST || 'localhost',
+    port:     parseInt(process.env.DB_PORT) || 3306,
+    user:     process.env.DB_USER || 'root',
+    password: process.env.DB_PASS || '',
+    database: process.env.DB_NAME || 'btis_manager',
+    waitForConnections: true,
+    connectionLimit: 10,
+    charset: 'utf8mb4',
+  });
 
-  const fileBuffer = fs.existsSync(DB_PATH) ? fs.readFileSync(DB_PATH) : null;
-  _inner = fileBuffer ? new _SQL.Database(fileBuffer) : new _SQL.Database();
+  const tables = [
+    `CREATE TABLE IF NOT EXISTS auth_tokens (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      token VARCHAR(255) NOT NULL UNIQUE,
+      created_at DATETIME NOT NULL DEFAULT NOW()
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
 
-  // Buat semua tabel
-  _inner.run(`PRAGMA foreign_keys = ON;`);
-  _inner.run(`
-    CREATE TABLE IF NOT EXISTS auth_tokens (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      token TEXT NOT NULL UNIQUE,
-      created_at TEXT NOT NULL DEFAULT (datetime('now','localtime'))
-    );
-    CREATE TABLE IF NOT EXISTS app_settings (key TEXT PRIMARY KEY, value TEXT NOT NULL);
-    INSERT OR IGNORE INTO app_settings (key, value) VALUES ('module_pin', '1234');
+    `CREATE TABLE IF NOT EXISTS app_settings (
+      \`key\` VARCHAR(100) PRIMARY KEY,
+      value VARCHAR(255) NOT NULL
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
 
-    CREATE TABLE IF NOT EXISTS profiles (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      token TEXT NOT NULL UNIQUE, nama TEXT NOT NULL,
-      jabatan TEXT NOT NULL DEFAULT '', avatar_color TEXT NOT NULL DEFAULT '#1a3a6b',
-      created_at TEXT NOT NULL DEFAULT (datetime('now','localtime')),
-      updated_at TEXT NOT NULL DEFAULT (datetime('now','localtime'))
-    );
+    `INSERT IGNORE INTO app_settings (\`key\`, value) VALUES ('module_pin', '1234')`,
 
-    CREATE TABLE IF NOT EXISTS kalender_events (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      tanggal TEXT NOT NULL, nama TEXT NOT NULL,
-      tipe TEXT NOT NULL DEFAULT 'kegiatan', he INTEGER NOT NULL DEFAULT 1,
-      semester TEXT, tahun_ajar TEXT NOT NULL DEFAULT '', catatan TEXT DEFAULT '',
-      created_at TEXT NOT NULL DEFAULT (datetime('now','localtime'))
-    );
+    `CREATE TABLE IF NOT EXISTS profiles (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      token VARCHAR(255) NOT NULL UNIQUE,
+      nama VARCHAR(255) NOT NULL,
+      jabatan VARCHAR(255) NOT NULL DEFAULT '',
+      avatar_color VARCHAR(20) NOT NULL DEFAULT '#1a3a6b',
+      created_at DATETIME NOT NULL DEFAULT NOW(),
+      updated_at DATETIME NOT NULL DEFAULT NOW()
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
 
-    CREATE TABLE IF NOT EXISTS tt_tahun_ajar (
-      id INTEGER PRIMARY KEY AUTOINCREMENT, nama TEXT NOT NULL UNIQUE, aktif INTEGER NOT NULL DEFAULT 0
-    );
-    CREATE TABLE IF NOT EXISTS tt_kelas (
-      id INTEGER PRIMARY KEY AUTOINCREMENT, nama TEXT NOT NULL,
-      tingkat TEXT NOT NULL DEFAULT '', parallel TEXT NOT NULL DEFAULT '',
-      ta_id INTEGER REFERENCES tt_tahun_ajar(id)
-    );
-    CREATE TABLE IF NOT EXISTS tt_guru (
-      id INTEGER PRIMARY KEY AUTOINCREMENT, nama TEXT NOT NULL,
-      kode TEXT NOT NULL DEFAULT '', mapel TEXT NOT NULL DEFAULT '',
-      max_jp INTEGER NOT NULL DEFAULT 24, ta_id INTEGER REFERENCES tt_tahun_ajar(id)
-    );
-    CREATE TABLE IF NOT EXISTS tt_mapel (
-      id INTEGER PRIMARY KEY AUTOINCREMENT, nama TEXT NOT NULL,
-      kode TEXT NOT NULL DEFAULT '', warna TEXT NOT NULL DEFAULT '#1a3a6b',
-      ta_id INTEGER REFERENCES tt_tahun_ajar(id)
-    );
-    CREATE TABLE IF NOT EXISTS tt_jadwal (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      kelas_id INTEGER NOT NULL, guru_id INTEGER, mapel_id INTEGER,
-      hari TEXT NOT NULL, jam_ke INTEGER NOT NULL, ta_id INTEGER,
-      created_at TEXT NOT NULL DEFAULT (datetime('now','localtime'))
-    );
+    `CREATE TABLE IF NOT EXISTS kalender_events (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      tanggal DATE NOT NULL,
+      nama VARCHAR(255) NOT NULL,
+      tipe VARCHAR(50) NOT NULL DEFAULT 'kegiatan',
+      he INT NOT NULL DEFAULT 1,
+      semester VARCHAR(50),
+      tahun_ajar VARCHAR(20) NOT NULL DEFAULT '',
+      catatan TEXT,
+      created_at DATETIME NOT NULL DEFAULT NOW()
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
 
-    CREATE TABLE IF NOT EXISTS meetings (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      judul TEXT NOT NULL, tanggal TEXT NOT NULL,
-      waktu_mulai TEXT NOT NULL DEFAULT '', waktu_selesai TEXT NOT NULL DEFAULT '',
-      tempat TEXT NOT NULL DEFAULT '', pimpinan TEXT NOT NULL DEFAULT '',
-      agenda TEXT NOT NULL DEFAULT '', notulensi TEXT NOT NULL DEFAULT '',
-      status TEXT NOT NULL DEFAULT 'terjadwal',
-      created_at TEXT NOT NULL DEFAULT (datetime('now','localtime')),
-      updated_at TEXT NOT NULL DEFAULT (datetime('now','localtime'))
-    );
-    CREATE TABLE IF NOT EXISTS meeting_peserta (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      meeting_id INTEGER NOT NULL, nama TEXT NOT NULL,
-      jabatan TEXT NOT NULL DEFAULT '', hadir INTEGER NOT NULL DEFAULT 0
-    );
+    `CREATE TABLE IF NOT EXISTS tt_tahun_ajar (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      nama VARCHAR(100) NOT NULL UNIQUE,
+      aktif INT NOT NULL DEFAULT 0
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
 
-    CREATE TABLE IF NOT EXISTS teachers (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      nip TEXT NOT NULL DEFAULT '', nama TEXT NOT NULL,
-      jenis_kelamin TEXT NOT NULL DEFAULT '', jabatan TEXT NOT NULL DEFAULT '',
-      mapel_utama TEXT NOT NULL DEFAULT '', mapel_lain TEXT NOT NULL DEFAULT '',
-      status TEXT NOT NULL DEFAULT 'aktif', no_hp TEXT NOT NULL DEFAULT '',
-      email TEXT NOT NULL DEFAULT '', alamat TEXT NOT NULL DEFAULT '',
-      tanggal_masuk TEXT NOT NULL DEFAULT '', catatan TEXT NOT NULL DEFAULT '',
-      created_at TEXT NOT NULL DEFAULT (datetime('now','localtime')),
-      updated_at TEXT NOT NULL DEFAULT (datetime('now','localtime'))
-    );
+    `CREATE TABLE IF NOT EXISTS tt_kelas (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      nama VARCHAR(100) NOT NULL,
+      tingkat VARCHAR(50) NOT NULL DEFAULT '',
+      parallel VARCHAR(10) NOT NULL DEFAULT '',
+      ta_id INT
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
 
-    CREATE TABLE IF NOT EXISTS tasks (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      token TEXT NOT NULL DEFAULT '', judul TEXT NOT NULL,
-      deskripsi TEXT NOT NULL DEFAULT '', prioritas TEXT NOT NULL DEFAULT 'normal',
-      status TEXT NOT NULL DEFAULT 'todo', tenggat TEXT NOT NULL DEFAULT '',
-      kategori TEXT NOT NULL DEFAULT '',
-      created_at TEXT NOT NULL DEFAULT (datetime('now','localtime')),
-      updated_at TEXT NOT NULL DEFAULT (datetime('now','localtime'))
-    );
+    `CREATE TABLE IF NOT EXISTS tt_guru (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      nama VARCHAR(255) NOT NULL,
+      kode VARCHAR(20) NOT NULL DEFAULT '',
+      mapel VARCHAR(255) NOT NULL DEFAULT '',
+      max_jp INT NOT NULL DEFAULT 24,
+      ta_id INT
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
 
-    CREATE TABLE IF NOT EXISTS supervisions (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      guru_id INTEGER, nama_guru TEXT NOT NULL DEFAULT '',
-      kelas TEXT NOT NULL DEFAULT '', mapel TEXT NOT NULL DEFAULT '',
-      tanggal TEXT NOT NULL, jam TEXT NOT NULL DEFAULT '',
-      supervisor TEXT NOT NULL DEFAULT '', skor_total REAL NOT NULL DEFAULT 0,
-      catatan TEXT NOT NULL DEFAULT '', status TEXT NOT NULL DEFAULT 'draft',
-      created_at TEXT NOT NULL DEFAULT (datetime('now','localtime')),
-      updated_at TEXT NOT NULL DEFAULT (datetime('now','localtime'))
-    );
-    CREATE TABLE IF NOT EXISTS supervision_aspek (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      supervision_id INTEGER NOT NULL, aspek TEXT NOT NULL,
-      skor INTEGER NOT NULL DEFAULT 0, keterangan TEXT NOT NULL DEFAULT ''
-    );
+    `CREATE TABLE IF NOT EXISTS tt_mapel (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      nama VARCHAR(255) NOT NULL,
+      kode VARCHAR(20) NOT NULL DEFAULT '',
+      warna VARCHAR(20) NOT NULL DEFAULT '#1a3a6b',
+      ta_id INT
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
 
-    CREATE TABLE IF NOT EXISTS tahfidz_siswa (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      nis TEXT NOT NULL DEFAULT '', nama TEXT NOT NULL,
-      kelas TEXT NOT NULL DEFAULT '', target_surah TEXT NOT NULL DEFAULT '',
-      target_juz INTEGER NOT NULL DEFAULT 1, musyrif TEXT NOT NULL DEFAULT '',
-      status TEXT NOT NULL DEFAULT 'aktif',
-      created_at TEXT NOT NULL DEFAULT (datetime('now','localtime'))
-    );
-    CREATE TABLE IF NOT EXISTS tahfidz_setoran (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      siswa_id INTEGER NOT NULL, tanggal TEXT NOT NULL, surah TEXT NOT NULL,
-      ayat_dari INTEGER NOT NULL DEFAULT 1, ayat_sampai INTEGER NOT NULL DEFAULT 1,
-      jenis TEXT NOT NULL DEFAULT 'setoran', nilai TEXT NOT NULL DEFAULT 'B',
-      musyrif TEXT NOT NULL DEFAULT '', catatan TEXT NOT NULL DEFAULT '',
-      created_at TEXT NOT NULL DEFAULT (datetime('now','localtime'))
-    );
-  `);
+    `CREATE TABLE IF NOT EXISTS tt_jadwal (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      kelas_id INT NOT NULL,
+      guru_id INT,
+      mapel_id INT,
+      hari VARCHAR(10) NOT NULL,
+      jam_ke INT NOT NULL,
+      ta_id INT,
+      created_at DATETIME NOT NULL DEFAULT NOW()
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
 
-  save();
-  console.log('✅ Database siap:', DB_PATH);
-  return makeWrapper();
+    `CREATE TABLE IF NOT EXISTS meetings (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      judul VARCHAR(255) NOT NULL,
+      tanggal DATE NOT NULL,
+      waktu_mulai VARCHAR(10) NOT NULL DEFAULT '',
+      waktu_selesai VARCHAR(10) NOT NULL DEFAULT '',
+      tempat VARCHAR(255) NOT NULL DEFAULT '',
+      pimpinan VARCHAR(255) NOT NULL DEFAULT '',
+      agenda TEXT,
+      notulensi TEXT,
+      status VARCHAR(20) NOT NULL DEFAULT 'terjadwal',
+      created_at DATETIME NOT NULL DEFAULT NOW(),
+      updated_at DATETIME NOT NULL DEFAULT NOW()
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
+
+    `CREATE TABLE IF NOT EXISTS meeting_peserta (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      meeting_id INT NOT NULL,
+      nama VARCHAR(255) NOT NULL,
+      jabatan VARCHAR(255) NOT NULL DEFAULT '',
+      hadir INT NOT NULL DEFAULT 0
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
+
+    `CREATE TABLE IF NOT EXISTS teachers (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      nip VARCHAR(50) NOT NULL DEFAULT '',
+      nama VARCHAR(255) NOT NULL,
+      jenis_kelamin VARCHAR(1) NOT NULL DEFAULT '',
+      jabatan VARCHAR(255) NOT NULL DEFAULT '',
+      mapel_utama VARCHAR(255) NOT NULL DEFAULT '',
+      mapel_lain VARCHAR(255) NOT NULL DEFAULT '',
+      status VARCHAR(20) NOT NULL DEFAULT 'aktif',
+      no_hp VARCHAR(20) NOT NULL DEFAULT '',
+      email VARCHAR(255) NOT NULL DEFAULT '',
+      alamat TEXT,
+      tanggal_masuk DATE,
+      catatan TEXT,
+      created_at DATETIME NOT NULL DEFAULT NOW(),
+      updated_at DATETIME NOT NULL DEFAULT NOW()
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
+
+    `CREATE TABLE IF NOT EXISTS tasks (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      token VARCHAR(255) NOT NULL DEFAULT '',
+      judul VARCHAR(255) NOT NULL,
+      deskripsi TEXT,
+      prioritas VARCHAR(20) NOT NULL DEFAULT 'normal',
+      status VARCHAR(20) NOT NULL DEFAULT 'todo',
+      tenggat DATE,
+      kategori VARCHAR(100) NOT NULL DEFAULT '',
+      created_at DATETIME NOT NULL DEFAULT NOW(),
+      updated_at DATETIME NOT NULL DEFAULT NOW()
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
+
+    `CREATE TABLE IF NOT EXISTS supervisions (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      guru_id INT,
+      nama_guru VARCHAR(255) NOT NULL DEFAULT '',
+      kelas VARCHAR(50) NOT NULL DEFAULT '',
+      mapel VARCHAR(255) NOT NULL DEFAULT '',
+      tanggal DATE NOT NULL,
+      jam VARCHAR(20) NOT NULL DEFAULT '',
+      supervisor VARCHAR(255) NOT NULL DEFAULT '',
+      skor_total DOUBLE NOT NULL DEFAULT 0,
+      catatan TEXT,
+      status VARCHAR(20) NOT NULL DEFAULT 'draft',
+      created_at DATETIME NOT NULL DEFAULT NOW(),
+      updated_at DATETIME NOT NULL DEFAULT NOW()
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
+
+    `CREATE TABLE IF NOT EXISTS supervision_aspek (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      supervision_id INT NOT NULL,
+      aspek VARCHAR(255) NOT NULL,
+      skor INT NOT NULL DEFAULT 0,
+      keterangan TEXT
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
+
+    `CREATE TABLE IF NOT EXISTS tahfidz_siswa (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      nis VARCHAR(50) NOT NULL DEFAULT '',
+      nama VARCHAR(255) NOT NULL,
+      kelas VARCHAR(20) NOT NULL DEFAULT '',
+      target_surah VARCHAR(255) NOT NULL DEFAULT '',
+      target_juz INT NOT NULL DEFAULT 1,
+      musyrif VARCHAR(255) NOT NULL DEFAULT '',
+      status VARCHAR(20) NOT NULL DEFAULT 'aktif',
+      created_at DATETIME NOT NULL DEFAULT NOW()
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
+
+    `CREATE TABLE IF NOT EXISTS tahfidz_setoran (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      siswa_id INT NOT NULL,
+      tanggal DATE NOT NULL,
+      surah VARCHAR(255) NOT NULL,
+      ayat_dari INT NOT NULL DEFAULT 1,
+      ayat_sampai INT NOT NULL DEFAULT 1,
+      jenis VARCHAR(20) NOT NULL DEFAULT 'setoran',
+      nilai VARCHAR(5) NOT NULL DEFAULT 'B',
+      musyrif VARCHAR(255) NOT NULL DEFAULT '',
+      catatan TEXT,
+      created_at DATETIME NOT NULL DEFAULT NOW()
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
+  ];
+
+  for (const sql of tables) {
+    await pool.execute(sql);
+  }
+
+  console.log('✅ Database siap (MySQL):', process.env.DB_NAME || 'btis_manager');
+
+  return {
+    async query(sql, params = []) {
+      const [rows] = await pool.execute(sql, params);
+      return rows;
+    },
+    async queryOne(sql, params = []) {
+      const [rows] = await pool.execute(sql, params);
+      return rows[0];
+    },
+    async execute(sql, params = []) {
+      const [result] = await pool.execute(sql, params);
+      return result;
+    },
+    async transaction(fn) {
+      const conn = await pool.getConnection();
+      await conn.beginTransaction();
+      try {
+        await fn(conn);
+        await conn.commit();
+      } catch (e) {
+        await conn.rollback();
+        throw e;
+      } finally {
+        conn.release();
+      }
+    },
+    pool,
+  };
 }
 
 module.exports = { init };
