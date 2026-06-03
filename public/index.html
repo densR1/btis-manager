@@ -1959,9 +1959,23 @@ input[name="ag-mode"]:checked ~ div > .ag-mode-title { color: var(--grn); }
     return JSON.stringify([p.nama, p.jabatan, p.color]);
   }
 
-  // ✅ Diperbaiki: kirim Authorization header
+  async function requestNewToken() {
+    try {
+      const r = await fetch('/api/auth/token', { method: 'POST' });
+      if (r.ok) {
+        const j = await r.json();
+        if (j.token) { try { localStorage.setItem('btis_token', j.token); } catch(e) {} }
+      }
+    } catch(e) {}
+  }
+
   async function fetchProfileFromServer() {
-    const res = await fetch(PROFILE_API, { headers: authHeaders() });
+    let res = await fetch(PROFILE_API, { headers: authHeaders() });
+    if (res.status === 401) {
+      try { localStorage.removeItem('btis_token'); } catch(e) {}
+      await requestNewToken();
+      res = await fetch(PROFILE_API, { headers: authHeaders() });
+    }
     if (!res.ok) {
       const err = new Error('Gagal mengambil profil');
       err.status = res.status;
@@ -1970,24 +1984,29 @@ input[name="ag-mode"]:checked ~ div > .ag-mode-title { color: var(--grn); }
     return normalizeProfile(await res.json());
   }
 
-  // ✅ Diperbaiki:
-  //    1. Kirim Authorization header
-  //    2. Petakan color → avatar_color sesuai field di database
-  //    3. Kembalikan data dari server, bukan payload lokal
   async function saveProfileToServer(profile) {
     const normalized = normalizeProfile(profile);
-    const res = await fetch(PROFILE_API, {
+    const payload = JSON.stringify({
+      nama:         normalized.nama,
+      jabatan:      normalized.jabatan,
+      avatar_color: normalized.color
+    });
+    let res = await fetch(PROFILE_API, {
       method: 'PUT',
       headers: authHeaders({ 'Content-Type': 'application/json' }),
-      body: JSON.stringify({
-        nama:         normalized.nama,
-        jabatan:      normalized.jabatan,
-        avatar_color: normalized.color   // ✅ Nama field yang benar di backend
-      })
+      body: payload
     });
+    if (res.status === 401) {
+      try { localStorage.removeItem('btis_token'); } catch(e) {}
+      await requestNewToken();
+      res = await fetch(PROFILE_API, {
+        method: 'PUT',
+        headers: authHeaders({ 'Content-Type': 'application/json' }),
+        body: payload
+      });
+    }
     if (!res.ok) throw new Error('Gagal menyimpan profil');
     const json = await res.json();
-    // ✅ Gunakan data terbaru dari server
     return normalizeProfile(json);
   }
 
