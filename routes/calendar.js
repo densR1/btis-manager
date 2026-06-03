@@ -20,6 +20,107 @@ router.get('/', async (req, res) => {
   }
 });
 
+// ── Key-value storage routes (harus SEBELUM /:id) ─────────────────
+
+async function getSetting(db, key) {
+  const row = await db.queryOne('SELECT value FROM calendar_settings WHERE `key` = ?', [key]);
+  return row ? row.value : null;
+}
+async function setSetting(db, key, value) {
+  await db.execute(
+    'INSERT INTO calendar_settings (`key`, value) VALUES (?, ?) ON DUPLICATE KEY UPDATE value = ?',
+    [key, value, value]
+  );
+}
+
+// GET /api/calendar/settings
+router.get('/settings', async (req, res) => {
+  try {
+    const val = await getSetting(getDb(req), 'tahun');
+    res.json({ success: true, tahun: val ? parseInt(val) : null });
+  } catch (err) { res.status(500).json({ success: false, message: err.message }); }
+});
+
+// PUT /api/calendar/settings
+router.put('/settings', async (req, res) => {
+  try {
+    const { tahun } = req.body;
+    if (!tahun) return res.status(400).json({ success: false, message: 'tahun wajib diisi' });
+    await setSetting(getDb(req), 'tahun', String(tahun));
+    res.json({ success: true });
+  } catch (err) { res.status(500).json({ success: false, message: err.message }); }
+});
+
+// GET /api/calendar/logo
+router.get('/logo', async (req, res) => {
+  try {
+    const val = await getSetting(getDb(req), 'logo');
+    res.json({ success: true, logo: val || null });
+  } catch (err) { res.status(500).json({ success: false, message: err.message }); }
+});
+
+// PUT /api/calendar/logo
+router.put('/logo', async (req, res) => {
+  try {
+    const { logo } = req.body;
+    if (!logo) return res.status(400).json({ success: false, message: 'logo wajib diisi' });
+    await setSetting(getDb(req), 'logo', logo);
+    res.json({ success: true });
+  } catch (err) { res.status(500).json({ success: false, message: err.message }); }
+});
+
+// GET /api/calendar/events
+router.get('/events', async (req, res) => {
+  try {
+    const val = await getSetting(getDb(req), 'events');
+    res.json({ success: true, events: val ? JSON.parse(val) : [] });
+  } catch (err) { res.status(500).json({ success: false, message: err.message }); }
+});
+
+// PUT /api/calendar/events
+router.put('/events', async (req, res) => {
+  try {
+    const { events } = req.body;
+    if (!Array.isArray(events)) return res.status(400).json({ success: false, message: 'events harus berupa array' });
+    await setSetting(getDb(req), 'events', JSON.stringify(events));
+    res.json({ success: true });
+  } catch (err) { res.status(500).json({ success: false, message: err.message }); }
+});
+
+// GET /api/calendar/ekskul
+router.get('/ekskul', async (req, res) => {
+  try {
+    const val = await getSetting(getDb(req), 'ekskul');
+    res.json({ success: true, ekskul: val ? JSON.parse(val) : null });
+  } catch (err) { res.status(500).json({ success: false, message: err.message }); }
+});
+
+// PUT /api/calendar/ekskul
+router.put('/ekskul', async (req, res) => {
+  try {
+    const { ekskul } = req.body;
+    await setSetting(getDb(req), 'ekskul', JSON.stringify(ekskul));
+    res.json({ success: true });
+  } catch (err) { res.status(500).json({ success: false, message: err.message }); }
+});
+
+// GET /api/calendar/ekskul-manual
+router.get('/ekskul-manual', async (req, res) => {
+  try {
+    const val = await getSetting(getDb(req), 'ekskul-manual');
+    res.json({ success: true, ekskulManual: val ? JSON.parse(val) : null });
+  } catch (err) { res.status(500).json({ success: false, message: err.message }); }
+});
+
+// PUT /api/calendar/ekskul-manual
+router.put('/ekskul-manual', async (req, res) => {
+  try {
+    const { ekskulManual } = req.body;
+    await setSetting(getDb(req), 'ekskul-manual', JSON.stringify(ekskulManual));
+    res.json({ success: true });
+  } catch (err) { res.status(500).json({ success: false, message: err.message }); }
+});
+
 // GET /api/calendar/:id
 router.get('/:id', async (req, res) => {
   const row = await getDb(req).queryOne('SELECT * FROM kalender_events WHERE id = ?', [req.params.id]);
