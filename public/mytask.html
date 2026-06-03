@@ -706,7 +706,7 @@ function saveData() {
   // Kirim ke API (debounced)
   clearTimeout(_taskSaveTimer);
   _taskSaveTimer = setTimeout(function(){
-    fetch('/api/tasks', {
+    fetch('/api/task', {
       method: 'PUT',
       headers: _taskAuthHeaders(),
       body: JSON.stringify({ tasks, nextId })
@@ -1203,7 +1203,7 @@ function updateStats() {
   loadData(); // preload dari cache dulu agar UI langsung muncul
   buildCalendar(); renderTable(); updateStats(); updateNotif();
 
-  fetch('/api/tasks', { headers: _taskAuthHeaders() })
+  fetch('/api/task', { headers: _taskAuthHeaders() })
     .then(function(r){ return r.ok ? r.json() : null; })
     .then(function(json){
       if(json && Array.isArray(json.tasks)){
