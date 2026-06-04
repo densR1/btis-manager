@@ -4,6 +4,53 @@ const router  = express.Router();
 
 const getDb = (req) => req.app.locals.db;
 
+// ── KEY-VALUE STORAGE (meta & data per TA) ────────────────────────
+
+async function ttGet(db, key) {
+  const row = await db.queryOne('SELECT value FROM timetable_data WHERE `key` = ?', [key]);
+  return row ? row.value : null;
+}
+async function ttSet(db, key, value) {
+  await db.execute(
+    'INSERT INTO timetable_data (`key`, value) VALUES (?, ?) ON DUPLICATE KEY UPDATE value = ?',
+    [key, value, value]
+  );
+}
+
+// GET /api/timetable/meta
+router.get('/meta', async (req, res) => {
+  try {
+    const val = await ttGet(getDb(req), 'meta');
+    res.json({ success: true, meta: val ? JSON.parse(val) : null });
+  } catch (err) { res.status(500).json({ success: false, message: err.message }); }
+});
+
+// PUT /api/timetable/meta
+router.put('/meta', async (req, res) => {
+  try {
+    const { meta } = req.body;
+    await ttSet(getDb(req), 'meta', JSON.stringify(meta));
+    res.json({ success: true });
+  } catch (err) { res.status(500).json({ success: false, message: err.message }); }
+});
+
+// GET /api/timetable/:id  (id = tahun ajar, e.g. "2024%2F2025")
+router.get('/:id', async (req, res) => {
+  try {
+    const val = await ttGet(getDb(req), 'ta:' + req.params.id);
+    res.json({ success: true, data: val ? JSON.parse(val) : null });
+  } catch (err) { res.status(500).json({ success: false, message: err.message }); }
+});
+
+// PUT /api/timetable/:id
+router.put('/:id', async (req, res) => {
+  try {
+    const { data } = req.body;
+    await ttSet(getDb(req), 'ta:' + req.params.id, JSON.stringify(data));
+    res.json({ success: true });
+  } catch (err) { res.status(500).json({ success: false, message: err.message }); }
+});
+
 // ── TAHUN AJARAN ──────────────────────────────────────────────────
 
 router.get('/tahun-ajar', async (req, res) => {

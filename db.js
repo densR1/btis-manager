@@ -39,6 +39,11 @@ async function init() {
       updated_at DATETIME NOT NULL DEFAULT NOW()
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
 
+    `CREATE TABLE IF NOT EXISTS timetable_data (
+      \`key\` VARCHAR(150) PRIMARY KEY,
+      value MEDIUMTEXT NOT NULL
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
+
     `CREATE TABLE IF NOT EXISTS calendar_settings (
       \`key\` VARCHAR(100) PRIMARY KEY,
       value MEDIUMTEXT NOT NULL
