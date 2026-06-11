@@ -1555,13 +1555,7 @@ function _debounceCalSave(fn, delay) {
 function saveToStorage() {
   // Cache lokal tetap ditulis sebagai fallback offline
   try { localStorage.setItem(STORAGE_KEY, JSON.stringify(events)); } catch(e) {}
-  // Sync PIC ke meeting.html (btis_calendar_pics)
-  try {
-    var calPics = events
-      .filter(function(ev){ return ev.pic && ev.pic.trim(); })
-      .map(function(ev){ return { name: ev.pic.trim(), kegiatan: ev.name || 'Kegiatan', jabatan: '' }; });
-    localStorage.setItem('btis_calendar_pics', JSON.stringify(calPics));
-  } catch(e) {}
+  syncPicsToMeeting();
   // Kirim ke API (debounced)
   _debounceCalSave(function() {
     fetch('/api/calendar/events', {
@@ -1574,6 +1568,15 @@ function saveToStorage() {
 function loadFromStorage() {
   // Baca cache lokal dulu sebagai sementara
   try { var raw = localStorage.getItem(STORAGE_KEY); if (raw) events = JSON.parse(raw); } catch(e) { events = []; }
+  syncPicsToMeeting();
+}
+function syncPicsToMeeting() {
+  try {
+    var calPics = events
+      .filter(function(ev){ return ev.pic && ev.pic.trim(); })
+      .map(function(ev){ return { name: ev.pic.trim(), kegiatan: ev.name || 'Kegiatan', jabatan: '' }; });
+    localStorage.setItem('btis_calendar_pics', JSON.stringify(calPics));
+  } catch(e) {}
 }
 
 var editingId = null;
