@@ -2005,8 +2005,27 @@ function renderAll(){
     .finally(function(){
       initTahunAjaran();
       showDashboard();
+      _autoSyncCalendar();
     });
 })();
+
+// Auto-sync PIC dari kalender setiap halaman dibuka (tanpa harus tekan tombol)
+function _autoSyncCalendar(){
+  fetch('/api/calendar/events',{headers:_mtgAuthHeaders()})
+    .then(function(r){ return r.ok?r.json():null; })
+    .then(function(json){
+      var calEvents=(json&&json.events)||[];
+      var added=0;
+      calEvents.forEach(function(e){
+        if(!e.pic||!e.pic.trim()) return;
+        var name=e.pic.trim(), kegiatan=e.name||'Kegiatan';
+        var exists=pics.find(function(p){ return p.name===name&&p.kegiatan===kegiatan&&p.source==='calendar'; });
+        if(!exists){ pics.push({id:uid(),name:name,jabatan:'',kegiatan:kegiatan,source:'calendar',tasks:[]}); added++; }
+      });
+      if(added>0){ saveAll(); renderTimeline(); }
+    })
+    .catch(function(){});
+}
 </script>
 </body>
 </html>
