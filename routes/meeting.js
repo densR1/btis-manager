@@ -4,6 +4,37 @@ const router  = express.Router();
 
 const getDb = (req) => req.app.locals.db;
 
+// GET /api/meeting/data — ambil pics, notulen, evaluasi (harus sebelum /:id)
+router.get('/data', async (req, res) => {
+  try {
+    const db = getDb(req);
+    const upsert = async (key, def) => {
+      const row = await db.queryOne("SELECT value FROM calendar_settings WHERE `key` = ?", [key]);
+      return row ? JSON.parse(row.value) : def;
+    };
+    const pics     = await upsert('meeting_pics',     []);
+    const notulen  = await upsert('meeting_notulen',  []);
+    const evaluasi = await upsert('meeting_evaluasi', []);
+    res.json({ success: true, pics, notulen, evaluasi });
+  } catch (err) { res.status(500).json({ success: false, message: err.message }); }
+});
+
+// PUT /api/meeting/data — simpan pics, notulen, evaluasi
+router.put('/data', async (req, res) => {
+  try {
+    const db = getDb(req);
+    const save = (key, val) => db.execute(
+      "INSERT INTO calendar_settings (`key`, value) VALUES (?, ?) ON DUPLICATE KEY UPDATE value = ?",
+      [key, val, val]
+    );
+    const { pics, notulen, evaluasi } = req.body;
+    if (pics     !== undefined) await save('meeting_pics',     JSON.stringify(pics));
+    if (notulen  !== undefined) await save('meeting_notulen',  JSON.stringify(notulen));
+    if (evaluasi !== undefined) await save('meeting_evaluasi', JSON.stringify(evaluasi));
+    res.json({ success: true });
+  } catch (err) { res.status(500).json({ success: false, message: err.message }); }
+});
+
 // GET /api/meeting
 router.get('/', async (req, res) => {
   try {

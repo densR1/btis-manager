@@ -840,7 +840,7 @@ function saveAll(){
       pics,
       evaluasi
     };
-    fetch('/api/meetings/data',{
+    fetch('/api/meeting/data',{
       method:'PUT',
       headers:_mtgAuthHeaders(),
       body:JSON.stringify(payload)
@@ -915,39 +915,8 @@ function updateTahunAjaran(val){
   }).catch(function(err){ console.warn('[meeting] save tahun failed:',err); });
 }
 
-// ── SEED DEMO ──
-(function seed(){
-  if(meetings.length&&pics.length){ try{localStorage.setItem('btis_seeded','1');}catch(e){} return; }
-  if(localStorage.getItem('btis_seeded')) return;
-  const td=new Date(), fmt=d=>d.toISOString().split('T')[0];
-  const add=(d,n)=>{let r=new Date(d);r.setDate(r.getDate()+n);return r;};
-  if(!meetings.length){
-    meetings=[
-      {id:uid(),title:'Rapat Persiapan UAS',date:fmt(add(td,4)),time:'09:00',location:'Ruang Kepala Sekolah',participants:['Budi Santoso','Sari Dewi','Ahmad Fauzi'],agenda:'Pembahasan jadwal UAS, distribusi soal, pengawas.',status:'upcoming',material:''},
-      {id:uid(),title:'Evaluasi Program Semester',date:fmt(add(td,-6)),time:'13:00',location:'Aula Sekolah',participants:['Kepala Sekolah','Wakasek','Wali Kelas'],agenda:'Review capaian program semester genap.',status:'done',material:''},
-    ];
-    notulen=[{id:uid(),meetingId:meetings[1].id,tanggal:meetings[1].date,notulis:'Sari Dewi',topik:meetings[1].title,pembahasan:'Rapat membahas capaian program semester genap yang mencapai 87% dari target.',konfirmasi:null,disahkan:false,pengesahan:''}];
-  } else {
-    // migrate existing meetings to add material, attendees, files fields
-    meetings.forEach(m=>{ if(!m.material) m.material=''; if(!m.attendees) m.attendees=[]; if(!m.files) m.files=[]; });
-  }
-  if(!pics.length){
-    pics=[
-      {id:uid(),name:'Budi Santoso',kegiatan:'Persiapan UAS',jabatan:'Wakasek Kurikulum',source:'manual',tanggalPelaksanaan:fmt(add(td,10)),tasks:[
-        {id:uid(),name:'Koordinasi jadwal pengawas',deadline:fmt(add(td,2)),priority:'urgent',status:'todo'},
-        {id:uid(),name:'Cetak soal ujian',deadline:fmt(add(td,5)),priority:'high',status:'todo'},
-        {id:uid(),name:'Distribusi soal ke guru',deadline:fmt(add(td,8)),priority:'normal',status:'todo'},
-        {id:uid(),name:'Finalisasi ruang ujian',deadline:fmt(add(td,-3)),priority:'high',status:'done'},
-      ]},
-      {id:uid(),name:'Sari Dewi',kegiatan:'Dokumentasi Kegiatan',jabatan:'Humas',source:'manual',tanggalPelaksanaan:fmt(add(td,3)),tasks:[
-        {id:uid(),name:'Foto kegiatan upacara',deadline:fmt(add(td,1)),priority:'normal',status:'done'},
-        {id:uid(),name:'Upload ke website sekolah',deadline:fmt(add(td,3)),priority:'normal',status:'todo'},
-      ]},
-    ];
-  }
-  try{localStorage.setItem('btis_seeded','1');}catch(e){}
-  saveAll();
-})();
+// migrate existing meetings (tambah field yang mungkin belum ada)
+meetings.forEach(function(m){ if(!m.material) m.material=''; if(!m.attendees) m.attendees=[]; if(!m.files) m.files=[]; });
 
 // ══════════════════════════════════════════════════
 //  ABSENSI LINK SYSTEM
@@ -996,16 +965,30 @@ function submitAbsensi(){
 })();
 
 // ══════════════════════════════════════════════════
-//  SYNC FROM ACADEMIC CALENDAR
+//  SYNC FROM ACADEMIC CALENDAR (via API)
 // ══════════════════════════════════════════════════
 function syncFromCalendar(){
-  const calPics=ld(CAL_KEY);
+  const st=document.getElementById('syncStatus');
+  st.style.color='var(--accent)'; st.textContent='— Mengambil data...';
+  fetch('/api/calendar/events',{headers:_mtgAuthHeaders()})
+    .then(function(r){ return r.ok?r.json():null; })
+    .then(function(json){
+      const calEvents=(json&&json.events)||[];
+      _doSync(calEvents.filter(function(e){ return e.pic&&e.pic.trim(); })
+        .map(function(e){ return {name:e.pic.trim(),kegiatan:e.name||'Kegiatan',jabatan:''}; }));
+    })
+    .catch(function(){
+      // fallback localStorage
+      _doSync(ld(CAL_KEY));
+    });
+}
+function _doSync(calPics){
   const st=document.getElementById('syncStatus');
   if(!calPics.length){ st.style.color='var(--red)'; st.textContent='— Belum ada data PIC dari Kalender Akademik.'; return; }
   let added=0;
-  calPics.forEach(cp=>{
+  calPics.forEach(function(cp){
     if(!cp.name) return;
-    const exists=pics.find(p=>p.name===cp.name&&p.kegiatan===cp.kegiatan&&p.source==='calendar');
+    const exists=pics.find(function(p){ return p.name===cp.name&&p.kegiatan===cp.kegiatan&&p.source==='calendar'; });
     if(!exists){ pics.push({id:uid(),name:cp.name,jabatan:cp.jabatan||'',kegiatan:cp.kegiatan||'Kegiatan',source:'calendar',tasks:[]}); added++; }
   });
   saveAll(); renderAll();
@@ -2006,7 +1989,7 @@ function renderAll(){
 
 // Init — load data dari API, fallback ke localStorage cache
 (function initMeetingData(){
-  fetch('/api/meetings/data', { headers: _mtgAuthHeaders() })
+  fetch('/api/meeting/data', { headers: _mtgAuthHeaders() })
     .then(function(r){ return r.ok ? r.json() : null; })
     .then(function(json){
       if(json){
