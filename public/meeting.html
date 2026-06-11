@@ -917,7 +917,8 @@ function updateTahunAjaran(val){
 
 // ── SEED DEMO ──
 (function seed(){
-  if(meetings.length&&pics.length) return;
+  if(meetings.length&&pics.length){ try{localStorage.setItem('btis_seeded','1');}catch(e){} return; }
+  if(localStorage.getItem('btis_seeded')) return;
   const td=new Date(), fmt=d=>d.toISOString().split('T')[0];
   const add=(d,n)=>{let r=new Date(d);r.setDate(r.getDate()+n);return r;};
   if(!meetings.length){
@@ -944,6 +945,7 @@ function updateTahunAjaran(val){
       ]},
     ];
   }
+  try{localStorage.setItem('btis_seeded','1');}catch(e){}
   saveAll();
 })();
 
