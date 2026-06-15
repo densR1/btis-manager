@@ -4225,6 +4225,12 @@ loadLogo();
 loadEkskulData();
 loadEkskulManual();
 loadLockState();
+// Ambil lock password dari DB (non-blocking, update variabel global)
+fetch('/api/auth/lock-password', { headers: _calAuthHeaders() })
+  .then(function(r){ return r.ok ? r.json() : null; })
+  .then(function(json){ if(json && json.password) ADMIN_PIN = json.password; })
+  .catch(function(){});
+
 // Load tahun ajaran: coba API dulu, fallback localStorage
 (function initCalendarData() {
   fetch('/api/calendar/settings', { headers: _calAuthHeaders() })

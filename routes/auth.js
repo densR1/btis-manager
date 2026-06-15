@@ -85,4 +85,46 @@ router.put('/pin', async (req, res) => {
   res.json({ success: true, message: 'PIN berhasil diubah' });
 });
 
+// GET /api/auth/active-ta — ambil nama tahun ajaran aktif (ditampilkan di semua halaman)
+router.get('/active-ta', async (req, res) => {
+  const token = getToken(req);
+  if (!await isValidToken(req, token)) return res.status(401).json({ success: false, message: 'Token tidak valid' });
+  const row = await getDb(req).queryOne("SELECT value FROM app_settings WHERE `key` = 'active_ta_name'");
+  res.json({ success: true, name: row ? row.value : '' });
+});
+
+// PUT /api/auth/active-ta — ubah tahun ajaran aktif
+router.put('/active-ta', async (req, res) => {
+  const token = getToken(req);
+  if (!await isValidToken(req, token)) return res.status(401).json({ success: false, message: 'Token tidak valid' });
+  const { name } = req.body;
+  if (name === undefined) return res.status(400).json({ success: false, message: 'name diperlukan' });
+  await getDb(req).execute(
+    "INSERT INTO app_settings (`key`, value) VALUES ('active_ta_name', ?) ON DUPLICATE KEY UPDATE value = ?",
+    [name, name]
+  );
+  res.json({ success: true });
+});
+
+// GET /api/auth/lock-password — ambil password lock timetable
+router.get('/lock-password', async (req, res) => {
+  const token = getToken(req);
+  if (!await isValidToken(req, token)) return res.status(401).json({ success: false, message: 'Token tidak valid' });
+  const row = await getDb(req).queryOne("SELECT value FROM app_settings WHERE `key` = 'LOCK_PASSWORD'");
+  res.json({ success: true, password: row ? row.value : 'imron' });
+});
+
+// PUT /api/auth/lock-password — ubah password lock timetable
+router.put('/lock-password', async (req, res) => {
+  const token = getToken(req);
+  if (!await isValidToken(req, token)) return res.status(401).json({ success: false, message: 'Token tidak valid' });
+  const { newPassword } = req.body;
+  if (!newPassword || !newPassword.trim()) return res.status(400).json({ success: false, message: 'Password tidak boleh kosong' });
+  await getDb(req).execute(
+    "INSERT INTO app_settings (`key`, value) VALUES ('LOCK_PASSWORD', ?) ON DUPLICATE KEY UPDATE value = ?",
+    [newPassword.trim(), newPassword.trim()]
+  );
+  res.json({ success: true, message: 'Password berhasil diubah' });
+});
+
 module.exports = router;

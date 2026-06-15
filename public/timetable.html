@@ -275,8 +275,6 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 .subj-panel{background:var(--surf2);border:1px solid var(--brd2);border-radius:var(--rs);padding:10px;margin-top:8px;display:none}
 .subj-panel.show{display:block}
 .group-card{background:var(--surf2);border:1px solid var(--brd2);border-radius:var(--rs);padding:10px 12px;margin-bottom:7px;display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
-
-
 /* SETUP */
 .setup-wrap{display:grid;grid-template-columns:150px 1fr;flex:1;overflow:hidden}
 .sidebar{background:var(--white);border-right:1px solid var(--brd);display:flex;flex-direction:column;overflow:hidden}
@@ -375,7 +373,6 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 .sc-dh{background:#f0f0f0;color:#484848;border-color:#bebebe!important}
 .sc-rest{background:#f8f8f6;color:#909090;border-color:#ddddd8!important}
 .sc-other{background:#f0eafc;color:#4a2080;border-color:#c0b0f0!important}
-
 /* CEK & SETTINGS */
 .plain-page{flex:1;overflow-y:auto;padding:20px 24px}
 .plain-page h2{font-size:15px;font-weight:700;margin-bottom:14px}
@@ -645,8 +642,8 @@ body.is-locked #lock-readonly-badge { display: flex !important; }
   <div id="header-top-row">
     <a class="back-btn" href="index.html">&#8592; Kembali</a>
     <div class="divider-v"></div>
-    <div class="page-title">
-      <div class="icon-wrap">&#128505;</div>
+    <div class="page-title" style="display:flex;align-items:center;gap:10px">
+      <img id="app-logo-img" src="logo.png" alt="Logo" style="height:36px;width:auto;object-fit:contain;border-radius:6px" onerror="this.style.display='none'">
       Timetable Manager
     </div>
     <div id="header-right">
@@ -654,7 +651,8 @@ body.is-locked #lock-readonly-badge { display: flex !important; }
         <span class="ta-label">TAHUN AJARAN</span>
         <div style="display: flex; align-items: center; gap: 6px;">
           <select id="ta-select" onchange="switchTA(this.value)"></select>
-          <button class="ta-new-btn" onclick="openNewTA()">+ Baru</button>
+          <button id="ta-new-btn" class="ta-new-btn" onclick="openNewTA()">+ Baru</button>
+          <button class="ta-new-btn" onclick="openTAActiveModal()" title="Kelola tahun ajaran aktif">⚙️</button>
         </div>
       </div>
       <button id="lock-btn" class="locked" onclick="handleLockBtn()" title="Kunci / Buka Kunci Mode">
@@ -715,7 +713,8 @@ body.is-locked #lock-readonly-badge { display: flex !important; }
         <div class="msec-title">🏫 Daftar Kelas</div>
         <div class="msec-sub">Tambah semua rombel kelas.</div>
         <div class="mcard">
-          <div class="mtable-wrap"><table class="mtable"><thead><tr><th>Nama</th><th>Tingkat</th><th style="width:40px"></th></tr></thead><tbody id="kelasTbody"></tbody></table></div>
+          <div id="sel-bar-kelas" style="display:none;align-items:center;gap:8px;padding:7px 10px;background:var(--red-l);border-radius:var(--rs);margin-bottom:6px;border:1px solid var(--red-b)"><span id="sel-count-kelas" style="font-size:12px;font-weight:700;color:var(--red);flex:1">0 item terpilih</span><button class="btn btn-sm" style="background:var(--red);color:#fff;border:none;cursor:pointer" onclick="deleteSelected('kelas')">🗑 Hapus Terpilih</button></div>
+          <div class="mtable-wrap"><table class="mtable"><thead><tr><th style="width:32px;text-align:center"><input type="checkbox" id="chk-all-kelas" onchange="toggleSelectAll('kelas')" style="accent-color:var(--red);cursor:pointer;width:14px;height:14px"></th><th>Nama</th><th>Tingkat</th><th style="width:40px"></th></tr></thead><tbody id="kelasTbody"></tbody></table></div>
           <!-- Bulk Input -->
           <div style="background:var(--surf2);border-radius:var(--rs);padding:12px;border:1px solid var(--brd2);margin-top:8px">
             <div style="font-size:11px;font-weight:700;color:var(--txt2);margin-bottom:8px;text-transform:uppercase;letter-spacing:.4px">+ Tambah Kelas (bisa sekaligus)</div>
@@ -742,7 +741,8 @@ body.is-locked #lock-readonly-badge { display: flex !important; }
         <div class="msec-title">👤 Daftar Guru</div>
         <div class="msec-sub">Tambah guru beserta tipe dan mapel yang diajar.</div>
         <div class="mcard">
-          <div class="mtable-wrap"><table class="mtable"><thead><tr><th style="width:32px">No</th><th>Nama</th><th>Tipe</th><th>Mapel</th><th style="width:60px"></th></tr></thead><tbody id="guruTbody"></tbody></table></div>
+          <div id="sel-bar-guru" style="display:none;align-items:center;gap:8px;padding:7px 10px;background:var(--red-l);border-radius:var(--rs);margin-bottom:6px;border:1px solid var(--red-b)"><span id="sel-count-guru" style="font-size:12px;font-weight:700;color:var(--red);flex:1">0 item terpilih</span><button class="btn btn-sm" style="background:var(--red);color:#fff;border:none;cursor:pointer" onclick="deleteSelected('guru')">🗑 Hapus Terpilih</button></div>
+          <div class="mtable-wrap"><table class="mtable"><thead><tr><th style="width:32px;text-align:center"><input type="checkbox" id="chk-all-guru" onchange="toggleSelectAll('guru')" style="accent-color:var(--red);cursor:pointer;width:14px;height:14px"></th><th>Nama</th><th>Tipe</th><th>Mapel</th><th style="width:60px"></th></tr></thead><tbody id="guruTbody"></tbody></table></div>
           <!-- Bulk Input -->
           <div style="background:var(--surf2);border-radius:var(--rs);padding:12px;border:1px solid var(--brd2);margin-top:8px">
             <div style="font-size:11px;font-weight:700;color:var(--txt2);margin-bottom:8px;text-transform:uppercase;letter-spacing:.4px">+ Tambah Guru (bisa sekaligus)</div>
@@ -769,7 +769,8 @@ body.is-locked #lock-readonly-badge { display: flex !important; }
         <div class="msec-title">📚 Mata Pelajaran</div>
         <div class="msec-sub">Daftar semua mapel di sekolah.</div>
         <div class="mcard">
-          <div class="mtable-wrap"><table class="mtable"><thead id="subj-thead"><tr><th style="min-width:70px">Kode</th><th style="min-width:160px">Subject</th><th id="subj-jp-headers" colspan="6" style="text-align:center;font-size:10px;color:var(--txt3)">JP/Minggu per Grade →</th><th style="width:70px"></th></tr></thead><tbody id="subjTbody"></tbody></table></div>
+          <div id="sel-bar-subject" style="display:none;align-items:center;gap:8px;padding:7px 10px;background:var(--red-l);border-radius:var(--rs);margin-bottom:6px;border:1px solid var(--red-b)"><span id="sel-count-subject" style="font-size:12px;font-weight:700;color:var(--red);flex:1">0 item terpilih</span><button class="btn btn-sm" style="background:var(--red);color:#fff;border:none;cursor:pointer" onclick="deleteSelected('subject')">🗑 Hapus Terpilih</button></div>
+          <div class="mtable-wrap"><table class="mtable"><thead id="subj-thead"></thead><tbody id="subjTbody"></tbody></table></div>
           <div class="add-row" style="margin-top:6px">
             <input class="fi" id="ns-code" placeholder="Kode (IS)" style="max-width:85px">
             <input class="fi" id="ns-name" placeholder="Nama lengkap" style="flex:1">
@@ -868,6 +869,7 @@ body.is-locked #lock-readonly-badge { display: flex !important; }
     <div class="master-nav">
       <h4>Laporan</h4>
       <button class="mnav on" onclick="switchRsec('rkelas');renderRekapKelas()" id="mnav-rkelas"><span class="ico" style="background:var(--blu-l)">🏫</span>Jadwal Per Kelas</button>
+      <button class="mnav" onclick="switchRsec('rguru');renderRekapGuru()" id="mnav-rguru"><span class="ico" style="background:var(--grn-l)">👤</span>Jadwal Per Guru</button>
       <button class="mnav" onclick="switchRsec('rbeban');renderRekapBeban()" id="mnav-rbeban"><span class="ico" style="background:#fff3e0">📊</span>Beban Mengajar</button>
     </div>
     <div class="master-body">
@@ -882,6 +884,18 @@ body.is-locked #lock-readonly-badge { display: flex !important; }
           <button class="btn btn-ghost btn-sm print-hide" onclick="printJadwalKelas()" style="gap:5px">🖨 Print / Simpan PDF</button>
         </div>
         <div id="rekap-kelas-body"></div>
+      </div>
+      <!-- Jadwal Per Guru -->
+      <div class="msec" id="msec-rguru">
+        <div class="msec-title">👤 Jadwal Per Guru</div>
+        <div class="msec-sub">Tampilan jadwal lengkap per guru — semua hari sekaligus dalam satu tabel.</div>
+        <div style="margin-bottom:12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+          <label style="font-size:11px;font-weight:700;color:var(--txt2);text-transform:uppercase;letter-spacing:.4px">Pilih Guru</label>
+          <select class="tsel" id="rekap-guru-sel" onchange="renderRekapGuru()"></select>
+          <div style="flex:1"></div>
+          <button class="btn btn-ghost btn-sm print-hide" onclick="printJadwalGuru()" style="gap:5px">🖨 Print / Simpan PDF</button>
+        </div>
+        <div id="rekap-guru-body"></div>
       </div>
       <!-- Beban Mengajar (gabungan Beban JP + Profil) -->
       <div class="msec" id="msec-rbeban">
@@ -1056,6 +1070,21 @@ body.is-locked #lock-readonly-badge { display: flex !important; }
   </div>
 </div>
 
+<!-- MODAL: Kelola Tahun Ajaran Aktif -->
+<div class="overlay" id="taActiveModal" onclick="if(event.target===this)closeTAActiveModal()">
+  <div class="modal" style="max-width:400px">
+    <h3>📅 Tahun Ajaran Aktif</h3>
+    <p class="msub">Tahun ajaran yang ditampilkan di semua halaman. Hanya admin yang bisa mengubah.</p>
+    <div id="ta-active-list" style="margin:14px 0;display:flex;flex-direction:column;gap:8px"></div>
+    <div id="ta-active-admin-section" style="border-top:1px solid var(--brd);padding-top:12px;margin-top:4px">
+      <button class="btn btn-grn btn-sm" onclick="closeTAActiveModal();openNewTA()" style="width:100%">+ Tambah Tahun Ajaran Baru</button>
+    </div>
+    <div class="mfooter" style="margin-top:12px">
+      <button class="btn btn-ghost btn-sm" onclick="closeTAActiveModal()">Tutup</button>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL: Auto-Generate Jadwal -->
 <div class="overlay" id="autoGenModal" onclick="if(event.target===this)closeAutoGen()">
   <div class="modal" style="max-width:520px;padding:0;overflow:hidden;border-radius:14px">
@@ -1143,6 +1172,13 @@ body.is-locked #lock-readonly-badge { display: flex !important; }
 
 <script>
 // ============================================================
+// KONFIGURASI LOGO
+// Ganti nama file logo sesuai file yang kamu gunakan.
+// Letakkan file logo di folder yang sama dengan timetable.html
+// ============================================================
+var APP_LOGO = 'logo-sekolah.png';
+
+// ============================================================
 // DATA
 // ============================================================
 var D={}; // populated by load() from active tahun ajaran
@@ -1163,24 +1199,24 @@ function defaultData(){
   // Class Teachers
   levels.forEach(function(lv){
     klsLetters.forEach(function(lt){
-      defTeachers.push({id:'dt-ct-'+lv+lt,type:'class',name:'Wali Kelas '+lv+lt,subjects:[]});
+      defTeachers.push({id:'dt-ct-'+lv+lt,type:'class',name:'',subjects:[]});
     });
   });
   // Subject Teachers
   var subjTeachers=[
-    {id:'dt-st-tah1', name:'Guru TAH 1',    subjects:['TAH']},
-    {id:'dt-st-tah2', name:'Guru TAH 2',    subjects:['TAH']},
-    {id:'dt-st-tah3', name:'Guru TAH 3',    subjects:['TAH']},
-    {id:'dt-st-mat',  name:'Guru Matematika',      subjects:['MAT']},
-    {id:'dt-st-bi',   name:'Guru Bahasa Indonesia', subjects:['BI']},
-    {id:'dt-st-pe',   name:'Guru Olahraga',        subjects:['PE']},
-    {id:'dt-st-sc',   name:'Guru Science',         subjects:['SC']},
-    {id:'dt-st-is',   name:'Guru Islamic Studies',  subjects:['IS']},
-    {id:'dt-st-esp',  name:'Guru Bahasa Inggris',  subjects:['ESP']},
-    {id:'dt-st-art',  name:'Guru Seni Budaya',     subjects:['ART']},
-    {id:'dt-st-plbj', name:'Guru PLBJ',            subjects:['PLBJ']},
-    {id:'dt-st-pkn',  name:'Guru PKN',             subjects:['PKN']},
-    {id:'dt-st-eks',  name:'Guru Ekstrakurikuler', subjects:['EKS']},
+    {id:'dt-st-tah1', name:'',    subjects:['TAH']},
+    {id:'dt-st-tah2', name:'',    subjects:['TAH']},
+    {id:'dt-st-tah3', name:'',    subjects:['TAH']},
+    {id:'dt-st-mat',  name:'',      subjects:['MAT']},
+    {id:'dt-st-bi',   name:'', subjects:['BI']},
+    {id:'dt-st-pe',   name:'',        subjects:['PE']},
+    {id:'dt-st-sc',   name:'',         subjects:['SC']},
+    {id:'dt-st-is',   name:'',  subjects:['IS']},
+    {id:'dt-st-esp',  name:'',  subjects:['ESP']},
+    {id:'dt-st-art',  name:'',     subjects:['ART']},
+    {id:'dt-st-plbj', name:'',            subjects:['PLBJ']},
+    {id:'dt-st-pkn',  name:'',             subjects:['PKN']},
+    {id:'dt-st-eks',  name:'', subjects:['EKS']},
   ];
   subjTeachers.forEach(function(t){t.type='subject';defTeachers.push(t);});
 
@@ -1225,8 +1261,10 @@ function _ttAuthHeaders(){
   var token=''; try{ token=localStorage.getItem('btis_token')||''; }catch(e){}
   return {'Authorization':'Bearer '+token,'Content-Type':'application/json','Accept':'application/json'};
 }
-var _ttSaveTimer=null;
-function _ttDebounceSave(fn){ clearTimeout(_ttSaveTimer); _ttSaveTimer=setTimeout(fn,800); }
+var _ttSaveMetaTimer=null;
+var _ttSaveTATimer=null;
+function _ttDebounceMeta(fn){ clearTimeout(_ttSaveMetaTimer); _ttSaveMetaTimer=setTimeout(fn,800); }
+function _ttDebounceTA(fn){ clearTimeout(_ttSaveTATimer); _ttSaveTATimer=setTimeout(fn,800); }
 
 function loadMeta(){
   try{var r=localStorage.getItem(META_KEY);if(r)_meta=JSON.parse(r);}catch(e){}
@@ -1244,7 +1282,7 @@ function loadMeta(){
 }
 function saveMeta(){
   try{localStorage.setItem(META_KEY,JSON.stringify(_meta));}catch(e){}
-  _ttDebounceSave(function(){
+  _ttDebounceMeta(function(){
     fetch('/api/timetable/meta',{
       method:'PUT', headers:_ttAuthHeaders(),
       body:JSON.stringify({meta:_meta})
@@ -1253,7 +1291,7 @@ function saveMeta(){
 }
 function saveTA(id,data){
   try{localStorage.setItem(TA_PREFIX+id,JSON.stringify(data));}catch(e){}
-  _ttDebounceSave(function(){
+  _ttDebounceTA(function(){
     fetch('/api/timetable/'+encodeURIComponent(id),{
       method:'PUT', headers:_ttAuthHeaders(),
       body:JSON.stringify({data:data})
@@ -1289,6 +1327,7 @@ function switchTA(id){
   save(); // simpan dulu yang aktif
   _meta.activeTA=id;saveMeta();
   var d=loadTA(id);Object.assign(D,defaultData(),d);
+  _activeLcTabs={}; // reset tab aktif per tingkat agar tidak tercampur antar TA
   renderTASelector();
   _activeDay=D.days[0]||'Senin';
   renderAll();
@@ -1307,6 +1346,58 @@ function renderAll(){
       if(p==='settings')renderSettings();
     }
   });
+}
+
+// ── Tahun Ajaran Aktif (ditampilkan di semua halaman) ──
+var _activeTAName = '';
+
+function openTAActiveModal(){
+  _renderTAActiveList();
+  document.getElementById('taActiveModal').classList.add('on');
+}
+function closeTAActiveModal(){ document.getElementById('taActiveModal').classList.remove('on'); }
+
+function _renderTAActiveList(){
+  var list = document.getElementById('ta-active-list');
+  list.innerHTML = '';
+  var adminSection = document.getElementById('ta-active-admin-section');
+  if(adminSection) adminSection.style.display = _isLocked ? 'none' : '';
+
+  _meta.list.slice().reverse().forEach(function(ta){
+    var isActive = ta.name === _activeTAName;
+    var row = document.createElement('div');
+    row.style.cssText = 'display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;border:1px solid '+(isActive?'var(--grn)':'var(--brd)')+';background:'+(isActive?'#f0faf4':'var(--surf2)');
+    var lbl = document.createElement('div');
+    lbl.style.cssText = 'flex:1;font-size:13px;font-weight:'+(isActive?'700':'500');
+    lbl.textContent = ta.name;
+    row.appendChild(lbl);
+    if(isActive){
+      var badge = document.createElement('span');
+      badge.style.cssText = 'font-size:11px;font-weight:700;color:var(--grn);background:#e0f5e9;padding:2px 8px;border-radius:20px';
+      badge.textContent = '⭐ Aktif';
+      row.appendChild(badge);
+    } else if(!_isLocked){
+      var btn = document.createElement('button');
+      btn.className = 'btn btn-sm';
+      btn.style.cssText = 'font-size:11px;padding:4px 10px';
+      btn.textContent = 'Set Aktif';
+      (function(name){ btn.addEventListener('click', function(){ setActiveTAName(name); }); })(ta.name);
+      row.appendChild(btn);
+    }
+    list.appendChild(row);
+  });
+}
+
+function setActiveTAName(name){
+  _activeTAName = name;
+  _renderTAActiveList();
+  fetch('/api/auth/active-ta',{
+    method:'PUT', headers:_ttAuthHeaders(),
+    body:JSON.stringify({name:name})
+  })
+  .then(function(r){ return r.ok?r.json():null; })
+  .then(function(json){ if(json&&json.success) showToast('✓ Tahun ajaran aktif: '+name,'var(--grn)'); })
+  .catch(function(){ showToast('Gagal menyimpan','var(--red)'); });
 }
 
 // Modal Tahun Ajaran Baru
@@ -1380,10 +1471,12 @@ function createNewTA(){
   _meta.activeTA=newId;
   saveMeta();
   Object.assign(D,defaultData(),newData);
+  _activeLcTabs={}; // reset tab aktif per tingkat untuk TA baru
   _activeDay=D.days[0]||'Senin';
   renderTASelector();
   renderAll();
   closeTAModal();
+  setActiveTAName(name); // otomatis jadi tahun ajaran aktif di semua halaman
 
   var msg=copyAssign?'Assignment guru ikut dibawa — tinggal edit yang berubah ✓':'Tahun Ajaran '+name+' dibuat ✓';
   showToast(msg,'var(--grn)');
@@ -1407,6 +1500,18 @@ function setEntry(day,sid,cid,val){
 }
 function getCTId(cls){var a=(cls.assignments||[]).find(function(x){return x.subj==='__CT__';});return a?a.teacherId:null;}
 function getAssigned(cls,subj){return(cls.assignments||[]).find(function(a){return a.subj===subj;})||null;}
+// Prioritas: manual (non-autoCT) > autoCT > e.teacher dari slot entry
+// Dipakai untuk display nama guru DAN conflict detection agar konsisten
+function getEffectiveTeacherId(cid,day,sid){
+  var e=getEntry(day,sid,cid);if(!e||!e.subj)return null;
+  if(e.subj==='TAH')return e.teacher||null;// TAH pakai e.teacher langsung
+  var cls=getCls(cid);if(!cls)return e.teacher||null;
+  var asgnManual=(cls.assignments||[]).find(function(a){return a.subj===e.subj&&!a.autoCT;});
+  if(asgnManual)return asgnManual.teacherId||null;
+  var asgnAuto=(cls.assignments||[]).find(function(a){return a.subj===e.subj&&a.autoCT;});
+  if(asgnAuto)return asgnAuto.teacherId||null;
+  return e.teacher||null;
+}
 function ctMap(){var m={};D.classes.forEach(function(cls){var ct=getCTId(cls);if(ct)m[ct]=cls.id;});return m;}
 function sColor(code){
   if(!code)return 'sc-rest';
@@ -1576,6 +1681,7 @@ function goTab(t){
     var activeRsec=document.querySelector('#page-rekap .msec.on');
     var activeId=activeRsec?activeRsec.id:'msec-rkelas';
     if(activeId==='msec-rkelas'){renderRekapKelas();switchRsec('rkelas');}
+    else if(activeId==='msec-rguru'){renderRekapGuru();switchRsec('rguru');}
     else if(activeId==='msec-rbeban'){renderRekapBeban();switchRsec('rbeban');}
     else{renderRekapKelas();switchRsec('rkelas');}
   }
@@ -1666,11 +1772,12 @@ function renderStatistik(){
       if(row.type!=='jp')return;
       D.classes.forEach(function(cls){
         var e=getEntry(day,row.sid,cls.id);if(!e)return;
-        // Guru biasa
-        if(e.teacher&&jpCount[e.teacher]!==undefined){
-          jpCount[e.teacher]++;
-          if(!jpByDay[e.teacher][day])jpByDay[e.teacher][day]=0;
-          jpByDay[e.teacher][day]++;
+        // Effective teacher: prioritas non-autoCT assignment agar konsisten dgn jadwal
+        var effTid=(e.subj==='TAH')?(e.teacher||null):getEffectiveTeacherId(cls.id,day,row.sid);
+        if(effTid&&jpCount[effTid]!==undefined){
+          jpCount[effTid]++;
+          if(!jpByDay[effTid][day])jpByDay[effTid][day]=0;
+          jpByDay[effTid][day]++;
         }
         // TAH co-teacher
         if(e.subj==='TAH'&&e.teacher2&&jpCount[e.teacher2]!==undefined){
@@ -1747,7 +1854,9 @@ function countJPGuru(){
       if(row.type!=='jp')return;
       D.classes.forEach(function(cls){
         var e=getEntry(day,row.sid,cls.id);if(!e)return;
-        [e.teacher,e.teacher2].forEach(function(tid){
+        // Effective teacher: prioritas non-autoCT assignment
+        var effTid=(e.subj==='TAH')?(e.teacher||null):getEffectiveTeacherId(cls.id,day,row.sid);
+        [effTid, (e.subj==='TAH'?e.teacher2:null)].forEach(function(tid){
           if(tid&&jpCount[tid]!==undefined){
             jpCount[tid]++;
             jpByDay[tid][day]=(jpByDay[tid][day]||0)+1;
@@ -1759,199 +1868,166 @@ function countJPGuru(){
   return{jpCount:jpCount,jpByDay:jpByDay};
 }
 
-function renderRekapJP(){
-  var body=document.getElementById('rekap-jp-body');if(!body)return;
-  if(!D.teachers.length){body.innerHTML='<p style="color:var(--txt3);font-size:12px;text-align:center;padding:32px">Belum ada guru.</p>';return;}
-  var data=countJPGuru();var jpCount=data.jpCount;var jpByDay=data.jpByDay;
-  var maxJP=Math.max(1,Math.max.apply(null,D.teachers.map(function(t){return jpCount[t.id]||0;})));
-  var totalJP=D.teachers.reduce(function(s,t){return s+(jpCount[t.id]||0);},0);
-
-  // Summary cards
-  var html='<div style="display:flex;gap:10px;margin-bottom:18px;flex-wrap:wrap">';
-  var stats=[
-    {v:D.teachers.length,label:'Total Guru',color:'var(--grn)'},
-    {v:totalJP,label:'Total JP Terisi',color:'var(--amb)'},
-    {v:D.classes.length,label:'Total Kelas',color:'var(--blu)'}
-  ];
-  stats.forEach(function(s){
-    html+='<div class="mcard" style="flex:1;min-width:110px;text-align:center;padding:14px">'+
-      '<div style="font-size:28px;font-weight:800;color:'+s.color+'">'+s.v+'</div>'+
-      '<div style="font-size:11px;color:var(--txt3);margin-top:2px">'+s.label+'</div></div>';
-  });
-  html+='</div>';
-
-  // Per tipe
-  ['class','subject'].forEach(function(type){
-    var group=D.teachers.filter(function(t){return t.type===type;}).slice()
-      .sort(function(a,b){return(jpCount[b.id]||0)-(jpCount[a.id]||0);});
-    if(!group.length)return;
-    html+='<div style="font-size:10px;font-weight:700;color:'+(type==='class'?'var(--grn)':'var(--amb)')+';text-transform:uppercase;letter-spacing:.5px;margin:14px 0 8px">'+(type==='class'?'👤 Class Teacher':'📖 Subject Teacher')+'</div>';
-    group.forEach(function(t){
-      var jp=jpCount[t.id]||0;
-      var pct=Math.round((jp/maxJP)*100);
-      var col=type==='class'?'var(--grn)':'var(--amb)';
-      var dayPills=D.days.map(function(d){
-        var c=jpByDay[t.id][d]||0;
-        return'<span style="font-size:10px;background:'+(c?'var(--grn-l)':'var(--surf2)')+';color:'+(c?'var(--grn)':'var(--txt3)')+';border:1px solid '+(c?'var(--grn-b)':'var(--brd2)')+';padding:2px 8px;border-radius:6px;font-weight:600">'+d.slice(0,3)+(c?' <b>'+c+'</b>':'')+'</span>';
-      }).join('');
-      html+='<div class="mcard" style="padding:12px 14px;margin-bottom:7px">'+
-        '<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">'+
-        '<span style="font-size:13px;font-weight:700;flex:1">'+t.name+'</span>'+
-        '<span style="font-size:22px;font-weight:800;color:'+(jp?col:'var(--txt3)')+'">'+jp+'</span>'+
-        '<span style="font-size:11px;color:var(--txt3)">JP</span></div>'+
-        '<div style="height:7px;background:var(--surf2);border-radius:4px;margin-bottom:8px;overflow:hidden">'+
-        '<div style="height:100%;width:'+pct+'%;background:'+col+';border-radius:4px"></div></div>'+
-        '<div style="display:flex;gap:5px;flex-wrap:wrap">'+dayPills+'</div></div>';
-    });
-  });
-  body.innerHTML=html;
-}
-
-function renderRekapProfil(){
-  var body=document.getElementById('rekap-profil-body');if(!body)return;
-  if(!D.teachers.length){body.innerHTML='<p style="color:var(--txt3);font-size:12px;text-align:center;padding:32px">Belum ada guru.</p>';return;}
-  var html='';
-  var sorted=D.teachers.slice().sort(function(a,b){
-    if(a.type===b.type)return a.name.localeCompare(b.name);
-    return a.type==='class'?-1:1;
-  });
-  sorted.forEach(function(t,i){
-    // Kelas mana saja yang diajar
-    var taughtIn=[];
-    D.classes.forEach(function(cls){
-      var subjsHere=[];
-      (cls.assignments||[]).forEach(function(a){
-        if(a.teacherId===t.id&&a.subj!=='__CT__')subjsHere.push(a.subj);
-      });
-      if(subjsHere.length||(getCTId(cls)===t.id)){
-        taughtIn.push({cls:cls,subjs:subjsHere,isCT:getCTId(cls)===t.id});
-      }
-    });
-    var badge=t.type==='class'?
-      '<span class="tag tag-ct">Class Teacher</span>':
-      '<span class="tag tag-st">Subject Teacher</span>';
-    var subjTags=(t.subjects||[]).filter(function(s){return['RQ','DH','LT','AK','Recess','Pulang'].indexOf(s)<0;})
-      .map(function(s){return'<span class="spill '+sColor(s)+'" style="border-color:currentColor">'+s+'</span>';}).join(' ')||'<span style="color:var(--txt3);font-size:11px">—</span>';
-    html+='<div class="mcard" style="margin-bottom:10px;padding:14px">'+
-      '<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap">'+
-      '<span style="font-size:14px;font-weight:700;flex:1">'+t.name+'</span>'+
-      badge+
-      '</div>';
-    // Mapel yang diampu
-    html+='<div style="margin-bottom:10px"><div style="font-size:10px;font-weight:700;color:var(--txt3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:5px">Mapel</div>'+
-      '<div style="display:flex;flex-wrap:wrap;gap:5px">'+subjTags+'</div></div>';
-    // Kelas tempat mengajar
-    if(taughtIn.length){
-      html+='<div><div style="font-size:10px;font-weight:700;color:var(--txt3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px">Mengajar di</div>'+
-        '<div style="display:flex;flex-wrap:wrap;gap:6px">';
-      taughtIn.forEach(function(ti){
-        var subjList=ti.subjs.filter(function(s){return s!=='__CT__';});
-        html+='<div style="background:var(--surf2);border:1px solid var(--brd2);border-radius:var(--rs);padding:6px 10px;min-width:80px">'+
-          '<div style="font-size:12px;font-weight:700;margin-bottom:3px">'+ti.cls.name+
-          (ti.isCT?' <span style="font-size:9px;background:var(--grn-l);color:var(--grn);padding:1px 5px;border-radius:4px;font-weight:700">CT</span>':'')+'</div>'+
-          '<div style="font-size:10px;color:var(--txt3)">'+
-          (subjList.length?subjList.join(', '):(ti.isCT?'Semua mapel CT':'—'))+'</div></div>';
-      });
-      html+='</div></div>';
-    } else {
-      html+='<div style="font-size:11px;color:var(--txt3);font-style:italic">Belum assign ke kelas manapun.</div>';
-    }
-    html+='</div>';
-  });
-  body.innerHTML=html;
-}
-
-function buildKelasTable(cid){
+function buildKelasTable(cid,printMode){
   var cls=getCls(cid);if(!cls)return'';
   ensureSlots();
-  var rows=getJPRows();
   var lc=getCC(cid);
-  function subjFullName(code){
-    var s=D.subjects.find(function(x){return x.code===code;});
-    return s?s.name:code;
-  }
-  var PRE={
-    Senin:subjFullName('RQ'),
-    Selasa:subjFullName('DH'),
-    Rabu:subjFullName('LT'),
-    Kamis:subjFullName('DH'),
-    Jumat:subjFullName('AK')
-  };
+
   function subjName(code){
     if(!code)return'';
     var s=D.subjects.find(function(x){return x.code===code;});
     return s?s.name:code;
   }
-  // Poin 4: inline subj color styles yang lebih bold/solid
+  var PRE_NAMES={Senin:subjName('RQ'),Selasa:subjName('DH'),Rabu:subjName('LT'),Kamis:subjName('DH'),Jumat:subjName('AK')};
   var SUBJ_COLORS={
-    TAH:  {bg:'#b8e8ce',color:'#054a28',fw:'800'},
-    MAT:  {bg:'#b8d4f0',color:'#0a2f5a',fw:'800'},
-    BI:   {bg:'#fdd8b8',color:'#5a1f00',fw:'800'},
-    PE:   {bg:'#c4e8a8',color:'#1a4008',fw:'800'},
-    SC:   {bg:'#faeaac',color:'#4a3000',fw:'800'},
-    IS:   {bg:'#f0b8d0',color:'#580020',fw:'800'},
-    ESP:  {bg:'#d8d8e0',color:'#1a1a2a',fw:'800'},
-    ART:  {bg:'#f8c4b8',color:'#500808',fw:'800'},
-    PLBJ: {bg:'#e8e0c8',color:'#382800',fw:'800'},
-    PKN:  {bg:'#f0b8f0',color:'#480048',fw:'800'},
-    EKS:  {bg:'#a8e8d8',color:'#003828',fw:'800'},
-    RQ:   {bg:'#d8ccf8',color:'#28006a',fw:'800'},
-    DH:   {bg:'#e0e0e0',color:'#282828',fw:'800'},
-    LT:   {bg:'#e0e0e0',color:'#282828',fw:'800'},
-    AK:   {bg:'#d8e8f8',color:'#0a284a',fw:'800'}
+    TAH:{bg:'#b8e8ce',color:'#054a28',fw:'800'},MAT:{bg:'#b8d4f0',color:'#0a2f5a',fw:'800'},
+    BI:{bg:'#fdd8b8',color:'#5a1f00',fw:'800'},PE:{bg:'#c4e8a8',color:'#1a4008',fw:'800'},
+    SC:{bg:'#faeaac',color:'#4a3000',fw:'800'},IS:{bg:'#f0b8d0',color:'#580020',fw:'800'},
+    ESP:{bg:'#d8d8e0',color:'#1a1a2a',fw:'800'},ART:{bg:'#f8c4b8',color:'#500808',fw:'800'},
+    PLBJ:{bg:'#e8e0c8',color:'#382800',fw:'800'},PKN:{bg:'#f0b8f0',color:'#480048',fw:'800'},
+    EKS:{bg:'#a8e8d8',color:'#003828',fw:'800'},RQ:{bg:'#d8ccf8',color:'#28006a',fw:'800'},
+    DH:{bg:'#e0e0e0',color:'#282828',fw:'800'},LT:{bg:'#e0e0e0',color:'#282828',fw:'800'},
+    AK:{bg:'#d8e8f8',color:'#0a284a',fw:'800'}
   };
   function subjStyle(code){
     var c=SUBJ_COLORS[code]||SUBJ_COLORS[(code||'').toUpperCase()]||{bg:'#e8dcf8',color:'#300860',fw:'800'};
     return 'background:'+c.bg+';color:'+c.color+';font-weight:'+c.fw+';font-size:12px;line-height:1.3;padding:7px 8px';
   }
 
+  // Hitung rentang waktu global dari semua hari
+  var globalMin='23:59',globalMax='00:00';
+  D.days.forEach(function(day){
+    var dayJm=(lc.dayOverrides&&lc.dayOverrides[day]&&lc.dayOverrides[day].jamMasuk)||lc.jamMasuk||'07:30';
+    var preStart=subMinutes(dayJm,15);
+    var jps=getClassJPs(cid,day);if(!jps.length)return;
+    if(toMin(preStart)<toMin(globalMin))globalMin=preStart;
+    if(toMin(jps[jps.length-1].end)>toMin(globalMax))globalMax=jps[jps.length-1].end;
+  });
+  if(globalMin==='23:59')return'<p style="color:var(--txt3);font-size:12px;text-align:center;padding:32px">Atur konfigurasi JP di Pengaturan.</p>';
+
+  // Daftar slot 15 menit
+  var slots15=[];var cur=globalMin;
+  while(toMin(cur)<=toMin(globalMax)){slots15.push(cur);cur=addMinStr(cur,15);}
+
+  // Status sel per hari pada waktu t15
+  function cellInfo(day,t15){
+    var dayJm=(lc.dayOverrides&&lc.dayOverrides[day]&&lc.dayOverrides[day].jamMasuk)||lc.jamMasuk||'07:30';
+    var preStart=subMinutes(dayJm,15);
+    var jps=getClassJPs(cid,day);if(!jps.length)return{type:'before'};
+    var tm=toMin(t15);
+    if(tm<toMin(preStart))return{type:'before'};
+    if(tm===toMin(preStart))return{type:'pre'};
+    if(tm>=toMin(jps[jps.length-1].end))return{type:'pulang'};
+    for(var i=0;i<jps.length;i++){
+      var jp=jps[i];
+      if(tm===toMin(jp.start))return{type:jp.type==='lesson'?'lesson':jp.type,jp:jp,jpIdx:i};
+      if(tm>toMin(jp.start)&&tm<toMin(jp.end))return{type:'skip'};
+    }
+    return{type:'empty'};
+  }
+
+  // Cari slot ID untuk JP ke-N di hari tertentu
+  function getSidForJP(day,jpIdx){
+    var jps=getClassJPs(cid,day);
+    if(!jps.length||jpIdx>=jps.length)return null;
+    var jpStart=toMin(jps[jpIdx].start);
+    var jprows=getJPRows();
+    for(var i=0;i<jprows.length;i++){
+      var row=jprows[i];
+      if(row.type!=='jp'&&row.type!=='single')continue;
+      var rs=toMin(row.startTime);
+      if(jpStart>=rs&&jpStart<rs+30)return row.sid;
+    }
+    return null;
+  }
+
+  // Bangun header tabel
   var html='<table class="rk-table"><thead><tr>'+
     '<th class="rk-left" style="width:32px">JP</th>'+
-    '<th class="rk-left" style="width:100px">Waktu</th>';
+    '<th class="rk-left" style="width:90px">Waktu</th>';
   D.days.forEach(function(d){html+='<th style="min-width:110px">'+d+'</th>';});
   html+='</tr></thead><tbody>';
 
-  rows.forEach(function(row){
-    if(row.type==='brk')return;
-    var isPre=row.type==='pre';
-    html+='<tr>';
-    // Poin 4: waktu lebih besar & tajam
-    html+='<td style="background:#e8e4dc;font-weight:800;color:'+(isPre?'#7a5cc0':'#222')+';font-size:13px;text-align:center">'+(isPre?'★':row.jam)+'</td>';
-    html+='<td style="background:#e8e4dc;font-size:12px;color:#333;font-family:monospace;font-weight:700;letter-spacing:.3px">'+row.time+'</td>';
+  // Pelacak rowspan
+  var jpColLeft=0;
+  var daySpanLeft={};
+  D.days.forEach(function(d){daySpanLeft[d]=0;});
+  var jpNum=0;
+  var refDay=D.days[0]; // hari referensi untuk nomor JP
 
+  slots15.forEach(function(t15){
+    var refInfo=cellInfo(refDay,t15);
+    var isHalf=toMin(t15)%30===0; // batas :00 atau :30 = lebih tebal
+
+    html+='<tr>';
+
+    // ── Kolom JP ──
+    if(jpColLeft>0){
+      jpColLeft--;
+    } else if(refInfo.type==='pre'){
+      html+='<td style="background:#e8e4dc;font-weight:800;color:#7a5cc0;font-size:13px;text-align:center">★</td>';
+    } else if(refInfo.type==='lesson'){
+      jpNum++;
+      html+='<td rowspan="2" style="background:#e8e4dc;font-weight:800;color:#222;font-size:13px;text-align:center">'+jpNum+'</td>';
+      jpColLeft=1;
+    } else if(refInfo.type==='recess'||refInfo.type==='lunch'||refInfo.type==='solat'){
+      html+='<td rowspan="2" style="background:#e8e4dc;text-align:center;font-size:11px;color:#999">—</td>';
+      jpColLeft=1;
+    } else if(refInfo.type!=='skip'){
+      html+='<td style="background:#e8e4dc"></td>';
+    }
+
+    // ── Kolom Waktu ──
+    html+='<td style="background:#e8e4dc;font-size:'+(isHalf?'11px':'10px')+';color:#333;font-family:monospace;font-weight:'+(isHalf?'700':'500')+';letter-spacing:.3px;white-space:nowrap">'+t15+'–'+addMinStr(t15,15)+'</td>';
+
+    // ── Kolom per hari ──
     D.days.forEach(function(day){
-      if(isPre){
-        html+='<td class="rk-pre" style="font-size:12px;font-weight:700">'+(PRE[day]||'')+'</td>';return;
-      }
-      // Poin 3: cek jamMasuk per hari (bukan global)
-      var dayJamMasuk=(lc.dayOverrides&&lc.dayOverrides[day]&&lc.dayOverrides[day].jamMasuk)||lc.jamMasuk||'07:30';
-      if(row.startTime&&toMin(row.startTime)<toMin(dayJamMasuk)){
-        html+='<td class="rk-dim"></td>';return;
-      }
-      var dayJps=getClassJPs(cid,day);
-      var matchJP=null;
-      for(var i=0;i<dayJps.length;i++){if(dayJps[i].start===row.startTime){matchJP=dayJps[i];break;}}
-      if(matchJP){
-        if(matchJP.type==='recess'){html+='<td class="rk-break" style="font-size:12px">☕ Istirahat</td>';return;}
-        if(matchJP.type==='lunch'){html+='<td class="rk-lunch" style="font-size:12px">🍽 Makan Siang</td>';return;}
-        if(matchJP.type==='solat'){html+='<td class="rk-solat" style="font-size:12px">🕌 Solat</td>';return;}
-      }
-      // Poin 3: Pulang ditampilkan jika startTime >= end JP terakhir hari itu
-      if(dayJps.length&&row.startTime&&toMin(row.startTime)>=toMin(dayJps[dayJps.length-1].end)){
-        html+='<td class="rk-dismiss" style="font-size:12px">🏠 Pulang</td>';return;
-      }
-      // Poin 3: Sebelum jam masuk hari ini tapi masuk range global = kosong abu
-      if(!matchJP&&dayJps.length&&row.startTime&&toMin(row.startTime)<toMin(dayJps[0].start)){
-        html+='<td class="rk-dim"></td>';return;
-      }
-      var e=getEntry(day,row.sid,cid);
-      if(e&&e.subj){
-        // Poin 4: blok warna solid per mapel
-        html+='<td style="'+subjStyle(e.subj)+'">'+subjName(e.subj)+'</td>';
-      } else {
-        html+='<td class="rk-empty" style="font-size:14px">—</td>';
+      if(daySpanLeft[day]>0){daySpanLeft[day]--;return;}
+      var info=cellInfo(day,t15);
+      switch(info.type){
+        case 'before': html+='<td class="rk-dim"></td>'; break;
+        case 'pre':    html+='<td class="rk-pre" style="font-size:12px;font-weight:700">'+(PRE_NAMES[day]||'')+'</td>'; break;
+        case 'pulang': html+='<td class="rk-dismiss" style="font-size:12px">🏠 Pulang</td>'; break;
+        case 'skip':   break; // dicakup rowspan baris sebelumnya
+        case 'recess':
+          html+='<td class="rk-break" rowspan="2" style="font-size:12px">☕ Istirahat</td>';
+          daySpanLeft[day]=1; break;
+        case 'lunch':
+          html+='<td class="rk-lunch" rowspan="2" style="font-size:12px">🍽 Makan Siang</td>';
+          daySpanLeft[day]=1; break;
+        case 'solat':
+          html+='<td class="rk-solat" rowspan="2" style="font-size:12px">🕌 Solat</td>';
+          daySpanLeft[day]=1; break;
+        case 'lesson':
+          var sid=getSidForJP(day,info.jpIdx);
+          var e=sid?getEntry(day,sid,cid):null;
+          daySpanLeft[day]=1;
+          if(e&&e.subj){
+            var tName='';
+            var clsObj=getCls(cid);
+            if(e.subj==='TAH'){
+              var asgn=clsObj?(clsObj.assignments||[]).find(function(a){return a.subj==='TAH'&&!a.autoCT;})||
+                (clsObj.assignments||[]).find(function(a){return a.subj==='TAH';}):null;
+              var t1n=asgn&&asgn.teacherId?getT(asgn.teacherId):null;
+              var t2n=asgn&&asgn.teacher2?getT(asgn.teacher2):null;
+              if(t1n)tName=t1n.name+(t2n?' & '+t2n.name:'');
+            } else {
+              var tid=getEffectiveTeacherId(cid,day,sid);
+              var tt=tid?getT(tid):null;
+              tName=tt?tt.name:'';
+            }
+            html+='<td rowspan="2" style="'+subjStyle(e.subj)+';line-height:1.3">'+
+              '<div style="font-weight:800;font-size:12px">'+subjName(e.subj)+'</div>'+
+              (!printMode&&tName?'<div style="font-size:10px;opacity:.7;margin-top:2px">'+tName+'</div>':'')+
+              '</td>';
+          } else {
+            html+='<td rowspan="2" class="rk-empty" style="font-size:14px">—</td>';
+          }
+          break;
+        default: html+='<td class="rk-dim"></td>';
       }
     });
+
     html+='</tr>';
   });
   return html+'</tbody></table>';
@@ -2081,9 +2157,7 @@ function printJadwalKelas(){
     '</style>'+
     // Header
     '<div style="display:flex;align-items:flex-start;gap:16px;margin-bottom:16px;border-bottom:2px solid #1c1a16;padding-bottom:12px">'+
-      '<div style="width:52px;height:52px;background:#2a5c3f;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0">'+
-        '<span style="font-size:26px">📅</span>'+
-      '</div>'+
+      '<img src="'+APP_LOGO+'" alt="Logo" style="height:52px;width:auto;object-fit:contain;border-radius:6px" onerror="this.style.display=\'none\'">'+
       '<div>'+
         '<div style="font-size:7px;font-weight:700;color:#888;letter-spacing:1px;text-transform:uppercase;margin-bottom:2px">Time Tabel</div>'+
         '<div style="font-size:14px;font-weight:800;color:#1c1a16;line-height:1.2">BOJANA TIRTA ISLAMIC SCHOOL</div>'+
@@ -2096,7 +2170,269 @@ function printJadwalKelas(){
       '<span style="font-size:10px;background:#e2effc;color:#1a5c96;padding:2px 8px;border-radius:5px;font-weight:700">Tingkat '+cls.level+'</span>'+
       (ct?'<span style="font-size:10px;color:#555">Wali Kelas: <b>'+ct.name+'</b></span>':'')+
     '</div>'+
-    buildKelasTable(cid);
+    buildKelasTable(cid,true);
+  document.body.appendChild(div);
+  div.style.display='block';
+  window.print();
+  setTimeout(function(){div.remove();},1000);
+}
+// ============================================================
+// REKAP JADWAL PER GURU
+// ============================================================
+var GURU_SUBJ_COLORS={
+  TAH:{bg:'#b8e8ce',color:'#054a28',fw:'800'},
+  MAT:{bg:'#b8d4f0',color:'#0a2f5a',fw:'800'},
+  BI :{bg:'#fdd8b8',color:'#5a1f00',fw:'800'},
+  PE :{bg:'#c4e8a8',color:'#1a4008',fw:'800'},
+  SC :{bg:'#faeaac',color:'#4a3000',fw:'800'},
+  IS :{bg:'#f0b8d0',color:'#580020',fw:'800'},
+  ESP:{bg:'#d8d8e0',color:'#1a1a2a',fw:'800'},
+  ART:{bg:'#f8c4b8',color:'#500808',fw:'800'},
+  PLBJ:{bg:'#e8e0c8',color:'#382800',fw:'800'},
+  PKN:{bg:'#f0b8f0',color:'#480048',fw:'800'},
+  EKS:{bg:'#a8e8d8',color:'#003828',fw:'800'},
+  RQ :{bg:'#d8ccf8',color:'#28006a',fw:'800'},
+  DH :{bg:'#e0e0e0',color:'#282828',fw:'800'},
+  LT :{bg:'#e0e0e0',color:'#282828',fw:'800'},
+  AK :{bg:'#d8e8f8',color:'#0a284a',fw:'800'}
+};
+function guruSubjStyle(code){
+  var c=GURU_SUBJ_COLORS[code]||GURU_SUBJ_COLORS[(code||'').toUpperCase()]||{bg:'#e8dcf8',color:'#300860',fw:'800'};
+  return 'background:'+c.bg+';color:'+c.color+';font-weight:'+c.fw;
+}
+function buildGuruTable(tid){
+  var teacher=getT(tid);if(!teacher)return'';
+  ensureSlots();
+  function subjName(code){if(!code)return'';var s=D.subjects.find(function(x){return x.code===code;});return s?s.name:code;}
+
+  // ── Warna mapel ──
+  var SUBJ_COLORS={
+    TAH:{bg:'#b8e8ce',color:'#054a28',fw:'800'},
+    MAT:{bg:'#b8d4f0',color:'#0a2f5a',fw:'800'},
+    BI: {bg:'#fdd8b8',color:'#5a1f00',fw:'800'},
+    PE: {bg:'#c4e8a8',color:'#1a4008',fw:'800'},
+    SC: {bg:'#faeaac',color:'#4a3000',fw:'800'},
+    IS: {bg:'#f0b8d0',color:'#580020',fw:'800'},
+    ESP:{bg:'#d8d8e0',color:'#1a1a2a',fw:'800'},
+    ART:{bg:'#f8c4b8',color:'#500808',fw:'800'},
+    PLBJ:{bg:'#e8e0c8',color:'#382800',fw:'800'},
+    PKN:{bg:'#f0b8f0',color:'#480048',fw:'800'},
+    EKS:{bg:'#a8e8d8',color:'#003828',fw:'800'},
+    RQ: {bg:'#d8ccf8',color:'#28006a',fw:'800'},
+    DH: {bg:'#e0e0e0',color:'#282828',fw:'800'},
+    LT: {bg:'#e0e0e0',color:'#282828',fw:'800'},
+    AK: {bg:'#d8e8f8',color:'#0a284a',fw:'800'}
+  };
+  function subjStyle(code){
+    var c=SUBJ_COLORS[code]||SUBJ_COLORS[(code||'').toUpperCase()]||{bg:'#e8dcf8',color:'#300860',fw:'800'};
+    return 'background:'+c.bg+';color:'+c.color+';font-weight:'+c.fw+';font-size:12px;line-height:1.3;padding:7px 8px';
+  }
+
+  // ── Bangun global min/max dari SEMUA kelas & SEMUA hari (identik jadwal global) ──
+  var globalMin='23:59',globalMax='00:00';
+  D.days.forEach(function(day){
+    D.classes.forEach(function(cls){
+      var lc=getCC(cls.id);
+      var preStart=subMinutes(lc.jamMasuk||'07:30',15);
+      var jps=getClassJPs(cls.id,day);if(!jps.length)return;
+      if(toMin(preStart)<toMin(globalMin))globalMin=preStart;
+      if(toMin(jps[jps.length-1].end)>toMin(globalMax))globalMax=jps[jps.length-1].end;
+    });
+  });
+  if(globalMin==='23:59')return'<p style="padding:24px;color:var(--txt3);font-size:12px">Belum ada konfigurasi kelas.</p>';
+
+  // Daftar slot 15 menit dari globalMin sampai globalMax
+  var slots15=[];var cur15=globalMin;
+  while(toMin(cur15)<toMin(globalMax)){slots15.push(cur15);cur15=addMinStr(cur15,15);}
+
+  // cellInfo per-kelas per-hari (versi standalone, tidak bergantung pada closure renderKelasTable)
+  function cellInfoG(cid,t15,day){
+    var lc=getCC(cid);var jamMasuk=lc.jamMasuk||'07:30';
+    var preStart=subMinutes(jamMasuk,15);
+    var jps=getClassJPs(cid,day);if(!jps.length)return{type:'before'};
+    var tm=toMin(t15);
+    if(tm<toMin(preStart))return{type:'before'};
+    if(tm===toMin(preStart))return{type:'pre'};
+    if(tm>=toMin(jps[jps.length-1].end))return{type:'pulang'};
+    for(var i=0;i<jps.length;i++){
+      var jp=jps[i];
+      if(tm===toMin(jp.start))return{type:jp.type==='lesson'?'lesson':jp.type,jp:jp,jpIdx:i};
+      if(tm>toMin(jp.start)&&tm<toMin(jp.end))return{type:'skip'};
+    }
+    return{type:'empty'};
+  }
+
+  // Dapatkan sid untuk JP ke-N kelas cid pada hari tertentu
+  function getSidG(cid,jpIdx,day){
+    var jps=getClassJPs(cid,day);
+    if(!jps.length||jpIdx>=jps.length)return null;
+    var jpStart=toMin(jps[jpIdx].start);
+    var jprows=getJPRows();
+    for(var i=0;i<jprows.length;i++){
+      var row=jprows[i];if(row.type!=='jp')continue;
+      var rs=toMin(row.startTime);
+      if(jpStart>=rs&&jpStart<rs+30)return row.sid;
+    }
+    return null;
+  }
+
+  // ── Header tabel ──
+  var html='<table class="rk-table"><thead><tr>'+
+    '<th class="rk-left" style="width:105px;text-align:center">Waktu</th>';
+  D.days.forEach(function(d){
+    // Tampilkan jam masuk tiap hari di sub-header (ambil dari kelas paling awal)
+    var earliest='23:59';
+    D.classes.forEach(function(cls){
+      var lc=getCC(cls.id);
+      var dayJm=(lc.dayOverrides&&lc.dayOverrides[d]&&lc.dayOverrides[d].jamMasuk)||lc.jamMasuk||'07:30';
+      if(toMin(dayJm)<toMin(earliest))earliest=dayJm;
+    });
+    html+='<th style="min-width:130px"><div style="font-size:12px;font-weight:700">'+d+'</div>'+
+      '<div style="font-size:9px;font-weight:400;opacity:.65;margin-top:1px">mulai '+earliest+'</div></th>';
+  });
+  html+='</tr></thead><tbody>';
+
+  // rowspan tracker per hari
+  var skipRows={};
+  D.days.forEach(function(d){skipRows[d]=0;});
+
+  slots15.forEach(function(t15){
+    var isHalf=toMin(t15)%30===0;
+    html+='<tr style="'+(isHalf?'':'background:#fafaf8')+'">';
+
+    // Kolom waktu — identik gaya jadwal global
+    html+='<td style="background:#e8e4dc;font-size:'+(isHalf?'12px':'10px')+';font-weight:'+(isHalf?'800':'600')+
+      ';color:'+(isHalf?'#222':'#555')+';font-family:monospace;text-align:center;white-space:nowrap;padding:4px 8px">'+
+      t15+'–'+addMinStr(t15,15)+'</td>';
+
+    D.days.forEach(function(day){
+      // Lewati jika rowspan dari sel sebelumnya masih aktif
+      if(skipRows[day]>0){skipRows[day]--;return;}
+
+      // ── Cari apakah guru ini mengajar di kelas manapun pada slot t15 hari ini ──
+      var found=null;
+      D.classes.forEach(function(cls){
+        if(found)return;
+        var info=cellInfoG(cls.id,t15,day);
+        if(info.type!=='lesson')return;
+        var sid=getSidG(cls.id,info.jpIdx,day);
+        if(!sid)return;
+        var e=getEntry(day,sid,cls.id);
+        if(!e||!e.subj)return;
+        var effTid=(e.subj==='TAH')?(e.teacher||null):getEffectiveTeacherId(cls.id,day,sid);
+        var isInvolved=(effTid===tid)||(e.subj==='TAH'&&e.teacher2===tid);
+        if(isInvolved)found={cls:cls,subj:e.subj};
+      });
+
+      if(found){
+        // Lesson span 2 baris (30 menit = 2 × 15 menit)
+        skipRows[day]=1;
+        html+='<td rowspan="2" style="'+subjStyle(found.subj)+';vertical-align:middle">'+
+          '<div style="font-weight:800;font-size:12px">'+subjName(found.subj)+'</div>'+
+          '<div style="font-size:10px;opacity:.75;margin-top:3px">Kelas '+found.cls.name+'</div>'+
+          '</td>';
+        return;
+      }
+
+      // ── Cek tipe non-lesson (istirahat/makan/solat) dari kelas manapun ──
+      var breakType=null;
+      D.classes.forEach(function(cls){
+        if(breakType)return;
+        var info=cellInfoG(cls.id,t15,day);
+        if(info.type==='recess'||info.type==='lunch'||info.type==='solat')breakType=info.type;
+      });
+
+      if(breakType==='recess'){
+        skipRows[day]=1;
+        html+='<td rowspan="2" class="rk-break" style="text-align:center;font-size:11px">☕ Istirahat</td>';
+      }else if(breakType==='lunch'){
+        skipRows[day]=1;
+        html+='<td rowspan="2" class="rk-lunch" style="text-align:center;font-size:11px">🍽 Makan</td>';
+      }else if(breakType==='solat'){
+        skipRows[day]=1;
+        html+='<td rowspan="2" class="rk-solat" style="text-align:center;font-size:11px">🕌 Solat</td>';
+      }else{
+        // ── Sel kosong — aktif atau non-aktif ──
+        var anyActive=false;
+        D.classes.forEach(function(cls){
+          var info=cellInfoG(cls.id,t15,day);
+          if(info.type!=='before'&&info.type!=='pulang'&&info.type!=='skip')anyActive=true;
+        });
+        html+=anyActive
+          ?'<td class="rk-empty" style="font-size:14px;text-align:center;opacity:.4">—</td>'
+          :'<td class="rk-dim" style="background:#eee;opacity:.3"></td>';
+      }
+    });
+    html+='</tr>';
+  });
+
+  return html+'</tbody></table>';
+}
+function renderRekapGuru(){
+  var sel=document.getElementById('rekap-guru-sel');if(!sel)return;
+  var prevVal=sel.value;
+  sel.innerHTML='<option value="">-- Pilih Guru --</option>';
+  var sorted=D.teachers.slice().sort(function(a,b){
+    if(a.type===b.type)return a.name.localeCompare(b.name);
+    return a.type==='class'?-1:1;
+  });
+  var lastType='';
+  sorted.forEach(function(t){
+    if(t.type!==lastType){
+      var og=document.createElement('optgroup');
+      og.label=t.type==='class'?'\u{1F464} Class Teacher':'\u{1F4D6} Subject Teacher';
+      sel.appendChild(og);lastType=t.type;
+    }
+    var op=document.createElement('option');op.value=t.id;op.textContent=t.name;
+    sel.appendChild(op);
+  });
+  if(prevVal)sel.value=prevVal;
+  var tid=sel.value;
+  var body=document.getElementById('rekap-guru-body');if(!body)return;
+  if(!tid){body.innerHTML='<p style="color:var(--txt3);font-size:12px;text-align:center;padding:32px">Pilih guru di atas untuk melihat jadwal.</p>';return;}
+  var t=getT(tid);if(!t){body.innerHTML='';return;}
+  var data=countJPGuru();var jpTotal=data.jpCount[tid]||0;var jpByDay=(data.jpByDay[tid])||{};
+  var badge=t.type==='class'?'<span style="font-size:11px;background:var(--grn-l);color:var(--grn);padding:2px 8px;border-radius:6px;font-weight:700">Class Teacher</span>':'<span style="font-size:11px;background:var(--amb-l);color:var(--amb);padding:2px 8px;border-radius:6px;font-weight:700">Subject Teacher</span>';
+  var dayPills=D.days.map(function(d){var c=jpByDay[d]||0;return'<span style="font-size:10px;background:'+(c?'var(--grn-l)':'var(--surf2)')+';color:'+(c?'var(--grn)':'var(--txt3)')+';border:1px solid '+(c?'var(--grn-b)':'var(--brd2)')+';padding:2px 9px;border-radius:6px;font-weight:700">'+d.slice(0,3)+(c?' <b>'+c+'</b>':'')+'</span>';}).join('');
+  var info='<div style="margin-bottom:10px;padding:10px 14px;background:var(--white);border-radius:var(--rs);border:1px solid var(--brd2);display:flex;flex-wrap:wrap;gap:10px;align-items:center">'+
+    '<span style="font-size:14px;font-weight:800">'+t.name+'</span>'+
+    badge+
+    '<span style="font-size:12px;font-weight:700;color:var(--txt2)">Total: <b style="color:var(--grn);font-size:14px">'+jpTotal+'</b> JP</span>'+
+    '<div style="display:flex;gap:5px;flex-wrap:wrap;margin-left:4px">'+dayPills+'</div>'+
+    '</div>';
+  body.innerHTML=info+'<div style="overflow-x:auto;border-radius:var(--rs);box-shadow:var(--sh)">'+buildGuruTable(tid)+'</div>';
+}
+function printJadwalGuru(){
+  var sel=document.getElementById('rekap-guru-sel');
+  var tid=sel?sel.value:'';
+  var t=tid?getT(tid):null;
+  if(!t){showToast('Pilih guru dulu','var(--red)');return;}
+  var taName=getActiveTAName();
+  var old=document.getElementById('print-area');if(old)old.remove();
+  var div=document.createElement('div');div.id='print-area';div.style.cssText='display:none';
+  div.innerHTML=
+    '<style>'+
+    '.rk-table{width:100%;border-collapse:collapse;font-size:11px;font-family:Arial,sans-serif}'+
+    '.rk-table th{background:#1c1a16;color:#fff;padding:7px 9px;text-align:center;font-size:10px;font-weight:700;letter-spacing:.3px;white-space:nowrap}'+
+    '.rk-table th.rk-left{text-align:left}'+
+    '.rk-table td{padding:6px 8px;border:1px solid #ddd;text-align:center;vertical-align:middle;font-size:11px}'+
+    '.rk-table tr:nth-child(even) td{background:#f8f7f4}'+
+    '.rk-pre{background:#ede8fa!important;color:#7a5cc0}'+
+    '.rk-empty{color:#ccc}'+
+    '</style>'+
+    '<div style="display:flex;align-items:flex-start;gap:16px;margin-bottom:16px;border-bottom:2px solid #1c1a16;padding-bottom:12px">'+
+      '<img src="'+APP_LOGO+'" alt="Logo" style="height:52px;width:auto;object-fit:contain;border-radius:6px" onerror="this.style.display=\'none\'">'+
+      '<div>'+
+        '<div style="font-size:7px;font-weight:700;color:#888;letter-spacing:1px;text-transform:uppercase;margin-bottom:2px">Jadwal Guru</div>'+
+        '<div style="font-size:14px;font-weight:800;color:#1c1a16;line-height:1.2">BOJANA TIRTA ISLAMIC SCHOOL</div>'+
+        '<div style="font-size:11px;font-weight:700;color:#2a5c3f;margin-top:2px">Tahun Ajaran '+taName+'</div>'+
+      '</div>'+
+    '</div>'+
+    '<div style="display:flex;gap:12px;margin-bottom:10px;align-items:center">'+
+      '<span style="font-size:13px;font-weight:800;color:#1c1a16">'+t.name+'</span>'+
+      '<span style="font-size:10px;background:'+(t.type==='class'?'#edf5f0':'#fef8e8')+';color:'+(t.type==='class'?'#2a5c3f':'#c07800')+';padding:2px 8px;border-radius:5px;font-weight:700">'+(t.type==='class'?'Class Teacher':'Subject Teacher')+'</span>'+
+    '</div>'+
+    buildGuruTable(tid);
   document.body.appendChild(div);
   div.style.display='block';
   window.print();
@@ -2115,7 +2451,7 @@ function renderGuruTable(){
     var badge=t.type==='class'?'<span class="tag tag-ct">Class Teacher</span>':'<span class="tag tag-st">Subject Teacher</span>';
     var subjs=(t.subjects||[]).map(function(s){return'<span class="spill '+sColor(s)+'" style="border-color:currentColor">'+s+'</span>';}).join(' ')||'—';
     var tr=document.createElement('tr');
-    tr.innerHTML='<td style="text-align:center;color:var(--txt3);font-size:11px">'+(i+1)+'</td>'+
+    tr.innerHTML='<td style="text-align:center"><input type="checkbox" class="row-chk" data-type="guru" value="'+t.id+'" onchange="updateSelectionBar(\'guru\')" style="accent-color:var(--red);cursor:pointer;width:14px;height:14px"></td>'+
       '<td><strong>'+t.name+'</strong></td><td>'+badge+'</td><td>'+subjs+'</td>'+
       '<td style="white-space:nowrap">'+
       '<button class="del-btn" onclick="openEditGuru(\''+t.id+'\')" style="color:var(--blu)">✏</button>'+
@@ -2129,7 +2465,8 @@ function renderKelasTableM(){
   if(!D.classes.length){tb.innerHTML='<tr><td colspan="3" style="text-align:center;color:var(--txt3);padding:14px">Belum ada kelas.</td></tr>';return;}
   D.classes.forEach(function(cls){
     var tr=document.createElement('tr');
-    tr.innerHTML='<td><strong>'+cls.name+'</strong></td><td><span class="tag" style="background:var(--blu-l);color:var(--blu)">Kelas '+cls.level+'</span></td>'+
+    tr.innerHTML='<td style="text-align:center"><input type="checkbox" class="row-chk" data-type="kelas" value="'+cls.id+'" onchange="updateSelectionBar(\'kelas\')" style="accent-color:var(--red);cursor:pointer;width:14px;height:14px"></td>'+
+      '<td><strong>'+cls.name+'</strong></td><td><span class="tag" style="background:var(--blu-l);color:var(--blu)">Kelas '+cls.level+'</span></td>'+
       '<td><button class="del-btn" onclick="confirmDel(\'kelas\',\''+cls.id+'\',\''+cls.name+'\')">✕</button></td>';
     tb.appendChild(tr);
   });
@@ -2141,7 +2478,7 @@ function renderSubjJPHeaders(){
   D.classes.forEach(function(cls){if(activeLevels.indexOf(String(cls.level))<0)activeLevels.push(String(cls.level));});
   activeLevels.sort();
   if(!activeLevels.length)activeLevels=['1','2','3','4','5','6'];
-  thead.innerHTML='<th style="min-width:70px">Kode</th><th style="min-width:160px">Subject</th>';
+  thead.innerHTML='<th style="width:32px;text-align:center"><input type="checkbox" id="chk-all-subject" onchange="toggleSelectAll(\'subject\')" style="accent-color:var(--red);cursor:pointer;width:14px;height:14px"></th><th style="min-width:70px">Kode</th><th style="min-width:160px">Subject</th>';
   activeLevels.forEach(function(lv){
     var gc=getGradeColor(lv);
     thead.innerHTML+='<th style="text-align:center;width:70px;border-left:3px solid rgba(0,0,0,.1);background:'+gc.bg+';color:'+gc.text+';font-size:11px;font-weight:700;padding:8px 6px">Grade '+lv+'</th>';
@@ -2171,7 +2508,8 @@ function renderSubjTable(){
           '</td>';
       });
     }
-    tr.innerHTML='<td><span class="spill '+sColor(s.code)+'" style="border-color:currentColor;font-size:11px;padding:3px 9px">'+s.code+'</span></td>'+
+    tr.innerHTML='<td style="text-align:center"><input type="checkbox" class="row-chk" data-type="subject" value="'+s.code+'" onchange="updateSelectionBar(\'subject\')" style="accent-color:var(--red);cursor:pointer;width:14px;height:14px"></td>'+
+      '<td><span class="spill '+sColor(s.code)+'" style="border-color:currentColor;font-size:11px;padding:3px 9px">'+s.code+'</span></td>'+
       '<td style="font-weight:600;font-size:13px;color:var(--txt)">'+s.name+'</td>'+
       jpCells+
       '<td style="white-space:nowrap">'+
@@ -2445,6 +2783,47 @@ function deleteSubject(code){
   D.subjects=D.subjects.filter(function(s){return s.code!==code;});
   D.classes.forEach(function(cls){cls.assignments=(cls.assignments||[]).filter(function(a){return a.subj!==code;});});
   save();renderMaster();renderKelasTable();
+}
+function toggleSelectAll(type){
+  var allChk=document.getElementById('chk-all-'+type);
+  document.querySelectorAll('.row-chk[data-type="'+type+'"]').forEach(function(cb){cb.checked=allChk.checked;});
+  updateSelectionBar(type);
+}
+function updateSelectionBar(type){
+  var boxes=Array.from(document.querySelectorAll('.row-chk[data-type="'+type+'"]'));
+  var n=boxes.filter(function(cb){return cb.checked;}).length;
+  var bar=document.getElementById('sel-bar-'+type);
+  var cnt=document.getElementById('sel-count-'+type);
+  if(bar)bar.style.display=n?'flex':'none';
+  if(cnt)cnt.textContent=n+' item terpilih';
+  var allChk=document.getElementById('chk-all-'+type);
+  if(allChk){allChk.checked=n>0&&n===boxes.length;allChk.indeterminate=n>0&&n<boxes.length;}
+}
+function deleteSelected(type){
+  var ids=Array.from(document.querySelectorAll('.row-chk[data-type="'+type+'"]:checked')).map(function(cb){return cb.value;});
+  if(!ids.length)return;
+  var label=type==='kelas'?'kelas':type==='guru'?'guru':'mapel';
+  if(!confirm('Hapus '+ids.length+' '+label+' terpilih?\nAksi ini tidak bisa dibatalkan.'))return;
+  if(type==='kelas'){
+    ids.forEach(function(id){
+      D.classes=D.classes.filter(function(c){return c.id!==id;});
+      for(var d in D.sched)for(var s in D.sched[d])delete D.sched[d][s][id];
+      D.eskulGroups.forEach(function(g){g.classes=g.classes.filter(function(c){return c!==id;});});
+    });
+    save();renderMaster();renderKelasTable();renderSettings();
+  } else if(type==='guru'){
+    ids.forEach(function(id){
+      D.teachers=D.teachers.filter(function(t){return t.id!==id;});
+      D.classes.forEach(function(cls){cls.assignments=(cls.assignments||[]).filter(function(a){return a.teacherId!==id;});});
+    });
+    save();renderMaster();renderGuruSidebar();renderKelasTable();
+  } else if(type==='subject'){
+    ids.forEach(function(id){
+      D.subjects=D.subjects.filter(function(s){return s.code!==id;});
+      D.classes.forEach(function(cls){cls.assignments=(cls.assignments||[]).filter(function(a){return a.subj!==id;});});
+    });
+    save();renderMaster();renderKelasTable();
+  }
 }
 // Edit guru
 var editGuruId=null;
@@ -2845,6 +3224,7 @@ function closeAgModal(){document.getElementById('agModal').classList.remove('on'
 // JADWAL GRID — SIMPLE TABLE
 // ============================================================
 var _activeDay='';var _activeView='class';var _teacherFilter='';
+var _activeLcTabs={};// track active JP-type tab per level: {level: 'Default'|'Senin'|...}
 function getActiveDay(){return _activeDay||D.days[0]||'Senin';}
 function setDay(d){_activeDay=d;renderDayTabs();renderGrid();var gs=document.getElementById('jadwal-top');if(gs)gs.scrollLeft=0;}
 function setView(v){
@@ -3060,19 +3440,25 @@ function renderGrid(){
           if(e&&e.subj){
             var tn='';
             var cls2=getCls(cid);
-            var asgn=cls2?(cls2.assignments||[]).find(function(a){return a.subj===e.subj;}):null;
+            // Prioritas non-autoCT agar assignment manual (Setup) selalu menang atas autoCT
+            var asgn=cls2?(
+              (cls2.assignments||[]).find(function(a){return a.subj===e.subj&&!a.autoCT;})||
+              (cls2.assignments||[]).find(function(a){return a.subj===e.subj;})
+            ):null;
             if(e.subj==='TAH'){
               var tid1=asgn?asgn.teacherId:(e.teacher||null);
               var tid2=asgn?asgn.teacher2:(e.teacher2||null);
               var t1n=tid1?getT(tid1):null;var t2n=tid2?getT(tid2):null;
               if(t1n)tn=t1n.name+(t2n?' & '+t2n.name:'');
             } else {
-              var tid=asgn?asgn.teacherId:(e.teacher||null);
+              // Gunakan getEffectiveTeacherId agar konsisten dengan conflict check
+              var tid=getEffectiveTeacherId(cid,day,sid);
               var tt=tid?getT(tid):null;tn=tt?tt.name:'';
             }
             var cc=sColor(e.subj);
             var noT=['Recess','Pulang','DH','LT','AK','EKS','RQ'];
-            var effectiveTeacher=asgn?asgn.teacherId:e.teacher;
+            // effectiveTeacher juga dari helper agar display & conflict detection sumber datanya sama
+            var effectiveTeacher=e.subj==='TAH'?(e.teacher||null):getEffectiveTeacherId(cid,day,sid);
             var warn=!effectiveTeacher&&e.subj!=='TAH'&&noT.indexOf(e.subj)<0;
             var conflict=effectiveTeacher&&checkConflict(day,sid,effectiveTeacher);
             html+='<td rowspan="2" class="jactive '+cc+(conflict?' conflict':warn?' no-teacher':'')+'" onclick="openSlot(\''+day+'\',\''+sid+'\',\''+cid+'\')">'+
@@ -3229,82 +3615,16 @@ function renderJadwalSummary(day){
   el.innerHTML=html;
 }
 
-function buildCell(day,row,cid,isPre){
-  var sid=row.sid;
-  var startTime=row.startTime||'';
-  var lc=getCC(cid);
-  var jamMasuk=lc.jamMasuk||'07:30';
-
-  // Pre-lesson row
-  if(isPre){
-    var preSubj=PRE_SUBJ[day]||'';
-    return '<td class="jpre" style="text-align:center;padding:3px"><div style="font-size:11px;font-weight:700;color:#7a5cc0">'+preSubj+'</div></td>';
-  }
-
-  // Before class start
-  if(startTime&&toMin(startTime)<toMin(jamMasuk)){
-    return '<td class="jdim"></td>';
-  }
-
-  // Get JP config for this time
-  var jps=getClassJPs(cid,day);
-  var matchJP=null;
-  for(var i=0;i<jps.length;i++){if(jps[i].start===startTime){matchJP=jps[i];break;}}
-
-  // After last JP (pulang)
-  if(jps.length&&startTime&&toMin(startTime)>=toMin(jps[jps.length-1].end)){
-    return '<td class="jdismiss" title="Pulang"><div class="jcell-inner"><span style="font-size:15px">🏠</span><span style="font-size:9px;font-weight:800;color:#fff;display:block;margin-top:2px;text-transform:uppercase;letter-spacing:.5px">Pulang</span></div></td>';
-  }
-
-  // Recess/Lunch from config
-  if(matchJP){
-    if(matchJP.type==='recess')return '<td class="jrecess" title="Istirahat"><div class="jcell-inner"><span style="font-size:15px">☕</span><span style="font-size:9px;font-weight:800;color:#fff;display:block;margin-top:2px;text-transform:uppercase;letter-spacing:.5px">Istirahat</span></div></td>';
-    if(matchJP.type==='lunch')return '<td class="jlunch" title="Makan Siang"><div class="jcell-inner"><span style="font-size:15px">🍽</span><span style="font-size:9px;font-weight:800;color:#fff;display:block;margin-top:2px;text-transform:uppercase;letter-spacing:.5px">Makan</span></div></td>';
-    if(matchJP.type==='solat')return '<td class="jsolat" title="Solat"><div class="jcell-inner"><span style="font-size:15px">🕌</span><span style="font-size:9px;font-weight:800;color:#fff;display:block;margin-top:2px;text-transform:uppercase;letter-spacing:.5px">Solat</span></div></td>';
-  }
-
-  // Schedule entry
-  var e=getEntry(day,sid,cid);
-  if(e&&e.subj){
-    var tn='';
-    var cls3=getCls(cid);
-    var asgn3=cls3?(cls3.assignments||[]).find(function(a){return a.subj===e.subj;}):null;
-    if(e.subj==='TAH'){
-      var tid1b=asgn3?asgn3.teacherId:(e.teacher||null);
-      var tid2b=asgn3?asgn3.teacher2:(e.teacher2||null);
-      var t1nb=tid1b?getT(tid1b):null;var t2nb=tid2b?getT(tid2b):null;
-      if(t1nb)tn=t1nb.name+(t2nb?' & '+t2nb.name:'');
-    } else {
-      var tidb=asgn3?asgn3.teacherId:(e.teacher||null);
-      var tb=tidb?getT(tidb):null;tn=tb?tb.name:'';
-    }
-    var cc=sColor(e.subj);
-    var noT=['Recess','Pulang','DH','LT','AK','EKS','RQ'];
-    var effectiveT=asgn3?asgn3.teacherId:e.teacher;
-    var warn=!effectiveT&&e.subj!=='TAH'&&noT.indexOf(e.subj)<0;
-    var conflict=effectiveT&&checkConflict(day,sid,effectiveT);
-    return '<td class="jactive '+cc+(conflict?' conflict':warn?' no-teacher':'')+'" onclick="openSlot(\''+day+'\',\''+sid+'\',\''+cid+'\')">'+
-      '<div class="jcell-inner" style="position:relative">'+
-      '<div class="js">'+e.subj+'</div>'+(tn?'<div class="jt">'+tn+'</div>':'')+
-      '<span onclick="event.stopPropagation();quickClear(\''+day+'\',\''+sid+'\',\''+cid+'\')" style="position:absolute;top:-3px;right:-3px;width:16px;height:16px;background:rgba(0,0,0,.35);color:#fff;border-radius:50%;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;line-height:1;cursor:pointer;opacity:0;transition:.15s" class="cell-del">✕</span>'+
-      '</div></td>';
-  }
-
-  // Empty
-  return '<td class="jactive" onclick="openSlot(\''+day+'\',\''+sid+'\',\''+cid+'\')">'+
-    '<div class="jcell-inner"><span class="jcell-empty">+</span></div></td>';
-}
-
 function buildTeacherCell(day,row,tid){
   var sid=row.sid;
   var html='<td>';var found=false;
   D.classes.forEach(function(cls){
     var e=getEntry(day,sid,cls.id);
-    if(e&&e.teacher===tid){
+    // Gunakan effective teacher agar konsisten: non-TAH pakai assignment non-autoCT
+    var effTid=e?(e.subj==='TAH'?(e.teacher||null):getEffectiveTeacherId(cls.id,day,sid)):null;
+    var isInvolved=e&&(effTid===tid||(e.subj==='TAH'&&e.teacher2===tid));
+    if(isInvolved){
       html+='<div class="'+sColor(e.subj)+'" onclick="openSlot(\''+day+'\',\''+sid+'\',\''+cls.id+'\')" style="padding:3px 6px;border-radius:6px;cursor:pointer;margin-bottom:2px;font-size:11px;font-weight:700">'+e.subj+' <span style="font-size:9px;opacity:.7">'+cls.name+'</span></div>';found=true;
-    }
-    if(e&&e.subj==='TAH'&&(e.teacher===tid||e.teacher2===tid)){
-      html+='<div class="sc-tah" onclick="openSlot(\''+day+'\',\''+sid+'\',\''+cls.id+'\')" style="padding:3px 6px;border-radius:6px;cursor:pointer;margin-bottom:2px;font-size:11px;font-weight:700">TAH <span style="font-size:9px;opacity:.7">'+cls.name+'</span></div>';found=true;
     }
   });
   if(!found)html+='<div style="color:var(--txt3);font-size:16px;opacity:.2;text-align:center">—</div>';
@@ -3333,15 +3653,20 @@ function checkConflict(day,sid,tid){
   if(!tid)return false;
   var conflict=false;
   D.classes.forEach(function(c){
-    var e=getEntry(day,sid,c.id);
-    if(!e||(e.teacher!==tid&&e.teacher2!==tid))return;
+    // Gunakan effective teacher (prioritas non-autoCT assignment) agar konsisten dengan display
+    var e=getEntry(day,sid,c.id);if(!e)return;
+    var effTid=(e.subj==='TAH')?(e.teacher||null):getEffectiveTeacherId(c.id,day,sid);
+    var effTid2=(e.subj==='TAH')?(e.teacher2||null):null;
+    if(effTid!==tid&&effTid2!==tid)return;
     var myJP=getJPTimeForClass(c.id,day,sid);if(!myJP)return;
     D.classes.forEach(function(c2){
       if(c2.id===c.id)return;
       getJPRows().forEach(function(row){
         if(row.type!=='jp')return;
-        var e2=getEntry(day,row.sid,c2.id);
-        if(!e2||(e2.teacher!==tid&&e2.teacher2!==tid))return;
+        var e2=getEntry(day,row.sid,c2.id);if(!e2)return;
+        var eff2=(e2.subj==='TAH')?(e2.teacher||null):getEffectiveTeacherId(c2.id,day,row.sid);
+        var eff2b=(e2.subj==='TAH')?(e2.teacher2||null):null;
+        if(eff2!==tid&&eff2b!==tid)return;
         var cJP=getJPTimeForClass(c2.id,day,row.sid);
         if(cJP&&timeOverlap(myJP.start,myJP.end,cJP.start,cJP.end))conflict=true;
       });
@@ -3419,6 +3744,7 @@ function refreshRekapIfVisible(){
   if(!activeRsec)return;
   var id=activeRsec.id;
   if(id==='msec-rkelas')renderRekapKelas();
+  else if(id==='msec-rguru')renderRekapGuru();
   else if(id==='msec-rbeban')renderRekapBeban();
   else if(id==='msec-rmapel')renderRekapMapel();
 }
@@ -3427,6 +3753,7 @@ function saveSlot(){
   var subj=document.getElementById('sm-subj').value;
   var note=document.getElementById('sm-note').value.trim()||null;
   if(!subj){clearSlot();return;}
+  pushUndo(); // simpan state sebelum edit agar bisa di-undo
   var entry={subj:subj,teacher:null,teacher2:null,eskulGroup:null,note:note};
   if(subj==='TAH'){entry.teacher=document.getElementById('sm-tah1').value||null;entry.teacher2=document.getElementById('sm-tah2').value||null;}
   else if(subj==='EKS')entry.eskulGroup=document.getElementById('sm-eksgroup').value||null;
@@ -3661,8 +3988,10 @@ function autoFillJadwal(){
       if(c.id===cid)return;
       getJPRows().forEach(function(row){
         if(row.type!=='jp')return;
-        var e=getEntry(day,row.sid,c.id);
-        if(!e||(e.teacher!==teacher&&e.teacher2!==teacher))return;
+        var e=getEntry(day,row.sid,c.id);if(!e)return;
+        // Gunakan effective teacher agar konsisten dengan jadwal display
+        var effTid=(e.subj==='TAH')?(e.teacher||null):getEffectiveTeacherId(c.id,day,row.sid);
+        if(effTid!==teacher&&e.teacher2!==teacher)return;
         var cJP=getJPTimeForClass(c.id,day,row.sid);
         if(cJP&&timeOverlap(myJP.start,myJP.end,cJP.start,cJP.end))conflict=true;
       });
@@ -3757,42 +4086,6 @@ function autoFillJadwal(){
   }
   function placeBlock(slots,cid,subj,teacher,teacher2){
     slots.forEach(function(s){setEntry(s.day,s.sid,cid,{subj:subj,teacher:teacher||null,teacher2:teacher2||null,eskulGroup:null,note:null});});
-  }
-  // Place TAH: wajib satu blok per hari, menyebar ke semua hari aktif
-  function placeTAH(entries,jp,teacher){
-    var days=D.days.slice();
-    var tahBlocks=makeTahBlocks(jp,days.length);
-    // Pasangkan blok ke hari secara berurutan (acak urutan harinya)
-    shuffle(days);
-    var dayIdx=0;
-    tahBlocks.forEach(function(bsize){
-      // Cari hari yang belum penuh (maks 3) dan belum pernah dapat blok ini
-      var placed=false;
-      for(var attempt=0;attempt<days.length*2&&!placed;attempt++){
-        var day=days[dayIdx%days.length];dayIdx++;
-        var wouldExceed=entries.some(function(ce){return jpPerDay(ce.cid,day,'TAH')+bsize>3;});
-        if(wouldExceed)continue;
-        var cands=getConsecBlocks(entries[0].cid,day,bsize,teacher);
-        shuffle(cands);
-        for(var bi=0;bi<cands.length&&!placed;bi++){
-          var blk=cands[bi];
-          var ok=entries.every(function(ce){
-            return blk.every(function(rs){return slotValid({day:day,sid:rs.sid,startTime:rs.startTime},ce.cid,teacher);});
-          });
-          if(ok){entries.forEach(function(ce){placeBlock(blk,ce.cid,'TAH',ce.teacher,ce.teacher2);});placed=true;}
-        }
-        // Fallback: single slot
-        if(!placed&&bsize>1){
-          var s1=getConsecBlocks(entries[0].cid,day,1,teacher);
-          shuffle(s1);
-          for(var si=0;si<s1.length&&!placed;si++){
-            var s=s1[si][0];
-            var ok2=entries.every(function(ce){return slotValid(s,ce.cid,teacher)&&jpPerDay(ce.cid,day,'TAH')+1<=3;});
-            if(ok2){entries.forEach(function(ce){setEntry(s.day,s.sid,ce.cid,{subj:'TAH',teacher:ce.teacher||null,teacher2:ce.teacher2||null,eskulGroup:null,note:null});});placed=true;}
-          }
-        }
-      }
-    });
   }
 
   // ── BUILD TASK LIST (semua kelas, semua mapel) ──
@@ -3968,8 +4261,9 @@ function autoFillJadwalAdvanced(selClsIds, mode){
       if(c.id===cid)return;
       getJPRows().forEach(function(row){
         if(row.type!=='jp')return;
-        var e=getEntry(day,row.sid,c.id);
-        if(!e||(e.teacher!==teacher&&e.teacher2!==teacher))return;
+        var e=getEntry(day,row.sid,c.id);if(!e)return;
+        var effTid=(e.subj==='TAH')?(e.teacher||null):getEffectiveTeacherId(c.id,day,row.sid);
+        if(effTid!==teacher&&e.teacher2!==teacher)return;
         var cJP=getJPTimeForClass(c.id,day,row.sid);
         if(cJP&&timeOverlap(myJP.start,myJP.end,cJP.start,cJP.end))conflict=true;
       });
@@ -4210,6 +4504,7 @@ function confirmLoadDefault(){
     var fresh=defaultData();
     Object.assign(D,fresh);
     D.levelConfig={};D.slots=[];D.sched={};
+    _activeLcTabs={}; // reset tab aktif per tingkat
     save();
     _activeDay=D.days[0]||'Senin';
     renderAll();
@@ -4233,14 +4528,17 @@ function detectIssues(){
       D.classes.forEach(function(cls){
         var e=getEntry(day,row.sid,cls.id);if(!e||!e.subj)return;
         var t=getJPTimeForClass(cls.id,day,row.sid);if(!t)return;
-        [e.teacher,e.teacher2].forEach(function(tid){
+        // Gunakan effective teacher agar konsisten dengan tampilan jadwal
+        var effTid=(e.subj==='TAH')?(e.teacher||null):getEffectiveTeacherId(cls.id,day,row.sid);
+        [effTid, (e.subj==='TAH'?e.teacher2:null)].forEach(function(tid){
           if(!tid)return;
           if(!teacherSlots[tid])teacherSlots[tid]=[];
           teacherSlots[tid].push({cid:cls.id,cls:cls.name,subj:e.subj,start:t.start,end:t.end,sid:row.sid});
         });
+        // Warning: guru belum ada — cek berdasarkan effective teacher
         if(e.subj==='TAH'&&!e.teacher)warnings.push({day:day,time:row.time,msg:'Kelas '+cls.name+': TAH belum ada guru'});
         else if(e.subj==='EKS'&&!e.eskulGroup)warnings.push({day:day,time:row.time,msg:'Kelas '+cls.name+': EKS belum ada grup'});
-        else if(noT.indexOf(e.subj)<0&&!e.teacher&&e.subj!=='TAH')warnings.push({day:day,time:row.time,msg:'Kelas '+cls.name+': "'+e.subj+'" belum ada guru'});
+        else if(noT.indexOf(e.subj)<0&&!effTid&&e.subj!=='TAH')warnings.push({day:day,time:row.time,msg:'Kelas '+cls.name+': "'+e.subj+'" belum ada guru'});
       });
     });
     for(var tid in teacherSlots){
@@ -4280,7 +4578,7 @@ function confirmDel(type,id,label){
   delPending={type:type,id:id};
   var titles={guru:'Hapus Guru?',kelas:'Hapus Kelas?',subject:'Hapus Mapel?',eskulGroup:'Hapus Grup Eskul?'};
   document.getElementById('del-title').textContent=titles[type]||'Hapus?';
-  document.getElementById('del-desc').innerHTML='Hapus <strong>'+label+'</strong>.';
+  var _dd=document.getElementById('del-desc');_dd.textContent='';var _st=document.createElement('strong');_st.textContent=label;_dd.appendChild(document.createTextNode('Hapus '));_dd.appendChild(_st);_dd.appendChild(document.createTextNode('.'));
   document.getElementById('del-detail').className='warn-detail';
   document.getElementById('delModal').classList.add('on');
 }
@@ -4318,7 +4616,17 @@ function renderSettings(){
     var on=D.days.indexOf(d)>=0;var btn=document.createElement('button');
     btn.className='dtog'+(on?' on':'');btn.textContent=d;
     btn.addEventListener('click',function(){
-      var i=D.days.indexOf(d);if(i>=0)D.days.splice(i,1);else D.days.push(d);
+      var i=D.days.indexOf(d);
+      if(i>=0){
+        D.days.splice(i,1);
+      } else {
+        // Sisipkan di posisi yang benar sesuai urutan baku
+        var _ALL_DAYS=['Senin','Selasa','Rabu','Kamis','Jumat'];
+        var dIdx=_ALL_DAYS.indexOf(d);
+        var insertAt=0;
+        for(var _j=0;_j<D.days.length;_j++){if(_ALL_DAYS.indexOf(D.days[_j])<dIdx)insertAt=_j+1;}
+        D.days.splice(insertAt,0,d);
+      }
       if(_activeDay&&D.days.indexOf(_activeDay)<0)_activeDay=D.days[0]||'';
       save();renderSettings();renderDayTabs();
     });
@@ -4505,15 +4813,6 @@ function renderClassConfig(){
           '<td style="padding:6px 10px;font-family:monospace;font-size:12px;color:var(--red)">'+dayLast.end+'</td>'+
           '<td colspan="2" style="padding:6px 10px;font-size:11px;font-weight:700;color:var(--red)">Pulang</td>';
         tb.appendChild(trP);
-        if(lc.eksDay&&(dayKey==='Default'||dayKey===lc.eksDay)){
-          var eksEnd2=addMinStr(dayLast.end,60);
-          var trE=document.createElement('tr');
-          trE.style.cssText='background:#e0f5ee';
-          trE.innerHTML='<td style="padding:6px 10px;text-align:center;font-weight:700;color:#0a4a3a">⚽</td>'+
-            '<td style="padding:6px 10px;font-family:monospace;font-size:12px;color:#0a4a3a">'+eksEnd2+'</td>'+
-            '<td colspan="2" style="padding:6px 10px;font-size:11px;font-weight:700;color:#0a4a3a">Ekskul ('+lc.eksDay+')</td>';
-          tb.appendChild(trE);
-        }
       }
       tbl.appendChild(tb);
       return tbl;
@@ -4521,11 +4820,14 @@ function renderClassConfig(){
 
     // Build tabs & panels
     var panels=[];
+    // Tentukan tab aktif: pakai _activeLcTabs[level] kalau masih ada di tabDays, else 'Default'
+    var _savedActiveTab=_activeLcTabs[level]||'Default';
+    if(tabDays.indexOf(_savedActiveTab)<0)_savedActiveTab='Default';
     tabDays.forEach(function(dk,ti){
       // Tab button
       var tbtn=document.createElement('button');
       var isOvr=dk!=='Default';
-      var isFirst=ti===0;
+      var isFirst=(dk===_savedActiveTab);
       tbtn.style.cssText='padding:6px 14px;border:1px solid var(--brd2);border-bottom:none;border-radius:var(--rs) var(--rs) 0 0;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;transition:.1s;'+
         (isFirst?'background:var(--white);color:var(--grn);border-color:var(--brd2) var(--brd2) var(--white) var(--brd2);margin-bottom:-1px;z-index:2;position:relative;':'background:var(--surf2);color:var(--txt2);');
       tbtn.textContent=dk+(isOvr?' ★':'');
@@ -4535,6 +4837,7 @@ function renderClassConfig(){
       // Panel
       var panel=document.createElement('div');
       panel.style.display=isFirst?'block':'none';
+
       panel.appendChild(buildJPTable(dk));
       // Info hari khusus
       if(isOvr){
@@ -4552,6 +4855,7 @@ function renderClassConfig(){
     tabBar.addEventListener('click',function(e){
       var btn=e.target.closest('button[data-ti]');if(!btn)return;
       var ti=parseInt(btn.dataset.ti);
+      _activeLcTabs[level]=tabDays[ti]; // simpan tab aktif agar tidak reset setelah re-render
       panels.forEach(function(p,i){
         var active=i===ti;
         p.panel.style.display=active?'block':'none';
@@ -4703,6 +5007,9 @@ function applyLockState() {
   var tabs  = document.querySelectorAll('#btis-header .app-tabs .tab');
   var tabNames = ['master','setup','jadwal','cek','rekap','settings'];
 
+  var taNewBtn = document.getElementById('ta-new-btn');
+  if(taNewBtn) taNewBtn.style.display = _isLocked ? 'none' : '';
+
   if (_isLocked) {
     btn.className = 'locked';
     icon.textContent  = '🔒';
@@ -4796,6 +5103,9 @@ document.getElementById('lock-overlay').addEventListener('click', function(e){
   // Preload dari cache agar UI langsung muncul
   load();
   if(!D.levelConfig) D.levelConfig={};
+  // Sinkronkan logo header dengan variabel APP_LOGO
+  var _logoEl=document.getElementById('app-logo-img');
+  if(_logoEl)_logoEl.src=APP_LOGO;
   renderTASelector();
   _activeDay = D.days[0] || 'Senin';
   renderDayTabs();
@@ -4803,6 +5113,16 @@ document.getElementById('lock-overlay').addEventListener('click', function(e){
   renderKelasTable();
   loadLockState();
   applyLockState();
+
+  // Ambil lock password dan active TA dari DB (non-blocking, parallel)
+  fetch('/api/auth/lock-password', { headers: _ttAuthHeaders() })
+    .then(function(r){ return r.ok ? r.json() : null; })
+    .then(function(json){ if(json && json.password) LOCK_PASSWORD = json.password; })
+    .catch(function(){});
+  fetch('/api/auth/active-ta', { headers: _ttAuthHeaders() })
+    .then(function(r){ return r.ok ? r.json() : null; })
+    .then(function(json){ if(json) _activeTAName = json.name || ''; })
+    .catch(function(){});
 
   // Ambil meta dari API
   fetch('/api/timetable/meta', { headers: _ttAuthHeaders() })

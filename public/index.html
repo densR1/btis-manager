@@ -318,6 +318,8 @@
   .module-card:nth-child(5) { animation-delay: .25s; border-top-color: #7c3aed; }
   .module-card:nth-child(6) { animation-delay: .30s; border-top-color: #d97706; }
   .module-card:nth-child(7) { animation-delay: .35s; border-top-color: #0f766e; }
+    .module-card:nth-child(8) { animation-delay: .35s; border-top-color: #1423a5; }
+
 
   @keyframes fadeUp {
     from { opacity: 0; transform: translateY(20px); }
@@ -342,6 +344,7 @@
   .bg5 { background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%); box-shadow: 0 4px 12px rgba(5,150,105,0.12); }
   .bg6 { background: linear-gradient(135deg, #fff7ed 0%, #fed7aa 100%); box-shadow: 0 4px 12px rgba(234,88,12,0.12); }
   .bg7 { background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%); box-shadow: 0 4px 12px rgba(29,78,216,0.15); }
+  .bg8 { background: linear-gradient(135deg, #e0f7fa 0%, #bac3fd 100%); box-shadow: 0 4px 12px rgba(29,78,216,0.15); }
 
   .card-body { flex: 1; }
 
@@ -1789,7 +1792,7 @@ input[name="ag-mode"]:checked ~ div > .ag-mode-title { color: var(--grn); }
   <div class="greeting-bar">
     <div class="greeting-stats">
       <div class="gstat">
-        <span class="gstat-val">7</span>
+        <span class="gstat-val">8</span>
         <span class="gstat-lbl">Modul</span>
       </div>
       <div class="gstat">
@@ -1798,7 +1801,7 @@ input[name="ag-mode"]:checked ~ div > .ag-mode-title { color: var(--grn); }
       </div>
     </div>
     <div class="greeting-text" style="text-align:right;">
-      <h3 id="greeting-title">السَّلَامُ عَلَيْكُمْ وَرَحْمَةُ اللهِ وَبَرَكَاتُهُ</h3>
+      <h3 id="greeting-title">ال3rسَّلَامُ عَلَيْكُمْ وَرَحْمَةُ اللهِ وَبَرَكَاتُهُ</h3>
     </div>
   </div>
 
@@ -1821,6 +1824,7 @@ input[name="ag-mode"]:checked ~ div > .ag-mode-title { color: var(--grn); }
         <div class="card-title">Timetable Manager</div>
       </div>
       <div class="card-desc">Atur jadwal pelajaran dan distribusi jam mengajar</div>
+      <div id="home-active-ta" style="font-size:11px;font-weight:700;color:#7c3aed;margin-top:4px;min-height:16px"></div>
       <div class="card-arrow">Buka →</div>
     </div>
 
@@ -2232,7 +2236,6 @@ window.location.href = '/btis-manager/index.html';  }
   // Tidak ada password login. PIN modul disimpan di server.
   let pinTarget = null;
 
-  // Muat PIN modul dari server saat halaman dibuka
   (async function initPin() {
     try {
       let res = await fetch('/api/auth/pin', { headers: authHeaders() });
@@ -2376,6 +2379,19 @@ window.location.href = '/btis-manager/index.html';  }
       const popupLogoImg = document.getElementById('popup-logo-img');
       if (logoImg && popupLogoImg) popupLogoImg.src = logoImg.src;
     }
+  })();
+
+  // ── Tahun ajaran aktif (non-blocking) ───────────────────────
+  (function fetchActiveTa() {
+    fetch('/api/auth/active-ta', { headers: authHeaders() })
+      .then(function(r){ return r.ok ? r.json() : null; })
+      .then(function(json){
+        if(json && json.name) {
+          var el = document.getElementById('home-active-ta');
+          if(el) el.textContent = '📅 TA: ' + json.name;
+        }
+      })
+      .catch(function(){});
   })();
 
   // ── Sync profil setiap 15 detik ──────────────────────────────

@@ -28,6 +28,8 @@ async function init() {
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
 
     `INSERT IGNORE INTO app_settings (\`key\`, value) VALUES ('module_pin', '1234')`,
+    `INSERT IGNORE INTO app_settings (\`key\`, value) VALUES ('LOCK_PASSWORD', 'imron')`,
+    `INSERT IGNORE INTO app_settings (\`key\`, value) VALUES ('active_ta_name', '')`,
 
     `CREATE TABLE IF NOT EXISTS profiles (
       id INT AUTO_INCREMENT PRIMARY KEY,
