@@ -2378,7 +2378,7 @@ function renderRekapGuru(){
     return a.type==='class'?-1:1;
   });
   var lastType='';
-  sorted.forEach(function(t){
+  sorted.filter(function(t){return t.name&&t.name.trim();}).forEach(function(t){
     if(t.type!==lastType){
       var og=document.createElement('optgroup');
       og.label=t.type==='class'?'\u{1F464} Class Teacher':'\u{1F4D6} Subject Teacher';
@@ -2935,8 +2935,8 @@ function saveClsPick(){
 function renderGuruSidebar(){
   var wrap=document.getElementById('guruSidebar');if(!wrap)return;
   var cm=ctMap();
-  var ct=D.teachers.filter(function(t){return t.type==='class';});
-  var st=D.teachers.filter(function(t){return t.type==='subject';});
+  var ct=D.teachers.filter(function(t){return t.type==='class'&&t.name&&t.name.trim();});
+  var st=D.teachers.filter(function(t){return t.type==='subject'&&t.name&&t.name.trim();});
   wrap.innerHTML='';
   if(!ct.length&&!st.length){wrap.innerHTML='<p style="font-size:11px;color:var(--txt3);text-align:center;padding:16px;font-style:italic">Belum ada guru.</p>';return;}
   if(st.length){
@@ -3241,7 +3241,7 @@ function populateTeacherFilter(){
   var sel=document.getElementById('teacher-filter-sel');if(!sel)return;
   var cur=sel.value;
   sel.innerHTML='<option value="">Semua Guru</option>';
-  D.teachers.slice().sort(function(a,b){return a.name.localeCompare(b.name);}).forEach(function(t){
+  D.teachers.slice().filter(function(t){return t.name&&t.name.trim();}).sort(function(a,b){return a.name.localeCompare(b.name);}).forEach(function(t){
     var opt=document.createElement('option');opt.value=t.id;opt.textContent=t.name;
     if(t.id===cur)opt.selected=true;
     sel.appendChild(opt);
@@ -3730,7 +3730,7 @@ function buildSlotTeacher(cls,code,selId,selTah,selEks){
   var mt=document.getElementById('sm-teacher');mt.innerHTML='<option value="">-- Pilih Guru --</option>';
   var asgn=cls?getAssigned(cls,code):null;var assignedTid=asgn?asgn.teacherId:null;
   var rec=[],others=[];
-  D.teachers.forEach(function(t){if(t.id===assignedTid)rec.push(t);else others.push(t);});
+  D.teachers.filter(function(t){return t.name&&t.name.trim();}).forEach(function(t){if(t.id===assignedTid)rec.push(t);else others.push(t);});
   if(rec.length){mt.innerHTML+='<optgroup label="★ Dari Setup">';rec.forEach(function(t){mt.innerHTML+='<option value="'+t.id+'"'+(selId===t.id?' selected':'')+'>'+t.name+'</option>';});mt.innerHTML+='</optgroup>';}
   mt.innerHTML+='<optgroup label="Semua Guru">';others.forEach(function(t){mt.innerHTML+='<option value="'+t.id+'"'+(selId===t.id?' selected':'')+'>'+t.name+'</option>';});mt.innerHTML+='</optgroup>';
   if(!selId&&assignedTid)mt.value=assignedTid;
