@@ -318,7 +318,7 @@
   .module-card:nth-child(5) { animation-delay: .25s; border-top-color: #7c3aed; }
   .module-card:nth-child(6) { animation-delay: .30s; border-top-color: #d97706; }
   .module-card:nth-child(7) { animation-delay: .35s; border-top-color: #0f766e; }
-    .module-card:nth-child(8) { animation-delay: .35s; border-top-color: #1423a5; }
+    .module-card:nth-child(8) { animation-delay: .40s; border-top-color: #15803d; }
 
 
   @keyframes fadeUp {
@@ -344,7 +344,7 @@
   .bg5 { background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%); box-shadow: 0 4px 12px rgba(5,150,105,0.12); }
   .bg6 { background: linear-gradient(135deg, #fff7ed 0%, #fed7aa 100%); box-shadow: 0 4px 12px rgba(234,88,12,0.12); }
   .bg7 { background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%); box-shadow: 0 4px 12px rgba(29,78,216,0.15); }
-  .bg8 { background: linear-gradient(135deg, #e0f7fa 0%, #bac3fd 100%); box-shadow: 0 4px 12px rgba(29,78,216,0.15); }
+  .bg8 { background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%); box-shadow: 0 4px 12px rgba(21,128,61,0.15); }
 
   .card-body { flex: 1; }
 
@@ -1722,7 +1722,7 @@ input[name="ag-mode"]:checked ~ div > .ag-mode-title { color: var(--grn); }
   <div class="logo-group">
     <div style="display:flex;width:92px;height:92px;flex-shrink:0;">
       <div id="logo-preview" style="border:none;background:transparent;width:92px;height:92px;overflow:hidden;">
-        <img id="logo-img" src="logo-sekolah.png" alt="Logo Bojana Tirta" style="display:block;width:100%;height:100%;object-fit:contain;border-radius:0;" onerror="this.style.display='none';">
+        <img id="logo-img" src="assets/logo-sekolah.png" alt="Logo Bojana Tirta" style="display:block;width:100%;height:100%;object-fit:contain;border-radius:0;" onerror="this.style.display='none';">
       </div>
     </div>
     <div>
@@ -1878,6 +1878,16 @@ input[name="ag-mode"]:checked ~ div > .ag-mode-title { color: var(--grn); }
       </div>
       <div class="card-desc">Kelola target hafalan, setoran, dan progres tahfidz siswa</div>
       <div class="card-arrow">Buka -></div>
+    </div>
+
+    <!-- 8. Islamic Studies -->
+    <div class="module-card c8" onclick="window.open('http://43.133.136.92/islamic-studies/islamic-studies-login.html','_blank')">
+      <div class="card-header">
+        <div class="card-icon-wrap bg8"><svg viewBox="0 0 40 40" width="26" height="26" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="16" width="5" height="20" rx="1" fill="#14532d"/><path d="M3 16 Q5.5 9 8 16Z" fill="#166534"/><rect x="32" y="16" width="5" height="20" rx="1" fill="#14532d"/><path d="M32 16 Q34.5 9 37 16Z" fill="#166534"/><rect x="9" y="24" width="22" height="12" rx="1" fill="#166534"/><path d="M9 24 Q20 6 31 24Z" fill="#15803d"/><path d="M17 36 L17 29 Q20 25 23 29 L23 36Z" fill="#bbf7d0"/><circle cx="13" cy="27" r="2" fill="#bbf7d0" opacity=".7"/><circle cx="27" cy="27" r="2" fill="#bbf7d0" opacity=".7"/><path d="M20 4 C22.5 4.5 24 7 22 9 C24.5 8 25.5 5.5 23.5 3.5 C22.5 2.5 20 2.5 20 4Z" fill="#fbbf24"/></svg></div>
+        <div class="card-title">Islamic Studies</div>
+      </div>
+      <div class="card-desc">Platform pembelajaran dan penilaian pendidikan Islam siswa</div>
+      <div class="card-arrow">Buka →</div>
     </div>
 
   </div>
