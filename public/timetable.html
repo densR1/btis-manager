@@ -5140,6 +5140,7 @@ document.getElementById('lock-overlay').addEventListener('click', function(e){
     .then(function(json){
       if(json && json.data){
         var d = json.data;
+        if(!Array.isArray(d.days)||d.days.length<2) d.days=['Senin','Selasa','Rabu','Kamis','Jumat'];
         try{ localStorage.setItem(TA_PREFIX+_meta.activeTA, JSON.stringify(d)); }catch(e){}
         Object.assign(D, defaultData(), d);
         if(!D.levelConfig) D.levelConfig={};
