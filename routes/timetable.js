@@ -38,7 +38,13 @@ router.put('/meta', async (req, res) => {
 router.get('/:id', async (req, res) => {
   try {
     const val = await ttGet(getDb(req), 'ta:' + req.params.id);
-    res.json({ success: true, data: val ? JSON.parse(val) : null });
+    if (!val) return res.json({ success: true, data: null });
+    const data = JSON.parse(val);
+    if (!Array.isArray(data.days) || data.days.length < 2) {
+      data.days = ['Senin','Selasa','Rabu','Kamis','Jumat'];
+      await ttSet(getDb(req), 'ta:' + req.params.id, JSON.stringify(data));
+    }
+    res.json({ success: true, data });
   } catch (err) { res.status(500).json({ success: false, message: err.message }); }
 });
 
