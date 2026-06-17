@@ -2752,8 +2752,7 @@ function renderSubjTotalRow(){
   var totalRow=document.createElement('tr');
   totalRow.className='subj-total-row';
   totalRow.style.cssText='position:sticky;bottom:0;z-index:2;box-shadow:0 -2px 6px rgba(0,0,0,.08)';
-  var totalCells='<td style="background:var(--txt);color:#fff;font-weight:800;font-size:12px;padding:9px 10px;border-top:2px solid var(--brd)">Total</td>'+
-    '<td style="background:var(--txt);color:rgba(255,255,255,.6);font-size:11px;padding:9px 10px;border-top:2px solid var(--brd)">JP/Minggu</td>';
+  var totalCells='<td colspan="3" style="background:var(--txt);color:#fff;font-weight:800;font-size:12px;padding:9px 10px;border-top:2px solid var(--brd)">Total <span style="font-weight:400;font-size:11px;opacity:.6">JP/Minggu</span></td>';
   activeLevels.forEach(function(lv){
     var gc=getGradeColor(lv);
     var total=0;
