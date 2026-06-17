@@ -3061,7 +3061,9 @@ function doAssign(cid,tid){
   var t=getT(tid);var cls=getCls(cid);if(!t||!cls)return;
   if(!cls.assignments)cls.assignments=[];
   if(t.type==='class'){
+    var oldCtId=getCTId(cls);
     cls.assignments=cls.assignments.filter(function(a){return a.subj!=='__CT__';});
+    if(oldCtId)cls.assignments=cls.assignments.filter(function(a){return!(a.autoCT&&a.teacherId===oldCtId);});
     cls.assignments.push({subj:'__CT__',teacherId:tid,tahGroup:null,autoCT:false});
     autoFillCT(cls,tid);
   }else{
