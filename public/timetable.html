@@ -3330,7 +3330,9 @@ function renderGrid(){
   var globalMin='23:59',globalMax='00:00';
   cols.forEach(function(col){
     var lc=getCC(col.id);
-    var preStart=subMinutes(lc.jamMasuk||'07:30',15);
+    var dayOvr=(day&&lc.dayOverrides&&lc.dayOverrides[day])||null;
+    var jmColDay=(dayOvr&&dayOvr.jamMasuk)||lc.jamMasuk||'07:30';
+    var preStart=subMinutes(jmColDay,15);
     var jps=getClassJPs(col.id,day);if(!jps.length)return;
     if(toMin(preStart)<toMin(globalMin))globalMin=preStart;
     if(toMin(jps[jps.length-1].end)>toMin(globalMax))globalMax=jps[jps.length-1].end;
@@ -3359,7 +3361,9 @@ function renderGrid(){
 
   // Info sel pada waktu t15 untuk kelas cid
   function cellInfo(cid,t15){
-    var lc=getCC(cid);var jamMasuk=lc.jamMasuk||'07:30';
+    var lc=getCC(cid);
+    var dayOvr=(day&&lc.dayOverrides&&lc.dayOverrides[day])||null;
+    var jamMasuk=(dayOvr&&dayOvr.jamMasuk)||lc.jamMasuk||'07:30';
     var preStart=subMinutes(jamMasuk,15);
     var jps=getClassJPs(cid,day);if(!jps.length)return{type:'before'};
     var tm=toMin(t15);
