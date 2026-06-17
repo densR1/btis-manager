@@ -2761,7 +2761,8 @@ function renderSubjTotalRow(){
       var val=(s.jp&&typeof s.jp==='object')?(s.jp[lv]!==undefined?parseInt(s.jp[lv])||0:0):getSubjJP(s.code,lv);
       total+=val;
     });
-    totalCells+='<td style="background:'+gc.bg+';border-left:3px solid '+gc.border+';border-top:2px solid var(--brd);text-align:center;padding:9px 5px">'+
+    totalCells+='<td style="background:'+gc.bg+';border-left:3px solid '+gc.border+';border-top:2px solid var(--brd);text-align:center;padding:6px 5px">'+
+      '<div style="font-size:9px;font-weight:700;color:'+gc.text+';opacity:.6;text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px">Grade '+lv+'</div>'+
       '<span style="font-size:15px;font-weight:900;color:'+gc.text+'">'+total+'</span></td>';
   });
   totalCells+='<td style="background:var(--surf2);border-top:2px solid var(--brd)"></td>';
