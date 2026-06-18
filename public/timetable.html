@@ -2234,7 +2234,9 @@ function buildGuruTable(tid){
   D.days.forEach(function(day){
     D.classes.forEach(function(cls){
       var lc=getCC(cls.id);
-      var preStart=subMinutes(lc.jamMasuk||'07:30',15);
+      var dayOvr=(lc.dayOverrides&&lc.dayOverrides[day])||null;
+      var jmDay=(dayOvr&&dayOvr.jamMasuk)?dayOvr.jamMasuk:(lc.jamMasuk||'07:30');
+      var preStart=subMinutes(jmDay,15);
       var jps=getClassJPs(cls.id,day);if(!jps.length)return;
       if(toMin(preStart)<toMin(globalMin))globalMin=preStart;
       if(toMin(jps[jps.length-1].end)>toMin(globalMax))globalMax=jps[jps.length-1].end;
@@ -2248,7 +2250,9 @@ function buildGuruTable(tid){
 
   // cellInfo per-kelas per-hari (versi standalone, tidak bergantung pada closure renderKelasTable)
   function cellInfoG(cid,t15,day){
-    var lc=getCC(cid);var jamMasuk=lc.jamMasuk||'07:30';
+    var lc=getCC(cid);
+    var dayOvr=(day&&lc.dayOverrides&&lc.dayOverrides[day])||null;
+    var jamMasuk=(dayOvr&&dayOvr.jamMasuk)?dayOvr.jamMasuk:(lc.jamMasuk||'07:30');
     var preStart=subMinutes(jamMasuk,15);
     var jps=getClassJPs(cid,day);if(!jps.length)return{type:'before'};
     var tm=toMin(t15);
@@ -3332,7 +3336,9 @@ function renderGrid(){
   var globalMin='23:59',globalMax='00:00';
   cols.forEach(function(col){
     var lc=getCC(col.id);
-    var preStart=subMinutes(lc.jamMasuk||'07:30',15);
+    var dayOvr=(day&&lc.dayOverrides&&lc.dayOverrides[day])||null;
+    var jmDay=(dayOvr&&dayOvr.jamMasuk)?dayOvr.jamMasuk:(lc.jamMasuk||'07:30');
+    var preStart=subMinutes(jmDay,15);
     var jps=getClassJPs(col.id,day);if(!jps.length)return;
     if(toMin(preStart)<toMin(globalMin))globalMin=preStart;
     if(toMin(jps[jps.length-1].end)>toMin(globalMax))globalMax=jps[jps.length-1].end;
@@ -3361,7 +3367,9 @@ function renderGrid(){
 
   // Info sel pada waktu t15 untuk kelas cid
   function cellInfo(cid,t15){
-    var lc=getCC(cid);var jamMasuk=lc.jamMasuk||'07:30';
+    var lc=getCC(cid);
+    var dayOvr=(day&&lc.dayOverrides&&lc.dayOverrides[day])||null;
+    var jamMasuk=(dayOvr&&dayOvr.jamMasuk)?dayOvr.jamMasuk:(lc.jamMasuk||'07:30');
     var preStart=subMinutes(jamMasuk,15);
     var jps=getClassJPs(cid,day);if(!jps.length)return{type:'before'};
     var tm=toMin(t15);
