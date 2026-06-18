@@ -1587,9 +1587,11 @@ function syncSlotsFromConfig(){
     });
   }
 
-  // Preserve break markers
-  var oldBrk={};
-  (D.slots||[]).forEach(function(s){if(s.brk&&s.jam)oldBrk[s.jam]=true;});
+  // Preserve break markers + build old jam→sid map for sched migration
+  var oldBrk={};var oldJamSid={};
+  (D.slots||[]).forEach(function(s){
+    if(s.jam&&!s.pre){oldBrk[s.jam]=s.brk||false;oldJamSid[s.jam]=s.id;}
+  });
 
   // Check if already in sync
   var curRows=getJPRows();
@@ -1600,13 +1602,23 @@ function syncSlotsFromConfig(){
   // Rebuild slots
   var slots=[];
   slots.push({id:uid(),jam:'',time:preStart+'-'+addMinStr(preStart,15),brk:false,pre:true});
-  var cur=addMinStr(preStart,15);
+  var cur=addMinStr(preStart,15);var newJamSid={};
   for(var jp=1;jp<=maxJP;jp++){
     var mid=addMinStr(cur,15),end=addMinStr(cur,30),isBreak=oldBrk[String(jp)]||false;
-    slots.push({id:uid(),jam:String(jp),time:cur+'-'+mid,brk:isBreak});
+    var newId=uid();
+    newJamSid[String(jp)]=newId;
+    slots.push({id:newId,jam:String(jp),time:cur+'-'+mid,brk:isBreak});
     slots.push({id:uid(),jam:'',time:mid+'-'+end,brk:isBreak});
     cur=end;
   }
+  // Migrate D.sched: remap old slot IDs to new slot IDs
+  var oldToNew={};
+  Object.keys(oldJamSid).forEach(function(jam){if(newJamSid[jam])oldToNew[oldJamSid[jam]]=newJamSid[jam];});
+  Object.keys(D.sched||{}).forEach(function(day){
+    Object.keys(D.sched[day]||{}).forEach(function(sid){
+      if(oldToNew[sid]){D.sched[day][oldToNew[sid]]=D.sched[day][sid];delete D.sched[day][sid];}
+    });
+  });
   D.slots=slots;
   save();
 }
