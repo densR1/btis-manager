@@ -3353,9 +3353,15 @@ function renderGrid(){
   function getSidByIdx(cid,jpIdx){
     var jps=getClassJPs(cid,day);
     if(!jps.length||jpIdx>=jps.length)return null;
-    var jprows=getJPRows().filter(function(r){return r.type==='jp';});
-    if(jpIdx>=jprows.length)return null;
-    return jprows[jpIdx].sid;
+    var jp=jps[jpIdx];
+    var jprows=getJPRows();
+    for(var i=0;i<jprows.length;i++){
+      var row=jprows[i];if(row.type!=='jp')continue;
+      var rowStart=toMin(row.startTime);
+      var jpStart=toMin(jp.start);
+      if(jpStart>=rowStart&&jpStart<rowStart+30)return row.sid;
+    }
+    return null;
   }
 
   // Info sel pada waktu t15 untuk kelas cid
