@@ -4631,7 +4631,7 @@ function saveDayOverride(inp){
   else{lc.dayOverrides[day][field]=field==='jpCount'?parseInt(val)||0:val;}
   // Clean empty override
   if(!lc.dayOverrides[day].jamMasuk&&!lc.dayOverrides[day].jpCount)delete lc.dayOverrides[day];
-  D.slots=[];save();renderClassConfig();
+  syncSlotsFromConfig();save();renderClassConfig();
   showToast('Pengaturan '+day+' Tingkat '+lv+' disimpan','var(--grn)');
 }
 function renderSettings(){
@@ -4692,14 +4692,14 @@ function renderClassConfig(){
     jamDiv.innerHTML='<div style="font-size:10px;font-weight:700;color:var(--txt2);margin-bottom:3px;text-transform:uppercase;letter-spacing:.4px">▶ Jam Masuk</div>';
     var jamInp=document.createElement('input');jamInp.type='time';jamInp.value=lc.jamMasuk||'07:30';
     jamInp.style.cssText='padding:6px 8px;border-radius:var(--rs);border:1.5px solid var(--brd);font-family:inherit;font-size:12px;background:var(--white);outline:none;width:110px';
-    jamInp.addEventListener('change',function(){getLC(level).jamMasuk=this.value;D.slots=[];save();renderClassConfig();showToast('Jam masuk Tingkat '+level+' disimpan','var(--grn)');});
+    jamInp.addEventListener('change',function(){getLC(level).jamMasuk=this.value;syncSlotsFromConfig();save();renderClassConfig();showToast('Jam masuk Tingkat '+level+' disimpan','var(--grn)');});
     jamDiv.appendChild(jamInp);row1.appendChild(jamDiv);
     // Jumlah JP
     var jpDiv=document.createElement('div');
     jpDiv.innerHTML='<div style="font-size:10px;font-weight:700;color:var(--txt2);margin-bottom:3px;text-transform:uppercase;letter-spacing:.4px">Jumlah JP</div>';
     var jpInp=document.createElement('input');jpInp.type='number';jpInp.min=1;jpInp.max=20;jpInp.value=lc.jpCount||10;
     jpInp.style.cssText='padding:6px 8px;border-radius:var(--rs);border:1.5px solid var(--brd);font-family:inherit;font-size:12px;background:var(--white);outline:none;width:70px';
-    jpInp.addEventListener('change',function(){getLC(level).jpCount=parseInt(this.value)||10;D.slots=[];save();renderClassConfig();showToast('JP Tingkat '+level+' diperbarui','var(--grn)');});
+    jpInp.addEventListener('change',function(){getLC(level).jpCount=parseInt(this.value)||10;syncSlotsFromConfig();save();renderClassConfig();showToast('JP Tingkat '+level+' diperbarui','var(--grn)');});
     jpDiv.appendChild(jpInp);row1.appendChild(jpDiv);
     // Hari EKS
     var eksDiv=document.createElement('div');
