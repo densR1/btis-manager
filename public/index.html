@@ -1906,12 +1906,6 @@ input[name="ag-mode"]:checked ~ div > .ag-mode-title { color: var(--grn); }
     const el = document.getElementById('greeting-title');
     if (el) el.textContent = greet + ' 👋';
 
-    // Tahun Ajaran
-    const taEl = document.getElementById('gs-ta');
-    const m = now.getMonth();
-    const y = now.getFullYear();
-    const ta = m >= 6 ? y + '/' + (y+1) : (y-1) + '/' + y;
-    if (taEl) taEl.textContent = ta;
   })();
 
   // Logo upload
@@ -2400,6 +2394,8 @@ window.location.href = '/btis-manager/index.html';  }
         if(json && json.name) {
           var el = document.getElementById('home-active-ta');
           if(el) el.textContent = '📅 TA: ' + json.name;
+          var taEl = document.getElementById('gs-ta');
+          if(taEl) taEl.textContent = json.name;
         }
       })
       .catch(function(){});
