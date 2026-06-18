@@ -2516,7 +2516,8 @@ function renderSubjTable(){
   D.classes.forEach(function(cls){if(activeLevels.indexOf(String(cls.level))<0)activeLevels.push(String(cls.level));});
   activeLevels.sort();
   if(!activeLevels.length)activeLevels=['1','2','3','4','5','6'];
-  D.subjects.forEach(function(s){
+  var totalCols=activeLevels.length+4;
+  function renderSubjRow(s){
     var tr=document.createElement('tr');
     var jpCells='';
     if(noJP.indexOf(s.code)>=0){
@@ -2546,7 +2547,17 @@ function renderSubjTable(){
       inp.addEventListener('focus',function(){this.style.borderColor='var(--grn)';this.style.boxShadow='0 0 0 2px var(--grn-b)';});
       inp.addEventListener('blur',function(){this.style.borderColor=gc.border;this.style.boxShadow='none';});
     });
-  });
+  }
+  // Pisahkan: mapel berhitung JP dulu, lalu yang tidak dihitung di section bawah
+  var counted=[],uncounted=[];
+  D.subjects.forEach(function(s){ (noJP.indexOf(s.code)>=0?uncounted:counted).push(s); });
+  counted.forEach(renderSubjRow);
+  if(uncounted.length){
+    var sep=document.createElement('tr');
+    sep.innerHTML='<td colspan="'+totalCols+'" style="background:var(--surf2);color:var(--txt3);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;padding:7px 12px;border-top:2px solid var(--brd)">Tidak Dihitung &middot; Kegiatan / Pembiasaan</td>';
+    tb.appendChild(sep);
+    uncounted.forEach(renderSubjRow);
+  }
   renderSubjTotalRow();
 }
 function renderSubjChecks(){
