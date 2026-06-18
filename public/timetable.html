@@ -1264,6 +1264,9 @@ function _ttAuthHeaders(){
 }
 var _ttSaveMetaTimer=null;
 var _ttSaveTATimer=null;
+// _ttReady mencegah PUT ke server sebelum data awal dari server selesai dimuat.
+// Tanpa ini, render saat load (D masih kosong/cache stale) bisa menimpa data server dengan {}.
+var _ttReady=false;
 function _ttDebounceMeta(fn){ clearTimeout(_ttSaveMetaTimer); _ttSaveMetaTimer=setTimeout(fn,800); }
 function _ttDebounceTA(fn){ clearTimeout(_ttSaveTATimer); _ttSaveTATimer=setTimeout(fn,800); }
 
@@ -1283,6 +1286,7 @@ function loadMeta(){
 }
 function saveMeta(){
   try{localStorage.setItem(META_KEY,JSON.stringify(_meta));}catch(e){}
+  if(!_ttReady)return; // jangan PUT sebelum data awal dimuat — cegah timpa data server
   _ttDebounceMeta(function(){
     fetch('/api/timetable/meta',{
       method:'PUT', headers:_ttAuthHeaders(),
@@ -1292,6 +1296,7 @@ function saveMeta(){
 }
 function saveTA(id,data){
   try{localStorage.setItem(TA_PREFIX+id,JSON.stringify(data));}catch(e){}
+  if(!_ttReady)return; // jangan PUT sebelum data awal dimuat — cegah timpa data server
   _ttDebounceTA(function(){
     fetch('/api/timetable/'+encodeURIComponent(id),{
       method:'PUT', headers:_ttAuthHeaders(),
@@ -5170,9 +5175,29 @@ document.getElementById('lock-overlay').addEventListener('click', function(e){
         renderGuruSidebar();
         renderKelasTable();
       }
+      // Data awal sudah dimuat dari server → aman untuk PUT mulai sekarang
+      _ttReady=true;
+      // Refresh halaman aktif agar grid menampilkan data server (bukan cache stale)
+      renderActivePage();
     })
-    .catch(function(err){ console.warn('[timetable] init from API failed:', err); });
+    .catch(function(err){
+      console.warn('[timetable] init from API failed:', err);
+      // Server gagal dihubungi: izinkan save (PUT akan gagal juga jika offline,
+      // tapi jangan kunci app selamanya). Data lokal dari cache tetap dipakai.
+      _ttReady=true;
+    });
 })();
+function renderActivePage(){
+  var pages=['master','setup','jadwal','cek','rekap','settings'];
+  for(var i=0;i<pages.length;i++){
+    var el=document.getElementById('page-'+pages[i]);
+    if(el&&el.classList.contains('on')){
+      if(pages[i]==='jadwal'&&typeof renderGrid==='function')renderGrid();
+      else if(pages[i]==='rekap'&&typeof refreshRekapIfVisible==='function')refreshRekapIfVisible();
+      break;
+    }
+  }
+}
 </script>
 
 
