@@ -928,12 +928,22 @@ function getAbsensiURL(mid){
 function getQRImageURL(text){
   return 'https://api.qrserver.com/v1/create-qr-code/?size=110x110&data='+encodeURIComponent(text)+'&margin=4';
 }
+function copyToClipboard(text){
+  // navigator.clipboard hanya tersedia di HTTPS/localhost; situs ini HTTP → fallback execCommand
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).catch(function(){ legacyCopy(text); });
+  } else { legacyCopy(text); }
+}
+function legacyCopy(text){
+  const ta=document.createElement('textarea');
+  ta.value=text; ta.setAttribute('readonly','');
+  ta.style.position='fixed'; ta.style.top='-9999px';
+  document.body.appendChild(ta); ta.select();
+  try{ document.execCommand('copy'); }catch(e){}
+  document.body.removeChild(ta);
+}
 function copyAbsensiLink(mid){
-  const url=getAbsensiURL(mid);
-  navigator.clipboard.writeText(url).catch(()=>{
-    const ta=document.createElement('textarea');
-    ta.value=url; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
-  });
+  copyToClipboard(getAbsensiURL(mid));
   const btn=document.getElementById('copy_link_'+mid);
   if(btn){ const orig=btn.textContent; btn.textContent='✓ Tersalin!'; setTimeout(()=>btn.textContent=orig,1800); }
 }

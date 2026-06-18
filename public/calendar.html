@@ -1406,16 +1406,29 @@ function copyTableToClipboard(elementId, btnId) {
     lines.push(el.innerText);
   }
   var text = lines.join('\n');
-  navigator.clipboard.writeText(text).then(function() {
+  function showCopied(){
     var btn = document.getElementById(btnId);
     if (!btn) return;
     var orig = btn.innerHTML;
     btn.innerHTML = '✅ Tersalin!';
     btn.classList.add('success');
     setTimeout(function(){ btn.innerHTML = orig; btn.classList.remove('success'); }, 2000);
-  }).catch(function() {
-    alert('Gagal menyalin. Coba select manual lalu Ctrl+C.');
-  });
+  }
+  function legacyCopy(){
+    var ta = document.createElement('textarea');
+    ta.value = text; ta.setAttribute('readonly','');
+    ta.style.position='fixed'; ta.style.top='-9999px';
+    document.body.appendChild(ta); ta.select();
+    var ok=false; try{ ok=document.execCommand('copy'); }catch(e){}
+    document.body.removeChild(ta);
+    if(ok) showCopied(); else alert('Gagal menyalin. Coba select manual lalu Ctrl+C.');
+  }
+  // navigator.clipboard hanya di HTTPS/localhost; situs ini HTTP → fallback execCommand
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(showCopied).catch(legacyCopy);
+  } else {
+    legacyCopy();
+  }
 }
 
 function toggleNotifPanel() {
