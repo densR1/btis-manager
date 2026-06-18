@@ -3353,16 +3353,9 @@ function renderGrid(){
   function getSidByIdx(cid,jpIdx){
     var jps=getClassJPs(cid,day);
     if(!jps.length||jpIdx>=jps.length)return null;
-    var jp=jps[jpIdx];
-    // Find global JP row whose 30-min window contains this class JP's start time
-    var jprows=getJPRows();
-    for(var i=0;i<jprows.length;i++){
-      var row=jprows[i];if(row.type!=='jp')continue;
-      var rowStart=toMin(row.startTime);
-      var jpStart=toMin(jp.start);
-      if(jpStart>=rowStart&&jpStart<rowStart+30)return row.sid;
-    }
-    return null;
+    var jprows=getJPRows().filter(function(r){return r.type==='jp';});
+    if(jpIdx>=jprows.length)return null;
+    return jprows[jpIdx].sid;
   }
 
   // Info sel pada waktu t15 untuk kelas cid
@@ -3418,9 +3411,7 @@ function renderGrid(){
 
       switch(info.type){
         case 'before':
-          var lc2=getCC(cid);var nxt=addMinStr(t15,15);
-          var showM=toMin(nxt)===toMin(lc2.jamMasuk||'07:30');
-          html+='<td class="jdim" style="text-align:center">'+(showM?'<div style="font-size:8px;color:#a09880;font-weight:700;line-height:1.4">Masuk<br>'+(lc2.jamMasuk||'07:30')+'</div>':'')+'</td>';
+          html+='<td class="jdim"></td>';
           break;
         case 'pre':
           html+='<td class="jpre" style="text-align:center;padding:3px"><div style="font-size:11px;font-weight:700;color:#7a5cc0">'+(PRE_SUBJ[day]||'')+'</div></td>';
