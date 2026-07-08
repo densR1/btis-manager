@@ -1626,6 +1626,12 @@ input[name="ag-mode"]:checked ~ div > .ag-mode-title  {
         display:none!important
     }
 
+    /* Paksa warna background/border ikut tercetak (default browser memudarkannya) */
+    #print-area,#print-area * {
+        -webkit-print-color-adjust:exact!important;
+        print-color-adjust:exact!important
+    }
+
 
 /* Multi-halaman (print grid jadwal): absolute agar konten boleh melebihi 1 halaman */
 #print-area.pg-multi {
@@ -1664,6 +1670,17 @@ input[name="ag-mode"]:checked ~ div > .ag-mode-title  {
 .pg-multi td *,.pg-multi th * {
         font-size:6.5px!important;
         line-height:1.15!important
+    }
+
+    /* Header kolom (nama kelas/guru) lebih besar & tebal agar terbaca di kertas */
+.pg-multi th {
+        font-size:10px!important;
+        padding:3px 2px!important
+    }
+
+.pg-multi th * {
+        font-size:9px!important;
+        font-weight:800!important
     }
 
 
