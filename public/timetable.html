@@ -2554,7 +2554,7 @@ function renderSubjTable(){
   counted.forEach(renderSubjRow);
   if(uncounted.length){
     var sep=document.createElement('tr');
-    sep.innerHTML='<td colspan="'+totalCols+'" style="background:var(--surf2);color:var(--txt3);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;padding:7px 12px;border-top:2px solid var(--brd)">Tidak Dihitung &middot; Kegiatan / Pembiasaan</td>';
+    sep.innerHTML='<td colspan="'+totalCols+'" style="background:var(--surf2);color:var(--txt3);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;padding:7px 12px;border-top:2px solid var(--brd)">Tidak Dihitung &middot; </td>';
     tb.appendChild(sep);
     uncounted.forEach(renderSubjRow);
   }
@@ -4564,6 +4564,10 @@ function detectIssues(){
       D.classes.forEach(function(cls){
         var e=getEntry(day,row.sid,cls.id);if(!e||!e.subj)return;
         var t=getJPTimeForClass(cls.id,day,row.sid);if(!t)return;
+        // JP bertipe non-pelajaran (recess/lunch/solat dari Pengaturan) tidak butuh guru —
+        // abaikan entri sched di slot ini (termasuk sisa entri lama sebelum tipe diubah)
+        var jpDef=getClassJPs(cls.id,day).find(function(j){return j.start===t.start;});
+        if(jpDef&&['recess','lunch','solat'].indexOf(jpDef.type)>=0)return;
         // Gunakan effective teacher agar konsisten dengan tampilan jadwal
         var effTid=(e.subj==='TAH')?(e.teacher||null):getEffectiveTeacherId(cls.id,day,row.sid);
         [effTid, (e.subj==='TAH'?e.teacher2:null)].forEach(function(tid){
