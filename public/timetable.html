@@ -1875,9 +1875,11 @@ function countJPGuru(){
       if(row.type!=='jp')return;
       D.classes.forEach(function(cls){
         var e=getEntry(day,row.sid,cls.id);if(!e)return;
-        // Effective teacher: prioritas non-autoCT assignment
-        var effTid=(e.subj==='TAH')?(e.teacher||null):getEffectiveTeacherId(cls.id,day,row.sid);
-        [effTid, (e.subj==='TAH'?e.teacher2:null)].forEach(function(tid){
+        // Effective teacher: prioritas non-autoCT assignment.
+        // TAH: fallback ke assignment Setup Kelas bila slot tak menyimpan guru.
+        var tahAsgn=(e.subj==='TAH')?getAssigned(cls,'TAH'):null;
+        var effTid=(e.subj==='TAH')?(e.teacher||(tahAsgn&&tahAsgn.teacherId)||null):getEffectiveTeacherId(cls.id,day,row.sid);
+        [effTid, (e.subj==='TAH'?(e.teacher2||(tahAsgn&&tahAsgn.teacher2)||null):null)].forEach(function(tid){
           if(tid&&jpCount[tid]!==undefined){
             jpCount[tid]++;
             jpByDay[tid][day]=(jpByDay[tid][day]||0)+1;
@@ -3750,6 +3752,10 @@ function buildSlotTeacher(cls,code,selId,selTah,selEks){
     var mt1=document.getElementById('sm-tah1');var mt2=document.getElementById('sm-tah2');
     mt1.innerHTML='<option value="">-- Guru TAH 1 --</option>';
     mt2.innerHTML='<option value="">-- (Opsional) Guru TAH 2 --</option>';
+    // Auto-isi dari assignment TAH di Setup Kelas bila slot belum punya guru
+    var tahAsgn=cls?getAssigned(cls,'TAH'):null;
+    if(!selId&&tahAsgn&&tahAsgn.teacherId)selId=tahAsgn.teacherId;
+    if(!selTah&&tahAsgn&&tahAsgn.teacher2)selTah=tahAsgn.teacher2;
     tahTeachers.forEach(function(t){
       mt1.innerHTML+='<option value="'+t.id+'"'+(selId===t.id?' selected':'')+'>'+t.name+'</option>';
       mt2.innerHTML+='<option value="'+t.id+'"'+(selTah===t.id?' selected':'')+'>'+t.name+'</option>';
@@ -4570,15 +4576,18 @@ function detectIssues(){
         // abaikan entri sched di slot ini (termasuk sisa entri lama sebelum tipe diubah)
         var jpDef=getClassJPs(cls.id,day).find(function(j){return j.start===t.start;});
         if(jpDef&&['recess','lunch','solat'].indexOf(jpDef.type)>=0)return;
-        // Gunakan effective teacher agar konsisten dengan tampilan jadwal
-        var effTid=(e.subj==='TAH')?(e.teacher||null):getEffectiveTeacherId(cls.id,day,row.sid);
-        [effTid, (e.subj==='TAH'?e.teacher2:null)].forEach(function(tid){
+        // Gunakan effective teacher agar konsisten dengan tampilan jadwal.
+        // TAH: slot tanpa guru eksplisit fallback ke assignment Setup Kelas.
+        var tahAsgn=(e.subj==='TAH')?getAssigned(cls,'TAH'):null;
+        var effTid=(e.subj==='TAH')?(e.teacher||(tahAsgn&&tahAsgn.teacherId)||null):getEffectiveTeacherId(cls.id,day,row.sid);
+        var effTid2=(e.subj==='TAH')?(e.teacher2||(tahAsgn&&tahAsgn.teacher2)||null):null;
+        [effTid, effTid2].forEach(function(tid){
           if(!tid)return;
           if(!teacherSlots[tid])teacherSlots[tid]=[];
           teacherSlots[tid].push({cid:cls.id,cls:cls.name,subj:e.subj,start:t.start,end:t.end,sid:row.sid});
         });
         // Warning: guru belum ada — cek berdasarkan effective teacher
-        if(e.subj==='TAH'&&!e.teacher)warnings.push({day:day,time:row.time,msg:'Kelas '+cls.name+': TAH belum ada guru'});
+        if(e.subj==='TAH'&&!effTid)warnings.push({day:day,time:row.time,msg:'Kelas '+cls.name+': TAH belum ada guru'});
         else if(e.subj==='EKS'&&!e.eskulGroup)warnings.push({day:day,time:row.time,msg:'Kelas '+cls.name+': EKS belum ada grup'});
         else if(noT.indexOf(e.subj)<0&&!isNoTeacherSubj(e.subj)&&!effTid&&e.subj!=='TAH')warnings.push({day:day,time:row.time,msg:'Kelas '+cls.name+': "'+e.subj+'" belum ada guru'});
       });
