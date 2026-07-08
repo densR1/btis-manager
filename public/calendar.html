@@ -1616,7 +1616,12 @@ function getAY() {
 function isLibur(d) {
   var ds = localDateStr(d);
   return events.some(function(ev){
-    if (ds !== ev.date) return false;
+    if (!ev.date) return false;
+    // Event rentang: cek date s/d dateEnd (konsisten dengan render grid).
+    // Sebelumnya hanya tanggal mulai yang dicek, sehingga libur multi-hari
+    // cuma memotong 1 hari dari hitungan HE.
+    var end = ev.dateEnd || ev.date;
+    if (ds < ev.date || ds > end) return false;
     // Jika hariEfektif di-set eksplisit, gunakan nilai itu
     if (ev.hariEfektif === 'tidak') return true;
     if (ev.hariEfektif === 'ya') return false;
