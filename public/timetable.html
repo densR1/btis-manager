@@ -1655,6 +1655,9 @@ function getJPRows(){
 
 // Pre-lesson fixed subjects per day
 var PRE_SUBJ={Senin:'RQ',Selasa:'DH',Rabu:'LT',Kamis:'DH',Jumat:'AK'};
+// Mapel tanpa guru & tanpa hitungan JP (istirahat/pembiasaan).
+// Cek case-insensitive agar kode buatan admin (mis. "RECESS") tetap dikenali.
+function isNoTeacherSubj(code){return !!code&&['RECESS','PULANG','ISTIRAHAT','DH','LT','AK','RQ'].indexOf(String(code).toUpperCase())>=0;}
 // Ambil nama pendek yang skip gelar (Ms., Mr., Bu, Pak, dll)
 function shortName(fullName){
   if(!fullName)return'';
@@ -2520,7 +2523,7 @@ function renderSubjTable(){
   function renderSubjRow(s){
     var tr=document.createElement('tr');
     var jpCells='';
-    if(noJP.indexOf(s.code)>=0){
+    if(noJP.indexOf(s.code)>=0||isNoTeacherSubj(s.code)){
       jpCells='<td colspan="'+activeLevels.length+'" style="text-align:center;color:var(--txt3);font-size:12px;font-style:italic;padding:9px">tidak dihitung</td>';
     } else {
       activeLevels.forEach(function(lv){
@@ -2550,7 +2553,7 @@ function renderSubjTable(){
   }
   // Pisahkan: mapel berhitung JP dulu, lalu yang tidak dihitung di section bawah
   var counted=[],uncounted=[];
-  D.subjects.forEach(function(s){ (noJP.indexOf(s.code)>=0?uncounted:counted).push(s); });
+  D.subjects.forEach(function(s){ ((noJP.indexOf(s.code)>=0||isNoTeacherSubj(s.code))?uncounted:counted).push(s); });
   counted.forEach(renderSubjRow);
   if(uncounted.length){
     var sep=document.createElement('tr');
@@ -2790,7 +2793,7 @@ function renderSubjTotalRow(){
     var gc=getGradeColor(lv);
     var total=0;
     D.subjects.forEach(function(s){
-      if(noJP.indexOf(s.code)>=0)return;
+      if(noJP.indexOf(s.code)>=0||isNoTeacherSubj(s.code))return;
       var val=(s.jp&&typeof s.jp==='object')?(s.jp[lv]!==undefined?parseInt(s.jp[lv])||0:0):getSubjJP(s.code,lv);
       total+=val;
     });
@@ -3083,7 +3086,7 @@ function autoFillCT(cls,ctId){
   var taken=(cls.assignments||[]).filter(function(a){return!a.autoCT&&a.subj!=='__CT__';}).map(function(a){return a.subj;});
   var skip=['Recess','Pulang','__CT__','RQ','DH','LT','AK'];
   D.subjects.forEach(function(s){
-    if(skip.indexOf(s.code)>=0)return;
+    if(skip.indexOf(s.code)>=0||isNoTeacherSubj(s.code))return;
     if(taken.indexOf(s.code)>=0)return;
     if((cls.assignments||[]).find(function(a){return a.subj===s.code;}))return;
     cls.assignments.push({subj:s.code,teacherId:ctId,tahGroup:null,autoCT:true});
@@ -3495,7 +3498,7 @@ function renderGrid(){
             var noT=['Recess','Pulang','DH','LT','AK','EKS','RQ'];
             // effectiveTeacher juga dari helper agar display & conflict detection sumber datanya sama
             var effectiveTeacher=e.subj==='TAH'?(e.teacher||null):getEffectiveTeacherId(cid,day,sid);
-            var warn=!effectiveTeacher&&e.subj!=='TAH'&&noT.indexOf(e.subj)<0;
+            var warn=!effectiveTeacher&&e.subj!=='TAH'&&noT.indexOf(e.subj)<0&&!isNoTeacherSubj(e.subj);
             var conflict=effectiveTeacher&&checkConflict(day,sid,effectiveTeacher);
             html+='<td rowspan="2" class="jactive '+cc+(conflict?' conflict':warn?' no-teacher':'')+'" onclick="openSlot(\''+day+'\',\''+sid+'\',\''+cid+'\')">'+
               '<div class="jcell-inner" style="position:relative">'+
@@ -3565,7 +3568,7 @@ function renderJadwalSummary(day){
       }
       if(!sid)return;
       var e=getEntry(day,sid,cls.id);
-      if(!e||!e.subj||skipSubj.indexOf(e.subj)>=0)return;
+      if(!e||!e.subj||skipSubj.indexOf(e.subj)>=0||isNoTeacherSubj(e.subj))return;
       isiFilled[e.subj]=(isiFilled[e.subj]||0)+1;
     });
 
@@ -3573,7 +3576,7 @@ function renderJadwalSummary(day){
     var nDays=D.days.length||5;
     var kurang=[];
     D.subjects.forEach(function(s){
-      if(skipSubj.indexOf(s.code)>=0)return;
+      if(skipSubj.indexOf(s.code)>=0||isNoTeacherSubj(s.code))return;
       var targetWeek=getSubjJP(s.code,cls.level);
       if(!targetWeek)return;
       // Target per hari (pembagian merata, minimal 0)
@@ -3740,8 +3743,7 @@ function buildSlotTeacher(cls,code,selId,selTah,selEks){
   var eksW=document.getElementById('sm-eks-wrap');
   var hint=document.getElementById('sm-hint');
   tw.style.display='none';tahW.style.display='none';eksW.style.display='none';hint.style.display='none';
-  var noT=['Recess','Pulang','DH','LT','AK','RQ'];
-  if(!code||noT.indexOf(code)>=0)return;
+  if(!code||isNoTeacherSubj(code))return;
   if(code==='TAH'){
     tahW.style.display='block';
     var tahTeachers=D.teachers.filter(function(t){return(t.subjects||[]).indexOf('TAH')>=0;});
@@ -4578,7 +4580,7 @@ function detectIssues(){
         // Warning: guru belum ada — cek berdasarkan effective teacher
         if(e.subj==='TAH'&&!e.teacher)warnings.push({day:day,time:row.time,msg:'Kelas '+cls.name+': TAH belum ada guru'});
         else if(e.subj==='EKS'&&!e.eskulGroup)warnings.push({day:day,time:row.time,msg:'Kelas '+cls.name+': EKS belum ada grup'});
-        else if(noT.indexOf(e.subj)<0&&!effTid&&e.subj!=='TAH')warnings.push({day:day,time:row.time,msg:'Kelas '+cls.name+': "'+e.subj+'" belum ada guru'});
+        else if(noT.indexOf(e.subj)<0&&!isNoTeacherSubj(e.subj)&&!effTid&&e.subj!=='TAH')warnings.push({day:day,time:row.time,msg:'Kelas '+cls.name+': "'+e.subj+'" belum ada guru'});
       });
     });
     for(var tid in teacherSlots){
