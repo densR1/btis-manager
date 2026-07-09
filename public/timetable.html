@@ -2162,7 +2162,6 @@ body.is-locked #lock-readonly-badge { display: flex !important; }
         </div>
         <div style="margin-top:18px">
           <div class="msec-title" style="font-size:13px;margin-bottom:4px">📊 Rekap JP Terisi per Kelas</div>
-          <div class="msec-sub">Jumlah slot JP yang sudah terisi di jadwal, berdasarkan kelas.</div>
           <div id="rekap-mapel-body"></div>
         </div>
       </div>
@@ -5037,12 +5036,24 @@ function renderJadwalSummary(day){
   // Cek apakah ada sesuatu yang perlu ditampilkan
   var adaMasalah=rows.some(function(r){return r.kosong>0||r.kurang.length>0;});
 
+  // Split dua kolom: kiri ringkasan hari, kanan Rekap JP Terisi per Kelas
+  function wrapSplit(summaryHtml){
+    return '<div style="display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap">'+
+      '<div style="flex:1.1;min-width:380px">'+summaryHtml+'</div>'+
+      '<div style="flex:1;min-width:380px">'+
+        '<div style="font-size:12px;font-weight:800;letter-spacing:.3px;margin-bottom:2px">📊 REKAP JP TERISI PER KELAS</div>'+
+        '<div style="font-size:10px;color:var(--txt3);margin-bottom:8px">Jumlah slot JP yang sudah terisi di jadwal (semua hari), berdasarkan kelas.</div>'+
+        buildRekapMapelHTML()+
+      '</div>'+
+    '</div>';
+  }
+
   // Render
   var html='<div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;flex-wrap:wrap">';
   html+='<span style="font-size:11px;font-weight:800;color:var(--txt2);text-transform:uppercase;letter-spacing:.5px">📋 Ringkasan '+day+'</span>';
   if(!adaMasalah){
     html+='<span style="font-size:11px;font-weight:700;color:var(--grn);background:var(--grn-l);border:1px solid var(--grn-b);padding:3px 10px;border-radius:10px">✓ Semua slot terisi & mapel terpenuhi</span>';
-    html+='</div>';el.innerHTML=html;return;
+    html+='</div>';el.innerHTML=wrapSplit(html);return;
   }
   html+='</div>';
 
@@ -5081,15 +5092,7 @@ function renderJadwalSummary(day){
   });
 
   html+='</tbody></table></div>';
-  // Split dua kolom: kiri ringkasan hari, kanan Rekap JP Terisi per Kelas
-  el.innerHTML='<div style="display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap">'+
-    '<div style="flex:1.1;min-width:380px">'+html+'</div>'+
-    '<div style="flex:1;min-width:380px">'+
-      '<div style="font-size:12px;font-weight:800;letter-spacing:.3px;margin-bottom:2px">📊 REKAP JP TERISI PER KELAS</div>'+
-      '<div style="font-size:10px;color:var(--txt3);margin-bottom:8px">Jumlah slot JP yang sudah terisi di jadwal (semua hari), berdasarkan kelas.</div>'+
-      buildRekapMapelHTML()+
-    '</div>'+
-  '</div>';
+  el.innerHTML=wrapSplit(html);
 }
 
 function buildTeacherCell(day,row,tid){
