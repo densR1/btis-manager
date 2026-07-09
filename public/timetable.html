@@ -5038,10 +5038,10 @@ function renderJadwalSummary(day){
 
   // Split dua kolom: kiri ringkasan hari, kanan Rekap JP Terisi per Kelas
   function wrapSplit(summaryHtml){
-    return '<div style="display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap">'+
-      '<div style="flex:1.1;min-width:380px">'+summaryHtml+'</div>'+
-      '<div style="flex:1;min-width:380px">'+
-        '<div style="font-size:12px;font-weight:800;letter-spacing:.3px;margin-bottom:2px">📊 REKAP JP TERISI PER KELAS</div>'+
+    return '<div style="display:flex;gap:14px;align-items:flex-start;flex-wrap:wrap">'+
+      '<div class="mcard" style="flex:1.1;min-width:380px;margin-bottom:0">'+summaryHtml+'</div>'+
+      '<div class="mcard" style="flex:1;min-width:380px;margin-bottom:0">'+
+        '<div style="font-size:12px;font-weight:800;letter-spacing:.3px;margin-bottom:8px">📊 REKAP JP TERISI PER KELAS</div>'+
         buildRekapMapelHTML()+
       '</div>'+
     '</div>';
