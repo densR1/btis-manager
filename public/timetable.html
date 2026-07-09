@@ -5089,21 +5089,22 @@ function buildTeacherCell(day,row,tid){
 
 function timeOverlap(s1,e1,s2,e2){return toMin(s1)<toMin(e2)&&toMin(s2)<toMin(e1);}
 function getJPTimeForClass(cid,day,sid){
-  var lc=getCC(cid);var jamMasuk=lc.jamMasuk||'07:30';
+  // Inverse dari getSidByIdx: cari row global dari sid, lalu JP kelas yang
+  // start-nya jatuh di window 30 menit row tsb. Metode ordinal sebelumnya
+  // geser 1 slot untuk kelas yang jam masuknya tidak pas di batas grid global
+  // (mis. 07:45 vs grid 07:30) sehingga waktu deteksi salah 30 menit.
   var jps=getClassJPs(cid,day);if(!jps.length)return null;
-  var lastEnd=jps[jps.length-1].end;
-  var activeIdx=0;var found=false;
-  var rows=getJPRows();
+  var rows=getJPRows();var row=null;
   for(var i=0;i<rows.length;i++){
-    var row=rows[i];if(row.type!=='jp')continue;
-    if(toMin(row.startTime)<toMin(jamMasuk))continue;
-    if(toMin(row.startTime)>=toMin(lastEnd))continue;
-    if(row.sid===sid){found=true;break;}
-    activeIdx++;
+    if(rows[i].type==='jp'&&rows[i].sid===sid){row=rows[i];break;}
   }
-  if(!found)return null;
-  var jp=jps[activeIdx];
-  return jp?{start:jp.start,end:jp.end}:null;
+  if(!row)return null;
+  var rs=toMin(row.startTime);
+  for(var j=0;j<jps.length;j++){
+    var s=toMin(jps[j].start);
+    if(s>=rs&&s<rs+30)return{start:jps[j].start,end:jps[j].end};
+  }
+  return null;
 }
 function checkConflict(day,sid,tid){
   if(!tid)return false;
