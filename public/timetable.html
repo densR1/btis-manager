@@ -2893,6 +2893,9 @@ function getAssigned(cls,subj){return(cls.assignments||[]).find(function(a){retu
 // Dipakai untuk display nama guru DAN conflict detection agar konsisten
 function getEffectiveTeacherId(cid,day,sid){
   var e=getEntry(day,sid,cid);if(!e||!e.subj)return null;
+  // Mapel tanpa guru (Recess dll): abaikan guru yang mungkin "nyangkut" di entry
+  // lama — jangan sampai ikut dihitung bentrok/beban JP
+  if(isNoTeacherSubj(e.subj))return null;
   if(e.subj==='TAH')return e.teacher||null;// TAH pakai e.teacher langsung
   var cls=getCls(cid);if(!cls)return e.teacher||null;
   var asgnManual=(cls.assignments||[]).find(function(a){return a.subj===e.subj&&!a.autoCT;});
@@ -4906,15 +4909,17 @@ function renderGrid(){
               var tid2=asgn?asgn.teacher2:(e.teacher2||null);
               var t1n=tid1?getT(tid1):null;var t2n=tid2?getT(tid2):null;
               if(t1n)tn=t1n.name+(t2n?' & '+t2n.name:'');
-            } else {
-              // Gunakan getEffectiveTeacherId agar konsisten dengan conflict check
+            } else if(!isNoTeacherSubj(e.subj)) {
+              // Gunakan getEffectiveTeacherId agar konsisten dengan conflict check.
+              // Mapel tanpa guru (Recess dll) tidak menampilkan nama — entry lama
+              // bisa menyimpan guru "nyangkut" dari mapel sebelumnya.
               var tid=getEffectiveTeacherId(cid,day,sid);
               var tt=tid?getT(tid):null;tn=tt?tt.name:'';
             }
             var cc=sColor(e.subj);
             var noT=['Recess','Pulang','DH','LT','AK','EKS','RQ'];
             // effectiveTeacher juga dari helper agar display & conflict detection sumber datanya sama
-            var effectiveTeacher=e.subj==='TAH'?(e.teacher||null):getEffectiveTeacherId(cid,day,sid);
+            var effectiveTeacher=isNoTeacherSubj(e.subj)?null:(e.subj==='TAH'?(e.teacher||null):getEffectiveTeacherId(cid,day,sid));
             var warn=!effectiveTeacher&&e.subj!=='TAH'&&noT.indexOf(e.subj)<0&&!isNoTeacherSubj(e.subj);
             var conflict=effectiveTeacher&&checkConflict(day,sid,effectiveTeacher);
             html+='<td rowspan="2" class="jactive '+cc+(conflict?' conflict':warn?' no-teacher':'')+'" onclick="openSlot(\''+day+'\',\''+sid+'\',\''+cid+'\')">'+
@@ -5217,7 +5222,9 @@ function saveSlot(){
   var entry={subj:subj,teacher:null,teacher2:null,eskulGroup:null,note:note};
   if(subj==='TAH'){entry.teacher=document.getElementById('sm-tah1').value||null;entry.teacher2=document.getElementById('sm-tah2').value||null;}
   else if(subj==='EKS')entry.eskulGroup=document.getElementById('sm-eksgroup').value||null;
-  else entry.teacher=document.getElementById('sm-teacher').value||null;
+  // Mapel tanpa guru (Recess dll): jangan baca select yang tersembunyi —
+  // nilainya bisa sisa dari mapel sebelumnya dan ikut tersimpan
+  else if(!isNoTeacherSubj(subj))entry.teacher=document.getElementById('sm-teacher').value||null;
   setEntry(activeSlot.day,activeSlot.sid,activeSlot.cid,entry);
   closeSlot();renderGrid();refreshRekapIfVisible();
 }
