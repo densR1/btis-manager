@@ -3732,8 +3732,12 @@ function buildGuruTable(tid){
         if(!sid)return;
         var e=getEntry(day,sid,cls.id);
         if(!e||!e.subj)return;
-        var effTid=(e.subj==='TAH')?(e.teacher||null):getEffectiveTeacherId(cls.id,day,sid);
-        var isInvolved=(effTid===tid)||(e.subj==='TAH'&&e.teacher2===tid);
+        // TAH: slot tanpa guru eksplisit fallback ke assignment Setup Kelas
+        // (konsisten dengan countJPGuru & detectIssues)
+        var tahAsgn=(e.subj==='TAH')?getAssigned(cls,'TAH'):null;
+        var effTid=(e.subj==='TAH')?(e.teacher||(tahAsgn&&tahAsgn.teacherId)||null):getEffectiveTeacherId(cls.id,day,sid);
+        var effTid2=(e.subj==='TAH')?(e.teacher2||(tahAsgn&&tahAsgn.teacher2)||null):null;
+        var isInvolved=(effTid===tid)||(effTid2===tid);
         if(isInvolved)found={cls:cls,subj:e.subj};
       });
 
