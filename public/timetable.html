@@ -5009,6 +5009,31 @@ function toggleJsumPanel(key){
   if(b)b.style.display=_jsumCollapsed[key]?'none':'';
   if(c)c.textContent=_jsumCollapsed[key]?'▶':'▼';
 }
+// Resizer vertikal antara card Ringkasan & Rekap JP (drag kiri-kanan atur lebar)
+var _jsumLeftW=null; // lebar px card kiri pilihan user; null = proporsi default
+function jsumResizeStart(e){
+  e.preventDefault();
+  var rz=e.currentTarget||e.target;
+  var wrap=rz.parentElement;
+  var left=wrap?wrap.querySelector('.jsum-left'):null;
+  if(!left)return;
+  var startX=(e.touches?e.touches[0].clientX:e.clientX);
+  var startW=left.offsetWidth;
+  function move(ev){
+    var x=(ev.touches?ev.touches[0].clientX:ev.clientX);
+    var w=Math.max(240,Math.min(wrap.offsetWidth-340,startW+(x-startX)));
+    _jsumLeftW=w;
+    left.style.flex='none';left.style.width=w+'px';
+  }
+  function up(){
+    document.removeEventListener('mousemove',move);document.removeEventListener('mouseup',up);
+    document.removeEventListener('touchmove',move);document.removeEventListener('touchend',up);
+    document.body.style.userSelect='';document.body.style.cursor='';
+  }
+  document.body.style.userSelect='none';document.body.style.cursor='col-resize';
+  document.addEventListener('mousemove',move);document.addEventListener('mouseup',up);
+  document.addEventListener('touchmove',move,{passive:false});document.addEventListener('touchend',up);
+}
 function renderJadwalSummary(day){
   var el=document.getElementById('jadwal-summary');if(!el)return;
   if(!D.classes.length){el.innerHTML='';return;}
@@ -5093,18 +5118,23 @@ function renderJadwalSummary(day){
   // Split dua kolom: kiri ringkasan hari, kanan Rekap JP Terisi per Kelas.
   // Tiap card bisa ditutup-buka (klik header) — state di _jsumCollapsed.
   function wrapSplit(sumHeader,sumBody){
-    function card(key,fx,minw,headerInner,bodyInner){
-      var col=_jsumCollapsed[key];
-      return '<div class="mcard" style="flex:'+fx+';min-width:'+minw+'px;margin-bottom:0">'+
-        '<div onclick="toggleJsumPanel(\''+key+'\')" title="Klik untuk buka/tutup" style="display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none;flex-wrap:wrap">'+
-          '<span id="jsum-chev-'+key+'" style="font-size:10px;color:var(--txt3)">'+(col?'▶':'▼')+'</span>'+headerInner+
+    var leftStyle=_jsumLeftW?('flex:none;width:'+_jsumLeftW+'px'):'flex:0.65';
+    return '<div style="display:flex;gap:8px;align-items:stretch;flex-wrap:wrap">'+
+      '<div class="mcard jsum-left" style="'+leftStyle+';min-width:240px;margin-bottom:0">'+
+        '<div onclick="toggleJsumPanel(\'sum\')" title="Klik untuk buka/tutup" style="display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none;flex-wrap:wrap">'+
+          '<span id="jsum-chev-sum" style="font-size:10px;color:var(--txt3)">'+(_jsumCollapsed.sum?'▶':'▼')+'</span>'+sumHeader+
         '</div>'+
-        '<div id="jsum-body-'+key+'" style="margin-top:10px'+(col?';display:none':'')+'">'+(bodyInner||'')+'</div>'+
-      '</div>';
-    }
-    return '<div style="display:flex;gap:14px;align-items:flex-start;flex-wrap:wrap">'+
-      card('sum',0.65,320,sumHeader,sumBody)+
-      card('rekap',1.35,420,'<span style="font-size:12px;font-weight:800;letter-spacing:.3px">📊 REKAP JP TERISI PER KELAS</span>',buildRekapMapelHTML())+
+        '<div id="jsum-body-sum" style="margin-top:10px'+(_jsumCollapsed.sum?';display:none':'')+'">'+(sumBody||'')+'</div>'+
+      '</div>'+
+      '<div onmousedown="jsumResizeStart(event)" ontouchstart="jsumResizeStart(event)" title="Geser untuk atur lebar" '+
+        'style="flex:0 0 6px;cursor:col-resize;border-radius:3px;background:var(--brd);align-self:stretch"></div>'+
+      '<div class="mcard" style="flex:1;min-width:340px;margin-bottom:0">'+
+        '<div onclick="toggleJsumPanel(\'rekap\')" title="Klik untuk buka/tutup" style="display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none;flex-wrap:wrap">'+
+          '<span id="jsum-chev-rekap" style="font-size:10px;color:var(--txt3)">'+(_jsumCollapsed.rekap?'▶':'▼')+'</span>'+
+          '<span style="font-size:12px;font-weight:800;letter-spacing:.3px">📊 REKAP JP TERISI PER KELAS</span>'+
+        '</div>'+
+        '<div id="jsum-body-rekap" style="margin-top:10px'+(_jsumCollapsed.rekap?';display:none':'')+'">'+buildRekapMapelHTML()+'</div>'+
+      '</div>'+
     '</div>';
   }
 
