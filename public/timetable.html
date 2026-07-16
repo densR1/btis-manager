@@ -2924,6 +2924,13 @@ function setEntry(day,sid,cid,val){
 }
 function getCTId(cls){var a=(cls.assignments||[]).find(function(x){return x.subj==='__CT__';});return a?a.teacherId:null;}
 function getAssigned(cls,subj){return(cls.assignments||[]).find(function(a){return a.subj===subj;})||null;}
+// SATU-SATUNYA aturan guru efektif slot TAH — dipakai display, hitungan beban,
+// rekap guru, dan deteksi bentrok agar tidak pernah beda.
+// Prioritas: plotting Setup Kelas (sumber kebenaran) → guru eksplisit di slot.
+function getTAHTids(cls,e){
+  var a=cls?getAssigned(cls,'TAH'):null;
+  return[(a&&a.teacherId)||(e&&e.teacher)||null,(a&&a.teacher2)||(e&&e.teacher2)||null];
+}
 // Prioritas: manual (non-autoCT) > autoCT > e.teacher dari slot entry
 // Dipakai untuk display nama guru DAN conflict detection agar konsisten
 function getEffectiveTeacherId(cid,day,sid){
@@ -2931,8 +2938,9 @@ function getEffectiveTeacherId(cid,day,sid){
   // Mapel tanpa guru (Recess dll): abaikan guru yang mungkin "nyangkut" di entry
   // lama — jangan sampai ikut dihitung bentrok/beban JP
   if(isNoTeacherSubj(e.subj))return null;
-  if(e.subj==='TAH')return e.teacher||null;// TAH pakai e.teacher langsung
-  var cls=getCls(cid);if(!cls)return e.teacher||null;
+  var cls=getCls(cid);
+  if(e.subj==='TAH')return getTAHTids(cls,e)[0];
+  if(!cls)return e.teacher||null;
   var asgnManual=(cls.assignments||[]).find(function(a){return a.subj===e.subj&&!a.autoCT;});
   if(asgnManual)return asgnManual.teacherId||null;
   var asgnAuto=(cls.assignments||[]).find(function(a){return a.subj===e.subj&&a.autoCT;});
@@ -3228,7 +3236,7 @@ function renderStatistik(){
       D.classes.forEach(function(cls){
         var e=getEntry(day,row.sid,cls.id);if(!e)return;
         // Effective teacher: prioritas non-autoCT assignment agar konsisten dgn jadwal
-        var effTid=(e.subj==='TAH')?(e.teacher||null):getEffectiveTeacherId(cls.id,day,row.sid);
+        var effTid=(e.subj==='TAH')?getTAHTids(cls,e)[0]:getEffectiveTeacherId(cls.id,day,row.sid);
         if(effTid&&jpCount[effTid]!==undefined){
           jpCount[effTid]++;
           if(!jpByDay[effTid][day])jpByDay[effTid][day]=0;
@@ -3309,11 +3317,10 @@ function countJPGuru(){
       if(row.type!=='jp')return;
       D.classes.forEach(function(cls){
         var e=getEntry(day,row.sid,cls.id);if(!e)return;
-        // Effective teacher: prioritas non-autoCT assignment.
-        // TAH: fallback ke assignment Setup Kelas bila slot tak menyimpan guru.
-        var tahAsgn=(e.subj==='TAH')?getAssigned(cls,'TAH'):null;
-        var effTid=(e.subj==='TAH')?(e.teacher||(tahAsgn&&tahAsgn.teacherId)||null):getEffectiveTeacherId(cls.id,day,row.sid);
-        [effTid, (e.subj==='TAH'?(e.teacher2||(tahAsgn&&tahAsgn.teacher2)||null):null)].forEach(function(tid){
+        // Effective teacher: satu aturan via getTAHTids/getEffectiveTeacherId
+        var tahT=(e.subj==='TAH')?getTAHTids(cls,e):null;
+        var effTid=tahT?tahT[0]:getEffectiveTeacherId(cls.id,day,row.sid);
+        [effTid, (tahT?tahT[1]:null)].forEach(function(tid){
           if(tid&&jpCount[tid]!==undefined){
             jpCount[tid]++;
             jpByDay[tid][day]=(jpByDay[tid][day]||0)+1;
@@ -3780,11 +3787,10 @@ function buildGuruTable(tid){
         if(!sid)return;
         var e=getEntry(day,sid,cls.id);
         if(!e||!e.subj)return;
-        // TAH: slot tanpa guru eksplisit fallback ke assignment Setup Kelas
-        // (konsisten dengan countJPGuru & detectIssues)
-        var tahAsgn=(e.subj==='TAH')?getAssigned(cls,'TAH'):null;
-        var effTid=(e.subj==='TAH')?(e.teacher||(tahAsgn&&tahAsgn.teacherId)||null):getEffectiveTeacherId(cls.id,day,sid);
-        var effTid2=(e.subj==='TAH')?(e.teacher2||(tahAsgn&&tahAsgn.teacher2)||null):null;
+        // Satu aturan guru efektif via getTAHTids/getEffectiveTeacherId
+        var tahT=(e.subj==='TAH')?getTAHTids(cls,e):null;
+        var effTid=tahT?tahT[0]:getEffectiveTeacherId(cls.id,day,sid);
+        var effTid2=tahT?tahT[1]:null;
         var isInvolved=(effTid===tid)||(effTid2===tid);
         if(isInvolved)found={cls:cls,subj:e.subj};
       });
@@ -4957,8 +4963,8 @@ function renderGrid(){
               (cls2.assignments||[]).find(function(a){return a.subj===e.subj;})
             ):null;
             if(e.subj==='TAH'){
-              var tid1=asgn?asgn.teacherId:(e.teacher||null);
-              var tid2=asgn?asgn.teacher2:(e.teacher2||null);
+              var tahT=getTAHTids(cls2,e);
+              var tid1=tahT[0],tid2=tahT[1];
               var t1n=tid1?getT(tid1):null;var t2n=tid2?getT(tid2):null;
               if(t1n)tn=t1n.name+(t2n?' & '+t2n.name:'');
             } else if(!isNoTeacherSubj(e.subj)) {
@@ -4971,7 +4977,7 @@ function renderGrid(){
             var cc=sColor(e.subj);
             var noT=['Recess','Pulang','DH','LT','AK','EKS','RQ'];
             // effectiveTeacher juga dari helper agar display & conflict detection sumber datanya sama
-            var effectiveTeacher=isNoTeacherSubj(e.subj)?null:(e.subj==='TAH'?(e.teacher||null):getEffectiveTeacherId(cid,day,sid));
+            var effectiveTeacher=isNoTeacherSubj(e.subj)?null:(e.subj==='TAH'?getTAHTids(cls2,e)[0]:getEffectiveTeacherId(cid,day,sid));
             var warn=!effectiveTeacher&&e.subj!=='TAH'&&noT.indexOf(e.subj)<0&&!isNoTeacherSubj(e.subj);
             var conflict=effectiveTeacher&&checkConflict(day,sid,effectiveTeacher);
             html+='<td rowspan="2" class="jactive '+cc+(conflict?' conflict':warn?' no-teacher':'')+'" onclick="openSlot(\''+day+'\',\''+sid+'\',\''+cid+'\')">'+
@@ -5215,8 +5221,9 @@ function checkConflict(day,sid,tid){
   D.classes.forEach(function(c){
     // Gunakan effective teacher (prioritas non-autoCT assignment) agar konsisten dengan display
     var e=getEntry(day,sid,c.id);if(!e)return;
-    var effTid=(e.subj==='TAH')?(e.teacher||null):getEffectiveTeacherId(c.id,day,sid);
-    var effTid2=(e.subj==='TAH')?(e.teacher2||null):null;
+    var tahT=(e.subj==='TAH')?getTAHTids(c,e):null;
+    var effTid=tahT?tahT[0]:getEffectiveTeacherId(c.id,day,sid);
+    var effTid2=tahT?tahT[1]:null;
     if(effTid!==tid&&effTid2!==tid)return;
     var myJP=getJPTimeForClass(c.id,day,sid);if(!myJP)return;
     D.classes.forEach(function(c2){
@@ -5224,8 +5231,9 @@ function checkConflict(day,sid,tid){
       getJPRows().forEach(function(row){
         if(row.type!=='jp')return;
         var e2=getEntry(day,row.sid,c2.id);if(!e2)return;
-        var eff2=(e2.subj==='TAH')?(e2.teacher||null):getEffectiveTeacherId(c2.id,day,row.sid);
-        var eff2b=(e2.subj==='TAH')?(e2.teacher2||null):null;
+        var tahT2=(e2.subj==='TAH')?getTAHTids(c2,e2):null;
+        var eff2=tahT2?tahT2[0]:getEffectiveTeacherId(c2.id,day,row.sid);
+        var eff2b=tahT2?tahT2[1]:null;
         if(eff2!==tid&&eff2b!==tid)return;
         var cJP=getJPTimeForClass(c2.id,day,row.sid);
         if(cJP&&timeOverlap(myJP.start,myJP.end,cJP.start,cJP.end))conflict=true;
@@ -5555,8 +5563,9 @@ function autoFillJadwal(){
         if(row.type!=='jp')return;
         var e=getEntry(day,row.sid,c.id);if(!e)return;
         // Gunakan effective teacher agar konsisten dengan jadwal display
-        var effTid=(e.subj==='TAH')?(e.teacher||null):getEffectiveTeacherId(c.id,day,row.sid);
-        if(effTid!==teacher&&e.teacher2!==teacher)return;
+        var tahTe=(e.subj==='TAH')?getTAHTids(c,e):null;
+        var effTid=tahTe?tahTe[0]:getEffectiveTeacherId(c.id,day,row.sid);
+        if(effTid!==teacher&&(tahTe?tahTe[1]:e.teacher2)!==teacher)return;
         var cJP=getJPTimeForClass(c.id,day,row.sid);
         if(cJP&&timeOverlap(myJP.start,myJP.end,cJP.start,cJP.end))conflict=true;
       });
@@ -5827,8 +5836,9 @@ function autoFillJadwalAdvanced(selClsIds, mode){
       getJPRows().forEach(function(row){
         if(row.type!=='jp')return;
         var e=getEntry(day,row.sid,c.id);if(!e)return;
-        var effTid=(e.subj==='TAH')?(e.teacher||null):getEffectiveTeacherId(c.id,day,row.sid);
-        if(effTid!==teacher&&e.teacher2!==teacher)return;
+        var tahTe=(e.subj==='TAH')?getTAHTids(c,e):null;
+        var effTid=tahTe?tahTe[0]:getEffectiveTeacherId(c.id,day,row.sid);
+        if(effTid!==teacher&&(tahTe?tahTe[1]:e.teacher2)!==teacher)return;
         var cJP=getJPTimeForClass(c.id,day,row.sid);
         if(cJP&&timeOverlap(myJP.start,myJP.end,cJP.start,cJP.end))conflict=true;
       });
@@ -6097,11 +6107,11 @@ function detectIssues(){
         // abaikan entri sched di slot ini (termasuk sisa entri lama sebelum tipe diubah)
         var jpDef=getClassJPs(cls.id,day).find(function(j){return j.start===t.start;});
         if(jpDef&&['recess','lunch','solat'].indexOf(jpDef.type)>=0)return;
-        // Gunakan effective teacher agar konsisten dengan tampilan jadwal.
-        // TAH: slot tanpa guru eksplisit fallback ke assignment Setup Kelas.
-        var tahAsgn=(e.subj==='TAH')?getAssigned(cls,'TAH'):null;
-        var effTid=(e.subj==='TAH')?(e.teacher||(tahAsgn&&tahAsgn.teacherId)||null):getEffectiveTeacherId(cls.id,day,row.sid);
-        var effTid2=(e.subj==='TAH')?(e.teacher2||(tahAsgn&&tahAsgn.teacher2)||null):null;
+        // Gunakan effective teacher agar konsisten dengan tampilan jadwal —
+        // satu aturan via getTAHTids/getEffectiveTeacherId.
+        var tahT=(e.subj==='TAH')?getTAHTids(cls,e):null;
+        var effTid=tahT?tahT[0]:getEffectiveTeacherId(cls.id,day,row.sid);
+        var effTid2=tahT?tahT[1]:null;
         [effTid, effTid2].forEach(function(tid){
           if(!tid)return;
           if(!teacherSlots[tid])teacherSlots[tid]=[];
