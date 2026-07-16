@@ -3113,12 +3113,21 @@ function buildRekapMapelHTML(){
   var classes=D.classes.slice().sort(function(a,b){return parseInt(a.level)-parseInt(b.level)||a.name.localeCompare(b.name);});
   var jpCount={};
   classes.forEach(function(cls){jpCount[cls.id]={};});
+  // Hitung lewat struktur JP per kelas (seperti yang tampil di grid), bukan
+  // iterasi mentah D.sched — entry orphan (slot lama yang tak terpetakan lagi
+  // setelah jam masuk berubah) tidak ikut terhitung
+  var jprows=getJPRows().filter(function(r){return r.type==='jp';});
   D.days.forEach(function(day){
-    getJPRows().forEach(function(row){
-      if(row.type!=='jp')return;
-      classes.forEach(function(cls){
-        var e=getEntry(day,row.sid,cls.id);
-        if(!e||!e.subj||skip.indexOf(e.subj)>=0)return;
+    classes.forEach(function(cls){
+      getClassJPs(cls.id,day).forEach(function(jp){
+        var s=toMin(jp.start),sid=null;
+        for(var i=0;i<jprows.length;i++){
+          var rs=toMin(jprows[i].startTime);
+          if(s>=rs&&s<rs+30){sid=jprows[i].sid;break;}
+        }
+        if(!sid)return;
+        var e=getEntry(day,sid,cls.id);
+        if(!e||!e.subj||skip.indexOf(e.subj)>=0||isNoTeacherSubj(e.subj))return;
         if(!jpCount[cls.id][e.subj])jpCount[cls.id][e.subj]=0;
         jpCount[cls.id][e.subj]++;
       });
