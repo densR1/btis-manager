@@ -2089,7 +2089,9 @@ body.is-locked #lock-readonly-badge { display: flex !important; }
       <button class="mnav" onclick="switchMsec('mguru')" id="mnav-mguru"><span class="ico" style="background:var(--grn-l)">👤</span>Guru</button>
       <button class="mnav" onclick="switchMsec('mmapel');renderRekapMapel()" id="mnav-mmapel"><span class="ico" style="background:var(--amb-l)">📚</span>Mapel</button>
       <h4>Grup Khusus</h4>
+      <!-- Grup Eskul di-takedown sementara (permintaan sekolah)
       <button class="mnav" onclick="switchMsec('meks')" id="mnav-meks"><span class="ico" style="background:#e0f5ee">⚽</span>Grup Eskul</button>
+      -->
     </div>
     <div class="master-body">
       <div class="msec on" id="msec-mkelas">
@@ -6119,7 +6121,8 @@ function detectIssues(){
         });
         // Warning: guru belum ada — cek berdasarkan effective teacher
         if(e.subj==='TAH'&&!effTid)warnings.push({day:day,time:row.time,msg:'Kelas '+cls.name+': TAH belum ada guru'});
-        else if(e.subj==='EKS'&&!e.eskulGroup)warnings.push({day:day,time:row.time,msg:'Kelas '+cls.name+': EKS belum ada grup'});
+        // Warning EKS dimatikan sementara — fitur Grup Eskul sedang di-takedown
+        // else if(e.subj==='EKS'&&!e.eskulGroup)warnings.push({day:day,time:row.time,msg:'Kelas '+cls.name+': EKS belum ada grup'});
         else if(noT.indexOf(e.subj)<0&&!isNoTeacherSubj(e.subj)&&!effTid&&e.subj!=='TAH')warnings.push({day:day,time:row.time,msg:'Kelas '+cls.name+': "'+e.subj+'" belum ada guru'});
       });
     });
