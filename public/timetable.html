@@ -3170,12 +3170,12 @@ function buildRekapMapelHTML(){
   classes.forEach(function(cls){Object.keys(jpCount[cls.id]).forEach(function(s){usedSubjs[s]=true;});});
   var subjCodes=D.subjects.filter(function(s){return skip.indexOf(s.code)<0&&usedSubjs[s.code];}).map(function(s){return s.code;});
   if(!subjCodes.length)return'<p style="color:var(--txt3);font-size:12px;text-align:center;padding:32px">Jadwal belum diisi.</p>';
-  var html='<div style="overflow-x:auto;border-radius:var(--rs);box-shadow:var(--sh)">'+
-    '<table style="border-collapse:collapse;width:100%;background:var(--white);font-size:12px">'+
+  var html='<div style="overflow:auto;max-height:420px;border-radius:var(--rs);box-shadow:var(--sh)">'+
+    '<table style="border-collapse:separate;border-spacing:0;width:100%;background:var(--white);font-size:12px">'+
     '<thead><tr>'+
-    '<th style="background:var(--txt);color:#fff;padding:9px 12px;text-align:left;position:sticky;left:0;z-index:5;min-width:160px">Mata Pelajaran</th>';
+    '<th style="background:var(--txt);color:#fff;padding:9px 12px;text-align:left;position:sticky;left:0;top:0;z-index:7;min-width:160px">Mata Pelajaran</th>';
   classes.forEach(function(cls){
-    html+='<th style="background:var(--txt);color:#fff;padding:9px 10px;text-align:center;min-width:60px;border-left:1px solid rgba(255,255,255,.15)">'+cls.name+'</th>';
+    html+='<th style="background:var(--txt);color:#fff;padding:9px 10px;text-align:center;min-width:60px;border-left:1px solid rgba(255,255,255,.15);position:sticky;top:0;z-index:6">'+cls.name+'</th>';
   });
   html+='</tr></thead><tbody>';
   subjCodes.forEach(function(code,ri){
@@ -5000,6 +5000,15 @@ function renderGrid(){
 // ============================================================
 // SUMMARY BAWAH JADWAL — JP kosong & kekurangan mapel
 // ============================================================
+// State tutup-buka panel bawah Jadwal (bertahan selama sesi, ikut re-render)
+var _jsumCollapsed={sum:false,rekap:false};
+function toggleJsumPanel(key){
+  _jsumCollapsed[key]=!_jsumCollapsed[key];
+  var b=document.getElementById('jsum-body-'+key);
+  var c=document.getElementById('jsum-chev-'+key);
+  if(b)b.style.display=_jsumCollapsed[key]?'none':'';
+  if(c)c.textContent=_jsumCollapsed[key]?'▶':'▼';
+}
 function renderJadwalSummary(day){
   var el=document.getElementById('jadwal-summary');if(!el)return;
   if(!D.classes.length){el.innerHTML='';return;}
@@ -5081,28 +5090,33 @@ function renderJadwalSummary(day){
   // Cek apakah ada sesuatu yang perlu ditampilkan
   var adaMasalah=rows.some(function(r){return r.kosong>0||r.kurang.length>0;});
 
-  // Split dua kolom: kiri ringkasan hari, kanan Rekap JP Terisi per Kelas
-  function wrapSplit(summaryHtml){
+  // Split dua kolom: kiri ringkasan hari, kanan Rekap JP Terisi per Kelas.
+  // Tiap card bisa ditutup-buka (klik header) — state di _jsumCollapsed.
+  function wrapSplit(sumHeader,sumBody){
+    function card(key,fx,minw,headerInner,bodyInner){
+      var col=_jsumCollapsed[key];
+      return '<div class="mcard" style="flex:'+fx+';min-width:'+minw+'px;margin-bottom:0">'+
+        '<div onclick="toggleJsumPanel(\''+key+'\')" title="Klik untuk buka/tutup" style="display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none;flex-wrap:wrap">'+
+          '<span id="jsum-chev-'+key+'" style="font-size:10px;color:var(--txt3)">'+(col?'▶':'▼')+'</span>'+headerInner+
+        '</div>'+
+        '<div id="jsum-body-'+key+'" style="margin-top:10px'+(col?';display:none':'')+'">'+(bodyInner||'')+'</div>'+
+      '</div>';
+    }
     return '<div style="display:flex;gap:14px;align-items:flex-start;flex-wrap:wrap">'+
-      '<div class="mcard" style="flex:0.65;min-width:320px;margin-bottom:0">'+summaryHtml+'</div>'+
-      '<div class="mcard" style="flex:1.35;min-width:420px;margin-bottom:0">'+
-        '<div style="font-size:12px;font-weight:800;letter-spacing:.3px;margin-bottom:8px">📊 REKAP JP TERISI PER KELAS</div>'+
-        buildRekapMapelHTML()+
-      '</div>'+
+      card('sum',0.65,320,sumHeader,sumBody)+
+      card('rekap',1.35,420,'<span style="font-size:12px;font-weight:800;letter-spacing:.3px">📊 REKAP JP TERISI PER KELAS</span>',buildRekapMapelHTML())+
     '</div>';
   }
 
   // Render
-  var html='<div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;flex-wrap:wrap">';
-  html+='<span style="font-size:11px;font-weight:800;color:var(--txt2);text-transform:uppercase;letter-spacing:.5px">📋 Ringkasan '+day+'</span>';
+  var titleHtml='<span style="font-size:11px;font-weight:800;color:var(--txt2);text-transform:uppercase;letter-spacing:.5px">📋 Ringkasan '+day+'</span>';
   if(!adaMasalah){
-    html+='<span style="font-size:11px;font-weight:700;color:var(--grn);background:var(--grn-l);border:1px solid var(--grn-b);padding:3px 10px;border-radius:10px">✓ Semua slot terisi & mapel terpenuhi</span>';
-    html+='</div>';el.innerHTML=wrapSplit(html);return;
+    titleHtml+='<span style="font-size:11px;font-weight:700;color:var(--grn);background:var(--grn-l);border:1px solid var(--grn-b);padding:3px 10px;border-radius:10px">✓ Semua slot terisi & mapel terpenuhi</span>';
+    el.innerHTML=wrapSplit(titleHtml,'');return;
   }
-  html+='</div>';
 
   // Tabel ringkasan
-  html+='<div style="overflow-x:auto"><table style="border-collapse:collapse;font-size:11px;width:100%;min-width:600px">';
+  var html='<div style="overflow-x:auto"><table style="border-collapse:collapse;font-size:11px;width:100%;min-width:600px">';
   html+='<thead><tr style="background:var(--surf2)">';
   html+='<th style="padding:6px 10px;text-align:left;font-weight:700;color:var(--txt3);text-transform:uppercase;font-size:10px;letter-spacing:.4px;border-bottom:2px solid var(--brd2);white-space:nowrap">Kelas</th>';
   html+='<th style="padding:6px 10px;text-align:center;font-weight:700;color:var(--txt3);text-transform:uppercase;font-size:10px;letter-spacing:.4px;border-bottom:2px solid var(--brd2);white-space:nowrap">JP Kosong</th>';
@@ -5136,7 +5150,7 @@ function renderJadwalSummary(day){
   });
 
   html+='</tbody></table></div>';
-  el.innerHTML=wrapSplit(html);
+  el.innerHTML=wrapSplit(titleHtml,html);
 }
 
 function buildTeacherCell(day,row,tid){
