@@ -5000,15 +5000,6 @@ function renderGrid(){
 // ============================================================
 // SUMMARY BAWAH JADWAL — JP kosong & kekurangan mapel
 // ============================================================
-// State tutup-buka panel bawah Jadwal (bertahan selama sesi, ikut re-render)
-var _jsumCollapsed={sum:false,rekap:false};
-function toggleJsumPanel(key){
-  _jsumCollapsed[key]=!_jsumCollapsed[key];
-  var b=document.getElementById('jsum-body-'+key);
-  var c=document.getElementById('jsum-chev-'+key);
-  if(b)b.style.display=_jsumCollapsed[key]?'none':'';
-  if(c)c.textContent=_jsumCollapsed[key]?'▶':'▼';
-}
 // Resizer vertikal antara card Ringkasan & Rekap JP (drag kiri-kanan atur lebar)
 var _jsumLeftW=null; // lebar px card kiri pilihan user; null = proporsi default
 function jsumResizeStart(e){
@@ -5119,21 +5110,16 @@ function renderJadwalSummary(day){
   // Tiap card bisa ditutup-buka (klik header) — state di _jsumCollapsed.
   function wrapSplit(sumHeader,sumBody){
     var leftStyle=_jsumLeftW?('flex:none;width:'+_jsumLeftW+'px'):'flex:0.65';
-    return '<div style="display:flex;gap:8px;align-items:stretch;flex-wrap:wrap">'+
+    return '<div style="display:flex;gap:8px;align-items:flex-start;flex-wrap:wrap">'+
       '<div class="mcard jsum-left" style="'+leftStyle+';min-width:240px;margin-bottom:0">'+
-        '<div onclick="toggleJsumPanel(\'sum\')" title="Klik untuk buka/tutup" style="display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none;flex-wrap:wrap">'+
-          '<span id="jsum-chev-sum" style="font-size:10px;color:var(--txt3)">'+(_jsumCollapsed.sum?'▶':'▼')+'</span>'+sumHeader+
-        '</div>'+
-        '<div id="jsum-body-sum" style="margin-top:10px'+(_jsumCollapsed.sum?';display:none':'')+'">'+(sumBody||'')+'</div>'+
+        '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">'+sumHeader+'</div>'+
+        '<div style="margin-top:10px">'+(sumBody||'')+'</div>'+
       '</div>'+
       '<div onmousedown="jsumResizeStart(event)" ontouchstart="jsumResizeStart(event)" title="Geser untuk atur lebar" '+
         'style="flex:0 0 6px;cursor:col-resize;border-radius:3px;background:var(--brd);align-self:stretch"></div>'+
       '<div class="mcard" style="flex:1;min-width:340px;margin-bottom:0">'+
-        '<div onclick="toggleJsumPanel(\'rekap\')" title="Klik untuk buka/tutup" style="display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none;flex-wrap:wrap">'+
-          '<span id="jsum-chev-rekap" style="font-size:10px;color:var(--txt3)">'+(_jsumCollapsed.rekap?'▶':'▼')+'</span>'+
-          '<span style="font-size:12px;font-weight:800;letter-spacing:.3px">📊 REKAP JP TERISI PER KELAS</span>'+
-        '</div>'+
-        '<div id="jsum-body-rekap" style="margin-top:10px'+(_jsumCollapsed.rekap?';display:none':'')+'">'+buildRekapMapelHTML()+'</div>'+
+        '<div style="font-size:12px;font-weight:800;letter-spacing:.3px">📊 REKAP JP TERISI PER KELAS</div>'+
+        '<div style="margin-top:10px">'+buildRekapMapelHTML()+'</div>'+
       '</div>'+
     '</div>';
   }
