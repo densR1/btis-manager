@@ -5107,7 +5107,7 @@ function renderJadwalSummary(day){
   var adaMasalah=rows.some(function(r){return r.kosong>0||r.kurang.length>0;});
 
   // Split dua kolom: kiri ringkasan hari, kanan Rekap JP Terisi per Kelas.
-  // Tiap card bisa ditutup-buka (klik header) — state di _jsumCollapsed.
+  // Lebar diatur lewat resizer drag (jsumResizeStart), state di _jsumLeftW.
   function wrapSplit(sumHeader,sumBody){
     var leftStyle=_jsumLeftW?('flex:none;width:'+_jsumLeftW+'px'):'flex:0.65';
     return '<div style="display:flex;gap:8px;align-items:flex-start;flex-wrap:wrap">'+
