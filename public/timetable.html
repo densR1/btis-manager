@@ -2693,7 +2693,40 @@ function loadTA(id){
   try{var r=localStorage.getItem(TA_PREFIX+id);if(r)return JSON.parse(r);}catch(e){}
   return defaultData();
 }
-function save(){saveTA(_meta.activeTA,D);saveMeta();}
+// Bersihkan entry sched orphan (slot yang tidak terpetakan ke JP manapun lagi,
+// mis. setelah jam masuk digeser). Konservatif: hanya menghapus bila pemetaan
+// kelas-hari diketahui pasti — kalau ragu (config/slot kosong), tidak menyentuh apa pun.
+function pruneOrphanSched(){
+  if(!_ttReady)return;                       // data awal belum dimuat: jangan sentuh
+  if(!D.classes.length||!D.sched)return;
+  var jprows=getJPRows().filter(function(r){return r.type==='jp';});
+  if(!jprows.length)return;                  // slot belum kebentuk: jangan sentuh
+  Object.keys(D.sched).forEach(function(day){
+    if(D.days.indexOf(day)<0)return;         // hari nonaktif: biarkan (bisa diaktifkan lagi)
+    var valid={};                            // cid -> {sid yang dipakai grid}
+    D.classes.forEach(function(cls){
+      var jps=getClassJPs(cls.id,day);
+      if(!jps.length)return;
+      var set={},mapped=0;
+      jps.forEach(function(jp){
+        var s=toMin(jp.start);
+        for(var i=0;i<jprows.length;i++){
+          var rs=toMin(jprows[i].startTime);
+          if(s>=rs&&s<rs+30){set[jprows[i].sid]=true;mapped++;break;}
+        }
+      });
+      if(mapped)valid[cls.id]=set;           // hanya percaya pemetaan yang menghasilkan slot
+    });
+    Object.keys(D.sched[day]).forEach(function(sid){
+      Object.keys(D.sched[day][sid]).forEach(function(cid){
+        if(!valid[cid])return;               // kelas tak dikenal/pemetaan tak pasti: biarkan
+        if(!valid[cid][sid])delete D.sched[day][sid][cid];
+      });
+      if(!Object.keys(D.sched[day][sid]).length)delete D.sched[day][sid];
+    });
+  });
+}
+function save(){pruneOrphanSched();saveTA(_meta.activeTA,D);saveMeta();}
 function load(){
   loadMeta();
   var d=loadTA(_meta.activeTA);
