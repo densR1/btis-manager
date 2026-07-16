@@ -3170,7 +3170,7 @@ function buildRekapMapelHTML(){
   classes.forEach(function(cls){Object.keys(jpCount[cls.id]).forEach(function(s){usedSubjs[s]=true;});});
   var subjCodes=D.subjects.filter(function(s){return skip.indexOf(s.code)<0&&usedSubjs[s.code];}).map(function(s){return s.code;});
   if(!subjCodes.length)return'<p style="color:var(--txt3);font-size:12px;text-align:center;padding:32px">Jadwal belum diisi.</p>';
-  var html='<div style="overflow:auto;max-height:420px;border-radius:var(--rs);box-shadow:var(--sh)">'+
+  var html='<div style="overflow:auto;max-height:100%;border-radius:var(--rs);box-shadow:var(--sh)">'+
     '<table style="border-collapse:separate;border-spacing:0;width:100%;background:var(--white);font-size:12px">'+
     '<thead><tr>'+
     '<th style="background:var(--txt);color:#fff;padding:9px 12px;text-align:left;position:sticky;left:0;top:0;z-index:7;min-width:160px">Mata Pelajaran</th>';
@@ -5112,16 +5112,18 @@ function renderJadwalSummary(day){
   // Lebar diatur lewat resizer drag (jsumResizeStart), state di _jsumLeftW.
   function wrapSplit(sumHeader,sumBody){
     var leftStyle=_jsumLeftW?('flex:none;width:'+_jsumLeftW+'px'):'flex:0.65';
-    return '<div style="display:flex;gap:8px;align-items:flex-start;flex-wrap:wrap">'+
+    // align-items:stretch = kedua card sama tinggi; area tabel rekap (flex:1)
+    // mengisi sisa tinggi card dan scroll sendiri di dalamnya
+    return '<div style="display:flex;gap:8px;align-items:stretch;flex-wrap:wrap">'+
       '<div class="mcard jsum-left" style="'+leftStyle+';min-width:240px;max-width:calc(100% - 370px);margin-bottom:0">'+
         '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">'+sumHeader+'</div>'+
         '<div style="margin-top:10px">'+(sumBody||'')+'</div>'+
       '</div>'+
       '<div onmousedown="jsumResizeStart(event)" ontouchstart="jsumResizeStart(event)" title="Geser untuk atur lebar" '+
         'style="flex:0 0 6px;cursor:col-resize;border-radius:3px;background:var(--brd);align-self:stretch"></div>'+
-      '<div class="mcard" style="flex:1;min-width:340px;margin-bottom:0">'+
+      '<div class="mcard" style="flex:1;min-width:340px;margin-bottom:0;display:flex;flex-direction:column">'+
         '<div style="font-size:12px;font-weight:800;letter-spacing:.3px">📊 REKAP JP TERISI PER KELAS</div>'+
-        '<div style="margin-top:10px">'+buildRekapMapelHTML()+'</div>'+
+        '<div style="margin-top:10px;flex:1;min-height:0">'+buildRekapMapelHTML()+'</div>'+
       '</div>'+
     '</div>';
   }
