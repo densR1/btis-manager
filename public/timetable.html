@@ -5112,18 +5112,19 @@ function renderJadwalSummary(day){
   // Lebar diatur lewat resizer drag (jsumResizeStart), state di _jsumLeftW.
   function wrapSplit(sumHeader,sumBody){
     var leftStyle=_jsumLeftW?('flex:none;width:'+_jsumLeftW+'px'):'flex:0.65';
-    // align-items:stretch = kedua card sama tinggi; area tabel rekap (flex:1)
-    // mengisi sisa tinggi card dan scroll sendiri di dalamnya
-    return '<div style="display:flex;gap:8px;align-items:stretch;flex-wrap:wrap">'+
-      '<div class="mcard jsum-left" style="'+leftStyle+';min-width:240px;max-width:calc(100% - 370px);margin-bottom:0">'+
-        '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">'+sumHeader+'</div>'+
-        '<div style="margin-top:10px">'+(sumBody||'')+'</div>'+
+    // Kedua card mengisi 100% tinggi panel bawah (#jadwal-summary yang tingginya
+    // diatur resizer atas-bawah). Scroll terjadi DI DALAM tiap card — bukan di
+    // panel — sehingga sticky header tabel rekap bekerja konsisten.
+    return '<div style="display:flex;gap:8px;align-items:stretch;height:100%;flex-wrap:nowrap">'+
+      '<div class="mcard jsum-left" style="'+leftStyle+';min-width:240px;max-width:calc(100% - 370px);margin-bottom:0;display:flex;flex-direction:column;min-height:0">'+
+        '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;flex-shrink:0">'+sumHeader+'</div>'+
+        '<div style="margin-top:10px;flex:1;min-height:0;overflow:auto">'+(sumBody||'')+'</div>'+
       '</div>'+
       '<div onmousedown="jsumResizeStart(event)" ontouchstart="jsumResizeStart(event)" title="Geser untuk atur lebar" '+
         'style="flex:0 0 6px;cursor:col-resize;border-radius:3px;background:var(--brd);align-self:stretch"></div>'+
-      '<div class="mcard" style="flex:1;min-width:340px;margin-bottom:0;display:flex;flex-direction:column">'+
-        '<div style="font-size:12px;font-weight:800;letter-spacing:.3px">📊 REKAP JP TERISI PER KELAS</div>'+
-        '<div style="margin-top:10px;flex:1;min-height:240px;overflow:hidden">'+buildRekapMapelHTML()+'</div>'+
+      '<div class="mcard" style="flex:1;min-width:340px;margin-bottom:0;display:flex;flex-direction:column;min-height:0">'+
+        '<div style="font-size:12px;font-weight:800;letter-spacing:.3px;flex-shrink:0">📊 REKAP JP TERISI PER KELAS</div>'+
+        '<div style="margin-top:10px;flex:1;min-height:0;overflow:hidden">'+buildRekapMapelHTML()+'</div>'+
       '</div>'+
     '</div>';
   }
