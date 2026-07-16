@@ -5012,7 +5012,9 @@ function jsumResizeStart(e){
   var startW=left.offsetWidth;
   function move(ev){
     var x=(ev.touches?ev.touches[0].clientX:ev.clientX);
-    var w=Math.max(240,Math.min(wrap.offsetWidth-340,startW+(x-startX)));
+    // Batas kanan memperhitungkan min-width card kanan (340) + resizer + gap,
+    // agar card kanan tidak wrap turun ke baris bawah (terlihat "hilang")
+    var w=Math.max(240,Math.min(wrap.offsetWidth-370,startW+(x-startX)));
     _jsumLeftW=w;
     left.style.flex='none';left.style.width=w+'px';
   }
@@ -5111,7 +5113,7 @@ function renderJadwalSummary(day){
   function wrapSplit(sumHeader,sumBody){
     var leftStyle=_jsumLeftW?('flex:none;width:'+_jsumLeftW+'px'):'flex:0.65';
     return '<div style="display:flex;gap:8px;align-items:flex-start;flex-wrap:wrap">'+
-      '<div class="mcard jsum-left" style="'+leftStyle+';min-width:240px;margin-bottom:0">'+
+      '<div class="mcard jsum-left" style="'+leftStyle+';min-width:240px;max-width:calc(100% - 370px);margin-bottom:0">'+
         '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">'+sumHeader+'</div>'+
         '<div style="margin-top:10px">'+(sumBody||'')+'</div>'+
       '</div>'+
