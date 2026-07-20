@@ -2142,8 +2142,18 @@ function renderSemester() {
         var bg  = {kegiatan:'var(--c-kegiatan-bg)',libur:'var(--c-libur-bg)',ujian:'var(--c-ujian-bg)',rapat:'var(--c-rapat-bg)'}[ev.type]||'var(--blue-bg)';
         var col = {kegiatan:'var(--c-kegiatan-text)',libur:'var(--c-libur-text)',ujian:'var(--c-ujian-text)',rapat:'var(--c-rapat-text)'}[ev.type]||'var(--accent)';
         var bar = typeColor(ev.type);
+        // Label tanggal: "5" atau rentang "22–26"; kalau selesai di bulan lain "22–3 Jan"
+        var tgl='';
+        if(ev.date){
+          tgl=String(parseInt(ev.date.substring(8,10),10));
+          if(ev.dateEnd&&ev.dateEnd!==ev.date){
+            var sameMonth=ev.dateEnd.substring(0,7)===ev.date.substring(0,7);
+            tgl+='–'+(sameMonth?String(parseInt(ev.dateEnd.substring(8,10),10)):fmtDateShort(ev.dateEnd));
+          }
+        }
         evListHtml += '<div style="display:inline-flex;align-items:center;gap:4px;background:'+bg+';color:'+col+';border-radius:4px;padding:3px 7px;font-size:9px;font-weight:600">'
           +'<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:'+bar+';flex-shrink:0"></span>'
+          +(tgl?'<span style="font-weight:800;white-space:nowrap">'+tgl+'</span>':'')
           +'<span title="'+ev.name+(ev.date?' ('+fmtDateShort(ev.date)+')':'')+'">'+ev.name+'</span>'
           +'</div>';
       });
