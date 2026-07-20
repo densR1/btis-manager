@@ -2128,7 +2128,8 @@ function renderSemester() {
   months.forEach(function(mo) {
     var m = mo.m, y = mo.y;
     var ms = y+'-'+String(m+1).padStart(2,'0');
-    var mevs = events.filter(function(ev){ return ev.date.substring(0,7)===ms; });
+    var mevs = events.filter(function(ev){ return ev.date.substring(0,7)===ms; })
+      .sort(function(a,b){ return a.date<b.date?-1:a.date>b.date?1:0; });
 
     // mini kalender
     var calHtml = buildMiniCalTable(y, m);
