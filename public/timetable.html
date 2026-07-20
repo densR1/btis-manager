@@ -2641,7 +2641,8 @@ function defaultData(){
     ],
     slots:[],sched:{},dismiss:{},
     eskulGroups:[],
-    levelConfig:{}
+    levelConfig:{},
+    preSubjCodes:{Senin:'RQ',Selasa:'DH',Rabu:'LT',Kamis:'DH',Jumat:'AK'}
   };
 }
 
@@ -3085,11 +3086,39 @@ function getJPRows(){
   return rows;
 }
 
-// Pre-lesson fixed subjects per day
-var PRE_SUBJ={Senin:'RQ',Selasa:'DH',Rabu:'LT',Kamis:'DH',Jumat:'AK'};
+// Pre-lesson fixed subjects per day — disimpan di D.preSubjCodes (persisten,
+// ikut di-rename bila subject-nya diganti kode). Fallback default bila data lama
+// belum punya field ini.
+function ensurePreSubjCodes(){
+  if(!D.preSubjCodes)D.preSubjCodes={Senin:'RQ',Selasa:'DH',Rabu:'LT',Kamis:'DH',Jumat:'AK'};
+  return D.preSubjCodes;
+}
+function getPreSubjCode(day){return ensurePreSubjCodes()[day]||'';}
 // Mapel tanpa guru & tanpa hitungan JP (istirahat/pembiasaan).
 // Cek case-insensitive agar kode buatan admin (mis. "RECESS") tetap dikenali.
 function isNoTeacherSubj(code){return !!code&&['RECESS','PULANG','ISTIRAHAT','DH','LT','AK','RQ'].indexOf(String(code).toUpperCase())>=0;}
+// Apakah subject punya target JP mingguan yang diisi (bukan {} kosong)?
+function subjHasAnyJP(s){
+  if(!s||!s.jp||typeof s.jp!=='object')return false;
+  return Object.keys(s.jp).some(function(k){return(parseInt(s.jp[k])||0)>0;});
+}
+// SATU-SATUNYA aturan "dihitung dalam JP mingguan?" — dipakai tabel Mapel,
+// Rekap JP Terisi, dan Total JP/Minggu agar selalu konsisten.
+// Prioritas: toggle eksplisit s.dihitung (Master Data > Mapel) → default
+// diturunkan dari kode terstruktur & ada/tidaknya target JP. Default berbasis
+// jp kosong ini penting: bila kode RQ/DH/LT/AK di-rename (mis. jadi "CT"),
+// jp-nya tetap {} sehingga tetap default "tidak dihitung" walau kodenya berubah.
+function isSubjCounted(s){
+  if(!s)return false;
+  if(s.dihitung!==undefined)return !!s.dihitung;
+  return !isNoTeacherSubj(s.code)&&subjHasAnyJP(s);
+}
+function getSubjCountedByCode(code){return isSubjCounted(D.subjects.find(function(x){return x.code===code;}));}
+function toggleSubjDihitung(code){
+  var s=D.subjects.find(function(x){return x.code===code;});if(!s)return;
+  s.dihitung=!isSubjCounted(s);
+  save();renderSubjTable();renderRekapMapel();
+}
 // Ambil nama pendek yang skip gelar (Ms., Mr., Bu, Pak, dll)
 function shortName(fullName){
   if(!fullName)return'';
@@ -3153,7 +3182,6 @@ function renderRekapMapel(){
 // Tabel Rekap JP Terisi per Kelas — dipakai di Master Data (Mapel) dan bawah Jadwal
 function buildRekapMapelHTML(){
   if(!D.classes.length||!D.subjects.length)return'<p style="color:var(--txt3);font-size:12px;text-align:center;padding:32px">Belum ada data.</p>';
-  var skip=['Recess','Pulang','RQ','DH','LT','AK'];
   var classes=D.classes.slice().sort(function(a,b){return parseInt(a.level)-parseInt(b.level)||a.name.localeCompare(b.name);});
   var jpCount={};
   classes.forEach(function(cls){jpCount[cls.id]={};});
@@ -3171,7 +3199,7 @@ function buildRekapMapelHTML(){
         }
         if(!sid)return;
         var e=getEntry(day,sid,cls.id);
-        if(!e||!e.subj||skip.indexOf(e.subj)>=0||isNoTeacherSubj(e.subj))return;
+        if(!e||!e.subj||!getSubjCountedByCode(e.subj))return;
         if(!jpCount[cls.id][e.subj])jpCount[cls.id][e.subj]=0;
         jpCount[cls.id][e.subj]++;
       });
@@ -3179,7 +3207,7 @@ function buildRekapMapelHTML(){
   });
   var usedSubjs={};
   classes.forEach(function(cls){Object.keys(jpCount[cls.id]).forEach(function(s){usedSubjs[s]=true;});});
-  var subjCodes=D.subjects.filter(function(s){return skip.indexOf(s.code)<0&&usedSubjs[s.code];}).map(function(s){return s.code;});
+  var subjCodes=D.subjects.filter(function(s){return isSubjCounted(s)&&usedSubjs[s.code];}).map(function(s){return s.code;});
   if(!subjCodes.length)return'<p style="color:var(--txt3);font-size:12px;text-align:center;padding:32px">Jadwal belum diisi.</p>';
   var html='<div style="overflow:auto;height:100%;max-height:100%;border-radius:var(--rs);box-shadow:var(--sh)">'+
     '<table style="border-collapse:separate;border-spacing:0;width:100%;background:var(--white);font-size:12px">'+
@@ -3345,7 +3373,8 @@ function buildKelasTable(cid,printMode){
     var s=D.subjects.find(function(x){return x.code===code;});
     return s?s.name:code;
   }
-  var PRE_NAMES={Senin:subjName('RQ'),Selasa:subjName('DH'),Rabu:subjName('LT'),Kamis:subjName('DH'),Jumat:subjName('AK')};
+  var PRE_NAMES={};
+  ['Senin','Selasa','Rabu','Kamis','Jumat'].forEach(function(d){PRE_NAMES[d]=subjName(getPreSubjCode(d));});
   var SUBJ_COLORS={
     TAH:{bg:'#b8e8ce',color:'#054a28',fw:'800'},MAT:{bg:'#b8d4f0',color:'#0a2f5a',fw:'800'},
     BI:{bg:'#fdd8b8',color:'#5a1f00',fw:'800'},PE:{bg:'#c4e8a8',color:'#1a4008',fw:'800'},
@@ -3984,7 +4013,7 @@ function renderSubjJPHeaders(){
   D.classes.forEach(function(cls){if(activeLevels.indexOf(String(cls.level))<0)activeLevels.push(String(cls.level));});
   activeLevels.sort();
   if(!activeLevels.length)activeLevels=['1','2','3','4','5','6'];
-  var html='<tr><th style="width:32px;text-align:center"><input type="checkbox" id="chk-all-subject" onchange="toggleSelectAll(\'subject\')" style="accent-color:var(--red);cursor:pointer;width:14px;height:14px"></th><th style="min-width:70px">Kode</th><th style="min-width:160px">Subject</th>';
+  var html='<tr><th style="width:32px;text-align:center"><input type="checkbox" id="chk-all-subject" onchange="toggleSelectAll(\'subject\')" style="accent-color:var(--red);cursor:pointer;width:14px;height:14px"></th><th style="min-width:70px">Kode</th><th style="min-width:160px">Subject</th><th style="width:90px;text-align:center">Dihitung</th>';
   activeLevels.forEach(function(lv){
     var gc=getGradeColor(lv);
     html+='<th style="text-align:center;width:70px;border-left:3px solid rgba(0,0,0,.1);background:'+gc.bg+';color:'+gc.text+';font-size:11px;font-weight:700;padding:8px 6px">Grade '+lv+'</th>';
@@ -3995,16 +4024,16 @@ function renderSubjJPHeaders(){
 function renderSubjTable(){
   var tb=document.getElementById('subjTbody');if(!tb)return;
   tb.innerHTML='';
-  var noJP=['Recess','Pulang','RQ','DH','LT','AK'];
   var activeLevels=[];
   D.classes.forEach(function(cls){if(activeLevels.indexOf(String(cls.level))<0)activeLevels.push(String(cls.level));});
   activeLevels.sort();
   if(!activeLevels.length)activeLevels=['1','2','3','4','5','6'];
-  var totalCols=activeLevels.length+4;
+  var totalCols=activeLevels.length+5;
   function renderSubjRow(s){
     var tr=document.createElement('tr');
+    var isCounted=isSubjCounted(s);
     var jpCells='';
-    if(noJP.indexOf(s.code)>=0||isNoTeacherSubj(s.code)){
+    if(!isCounted){
       jpCells='<td colspan="'+activeLevels.length+'" style="text-align:center;color:var(--txt3);font-size:12px;font-style:italic;padding:9px">tidak dihitung</td>';
     } else {
       activeLevels.forEach(function(lv){
@@ -4016,9 +4045,13 @@ function renderSubjTable(){
           '</td>';
       });
     }
+    var dihitungCell='<td style="text-align:center">'+
+      '<button onclick="toggleSubjDihitung(\''+s.code+'\')" title="Klik untuk ganti" style="cursor:pointer;border:1.5px solid '+(isCounted?'var(--grn-b)':'var(--brd2)')+';background:'+(isCounted?'var(--grn-l)':'var(--surf2)')+';color:'+(isCounted?'var(--grn)':'var(--txt3)')+';border-radius:12px;padding:3px 10px;font-size:10px;font-weight:700;font-family:inherit">'+
+      (isCounted?'✓ Ya':'✕ Tidak')+'</button></td>';
     tr.innerHTML='<td style="text-align:center"><input type="checkbox" class="row-chk" data-type="subject" value="'+s.code+'" onchange="updateSelectionBar(\'subject\')" style="accent-color:var(--red);cursor:pointer;width:14px;height:14px"></td>'+
       '<td><span class="spill '+sColor(s.code)+'" style="border-color:currentColor;font-size:11px;padding:3px 9px">'+s.code+'</span></td>'+
       '<td style="font-weight:600;font-size:13px;color:var(--txt)">'+s.name+'</td>'+
+      dihitungCell+
       jpCells+
       '<td style="white-space:nowrap">'+
       '<button class="del-btn" onclick="openEditSubject(\''+s.code+'\')" style="color:var(--blu)">✏</button>'+
@@ -4034,7 +4067,7 @@ function renderSubjTable(){
   }
   // Pisahkan: mapel berhitung JP dulu, lalu yang tidak dihitung di section bawah
   var counted=[],uncounted=[];
-  D.subjects.forEach(function(s){ ((noJP.indexOf(s.code)>=0||isNoTeacherSubj(s.code))?uncounted:counted).push(s); });
+  D.subjects.forEach(function(s){ (isSubjCounted(s)?counted:uncounted).push(s); });
   counted.forEach(renderSubjRow);
   if(uncounted.length){
     var sep=document.createElement('tr');
@@ -4259,7 +4292,6 @@ function updateSubjJP(code,level,val){
 }
 function renderSubjTotalRow(){
   var tb=document.getElementById('subjTbody');if(!tb)return;
-  var noJP=['Recess','Pulang','RQ','DH','LT','AK'];
   var activeLevels=[];
   D.classes.forEach(function(cls){if(activeLevels.indexOf(String(cls.level))<0)activeLevels.push(String(cls.level));});
   activeLevels.sort();
@@ -4269,12 +4301,12 @@ function renderSubjTotalRow(){
   var totalRow=document.createElement('tr');
   totalRow.className='subj-total-row';
   totalRow.style.cssText='position:sticky;bottom:0;z-index:2;box-shadow:0 -2px 6px rgba(0,0,0,.08)';
-  var totalCells='<td colspan="3" style="background:var(--txt);color:#fff;font-weight:800;font-size:12px;padding:9px 10px;border-top:2px solid var(--brd)">Total <span style="font-weight:400;font-size:11px;opacity:.6">JP/Minggu</span></td>';
+  var totalCells='<td colspan="4" style="background:var(--txt);color:#fff;font-weight:800;font-size:12px;padding:9px 10px;border-top:2px solid var(--brd)">Total <span style="font-weight:400;font-size:11px;opacity:.6">JP/Minggu</span></td>';
   activeLevels.forEach(function(lv){
     var gc=getGradeColor(lv);
     var total=0;
     D.subjects.forEach(function(s){
-      if(noJP.indexOf(s.code)>=0||isNoTeacherSubj(s.code))return;
+      if(!isSubjCounted(s))return;
       var val=(s.jp&&typeof s.jp==='object')?(s.jp[lv]!==undefined?parseInt(s.jp[lv])||0:0):getSubjJP(s.code,lv);
       total+=val;
     });
@@ -4386,6 +4418,9 @@ function saveEditSubject(){
   if(nc!==editSubjCode){
     D.classes.forEach(function(cls){(cls.assignments||[]).forEach(function(a){if(a.subj===editSubjCode)a.subj=nc;});});
     for(var d in D.sched)for(var sl in D.sched[d])for(var c in D.sched[d][sl]){var e=D.sched[d][sl][c];if(e&&e.subj===editSubjCode)e.subj=nc;}
+    // Ikut ganti referensi di pre-lesson slot (RQ/DH/LT/AK per hari) bila kode lama dipakai di sana
+    var pre=ensurePreSubjCodes();
+    Object.keys(pre).forEach(function(dk){if(pre[dk]===editSubjCode)pre[dk]=nc;});
   }
   s.code=nc;s.name=nn;
   save();closeEditSubject();renderMaster();renderKelasTable();
@@ -4932,7 +4967,7 @@ function renderGrid(){
           html+='<td class="jdim"></td>';
           break;
         case 'pre':
-          html+='<td class="jpre" style="text-align:center;padding:3px"><div style="font-size:11px;font-weight:700;color:#7a5cc0">'+(PRE_SUBJ[day]||'')+'</div></td>';
+          html+='<td class="jpre" style="text-align:center;padding:3px"><div style="font-size:11px;font-weight:700;color:#7a5cc0">'+(getPreSubjCode(day)||'')+'</div></td>';
           break;
         case 'pulang':
           html+='<td class="jdismiss"><div class="jcell-inner"><span style="font-size:13px">🏠</span><span style="font-size:8px;font-weight:800;color:#fff;display:block;margin-top:1px">Pulang</span></div></td>';
