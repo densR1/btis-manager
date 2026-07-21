@@ -813,6 +813,10 @@ function _mtgAuthHeaders(extra){
 }
 var _mtgSaveTimer=null;
 function _mtgDebounceSave(fn){ clearTimeout(_mtgSaveTimer); _mtgSaveTimer=setTimeout(fn,800); }
+// Cegah PUT ke server sebelum data awal selesai dimuat dari server.
+// Tanpa ini, render/auto-sync saat load (pics masih kosong/cache stale) bisa
+// menimpa data server dengan array kosong — persis bug data-hilang di timetable.
+var _mtgReady=false;
 
 function saveAll(){
   // Strip base64 dataUrl from files before saving to localStorage (prevents QuotaExceededError)
@@ -833,7 +837,8 @@ function saveAll(){
       }catch(e2){ console.warn('Storage still full, clearing old data'); localStorage.removeItem(K.eval); }
     }
   }
-  // Kirim ke API (debounced)
+  // Kirim ke API (debounced) — hanya bila data awal sudah dimuat dari server
+  if(!_mtgReady) return; // localStorage cache tetap ditulis di atas; PUT ditahan
   _mtgDebounceSave(function(){
     const payload={
       meetings: meetingsSafe,
@@ -2010,9 +2015,11 @@ function renderAll(){
         if(Array.isArray(json.evaluasi)) evaluasi = json.evaluasi;
         // Update cache
         try{ sv(K.mtg,meetings); sv(K.nt,notulen); sv(K.pics,pics); sv(K.eval,evaluasi); }catch(e){}
+        // Data server sudah dimuat → aman untuk PUT mulai sekarang
+        _mtgReady=true;
       }
     })
-    .catch(function(){ /* pakai cache localStorage yang sudah diload di atas */ })
+    .catch(function(){ /* fetch gagal: _mtgReady tetap false agar PUT tidak menimpa data server dengan cache lokal */ })
     .finally(function(){
       initTahunAjaran();
       showDashboard();
