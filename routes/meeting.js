@@ -12,10 +12,11 @@ router.get('/data', async (req, res) => {
       const row = await db.queryOne("SELECT value FROM calendar_settings WHERE `key` = ?", [key]);
       return row ? JSON.parse(row.value) : def;
     };
+    const meetings = await upsert('meeting_meetings', []);
     const pics     = await upsert('meeting_pics',     []);
     const notulen  = await upsert('meeting_notulen',  []);
     const evaluasi = await upsert('meeting_evaluasi', []);
-    res.json({ success: true, pics, notulen, evaluasi });
+    res.json({ success: true, meetings, pics, notulen, evaluasi });
   } catch (err) { res.status(500).json({ success: false, message: err.message }); }
 });
 
@@ -27,7 +28,8 @@ router.put('/data', async (req, res) => {
       "INSERT INTO calendar_settings (`key`, value) VALUES (?, ?) ON DUPLICATE KEY UPDATE value = ?",
       [key, val, val]
     );
-    const { pics, notulen, evaluasi } = req.body;
+    const { meetings, pics, notulen, evaluasi } = req.body;
+    if (meetings !== undefined) await save('meeting_meetings', JSON.stringify(meetings));
     if (pics     !== undefined) await save('meeting_pics',     JSON.stringify(pics));
     if (notulen  !== undefined) await save('meeting_notulen',  JSON.stringify(notulen));
     if (evaluasi !== undefined) await save('meeting_evaluasi', JSON.stringify(evaluasi));
