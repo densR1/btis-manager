@@ -543,6 +543,15 @@
     .clock-widget { flex-wrap:wrap; }
     .notif-panel { width: 100vw; }
   }
+  @media (max-width:640px) {
+    header { padding:0 .7rem; height:auto; min-height:52px; flex-wrap:wrap; gap:.4rem .5rem; }
+    header .divider-v { display:none; }
+    .header-left { gap:.5rem; }
+    .page-title { font-size:.95rem; }
+    .page-title .icon-wrap { width:26px; height:26px; }
+    .header-right { margin-left:auto; }
+  }
+  html, body { overflow-x: hidden; }
 </style>
 </head>
 <body>

@@ -718,7 +718,17 @@ body.locked .ekskul-cal-section input {
   .metrics { grid-template-columns: 1fr 1fr; }
   .app { padding: 12px; }
   .notif-row { flex-wrap: wrap; }
+  /* Header responsif */
+  header { padding: 0 .7rem !important; height: auto; min-height: 52px; flex-wrap: wrap; gap: .4rem; }
+  header .divider-v { display: none; }
+  header .page-title { font-size: .95rem; }
+  .header { flex-wrap: wrap; gap: .6rem; }
+  .header .header-left { gap: .6rem; }
+  .header h1 { font-size: 1.1rem; }
+  .tabs { overflow-x: auto; -webkit-overflow-scrolling: touch; flex-wrap: nowrap; }
+  .tabs .tab { white-space: nowrap; flex-shrink: 0; }
 }
+html, body { overflow-x: hidden; }
 @media (max-width: 860px) {
   .semester-months-grid { grid-template-columns: 1fr 1fr; }
 }

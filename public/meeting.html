@@ -547,7 +547,19 @@ footer strong { color: var(--blue); }
   .att-main { flex-direction: column; }
   .nt-grid2 { grid-template-columns: 1fr; }
   .nt-pengesahan-row { flex-direction: column; align-items: stretch; }
+  /* Header responsif */
+  header { padding: 0 .7rem; height: auto; min-height: 54px; flex-wrap: wrap; gap: .4rem .5rem; }
+  header .divider-v { display: none; }
+  .header-left { gap: .5rem; }
+  .page-title { font-size: .95rem; padding: .3rem .5rem; }
+  .page-title .icon-wrap { width: 26px; height: 26px; }
+  .header-right { gap: .5rem; margin-left: auto; }
+  .tahun-ajaran-wrap .ta-label { font-size: 9px; }
+  .ta-input { width: 60px; }
+  .tabs-bar { padding: 0 .5rem; }
+  .tab-btn { padding: .7rem .75rem; font-size: .8rem; }
 }
+html, body { overflow-x: hidden; }
 
 /* ── PRINT STYLES ── */
 @media print {

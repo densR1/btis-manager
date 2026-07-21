@@ -201,6 +201,26 @@ body {
   margin-left: 3px;
 }
 
+/* ── Header responsif (HP) ── */
+@media (max-width: 720px) {
+  #header-top-row { padding: 6px .7rem; height: auto; gap: .4rem .5rem; flex-wrap: wrap; }
+  #btis-header .divider-v { display: none; }
+  .page-title { font-size: .95rem; letter-spacing: .2px; }
+  .page-title img { height: 28px; }
+  #header-right { gap: 6px; margin-left: auto; }
+  #btis-header .ta-selector { padding: 3px 7px; gap: 4px; }
+  #btis-header .ta-selector .ta-label { display: none; }
+  #btis-header .ta-selector select { max-width: 92px; font-size: 11px; }
+  #btis-header .ta-new-btn { padding: 2px 6px; font-size: 10px; }
+  #header-tab-row { padding: 0 .4rem; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  #btis-header .app-tabs { gap: 0; }
+  #btis-header .app-tabs .tab { padding: 6px 9px; font-size: 11px; }
+}
+@media (max-width: 420px) {
+  .back-btn { padding: .4rem .5rem; font-size: .8rem; }
+  .page-title { font-size: .85rem; }
+}
+
 /* Timetable app wrapper — fills remaining height */
 #tt-app-wrap {
   flex: 1;

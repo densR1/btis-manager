@@ -195,6 +195,12 @@
     background: var(--white);
   }
   footer strong { color: var(--blue); }
+  html, body { overflow-x: hidden; }
+  @media (max-width:640px) {
+    header { padding:0 .7rem; flex-wrap:wrap; gap:.4rem; }
+    header .divider-v { display:none; }
+    .page-title { font-size:.95rem; }
+  }
 </style>
 </head>
 <body>
