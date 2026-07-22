@@ -195,11 +195,113 @@
     background: var(--white);
   }
   footer strong { color: var(--blue); }
+
+  /* ── Header right (lock) ── */
+  .header-right { display:flex; align-items:center; gap:.6rem; }
+  .lock-btn {
+    background:#fff; border:1px solid var(--border); border-radius:9px;
+    width:40px; height:40px; display:flex; align-items:center; justify-content:center;
+    cursor:pointer; font-size:17px; transition:.15s; flex-shrink:0;
+  }
+  .lock-btn:hover { background:var(--blue-light); border-color:#c7d9f5; }
+  .lock-btn.locked-active { background:#fef3c7; border-color:#f5d9a0; }
+
+  /* ── Teacher Duty ── */
+  .td-main { max-width:900px; margin:0 auto; padding:1.75rem 1.25rem 5rem; text-align:left; }
+  .td-head { margin-bottom:1.25rem; }
+  .td-head h1 { font-size:1.4rem; font-weight:700; font-style:italic; color:var(--blue); font-family:'Eras Bold ITC','Century Gothic',sans-serif; }
+  .td-head p { font-size:.88rem; color:var(--muted); margin-top:.25rem; }
+
+  .view-banner {
+    display:flex; align-items:center; gap:.5rem; background:#eff6ff; color:#1e40af;
+    border:1px solid #bfdbfe; border-radius:10px; padding:.7rem 1rem; font-size:.82rem;
+    font-weight:600; margin-bottom:1.25rem;
+  }
+  body:not(.locked) .view-banner { display:none; }
+
+  .admin-only { display:block; }
+  body.locked .admin-only { display:none !important; }
+
+  .card {
+    background:#fff; border:1px solid var(--border); border-radius:14px;
+    padding:1.25rem; box-shadow:0 2px 10px rgba(26,58,107,.05); margin-bottom:1.25rem;
+  }
+  .card h3 { font-size:1rem; font-weight:700; color:var(--blue); margin-bottom:1rem; display:flex; align-items:center; gap:.5rem; }
+  .fld { margin-bottom:.85rem; }
+  .fld label { display:block; font-size:.78rem; font-weight:700; color:var(--blue); margin-bottom:.35rem; }
+  .fi {
+    width:100%; padding:.6rem .75rem; border:1.5px solid var(--border); border-radius:9px;
+    font-family:inherit; font-size:.9rem; color:#1a3a6b; outline:none; background:#fff; transition:border-color .15s;
+  }
+  .fi:focus { border-color:var(--accent); }
+  textarea.fi { resize:vertical; min-height:64px; }
+  .file-drop {
+    border:1.5px dashed #c7d9f5; border-radius:10px; padding:.9rem 1rem; text-align:center;
+    font-size:.85rem; color:var(--muted); cursor:pointer; transition:.15s; background:#fafcff;
+  }
+  .file-drop:hover { border-color:var(--accent); background:#f5fbf7; }
+  .file-drop.has-file { border-color:var(--accent); color:var(--accent); background:#f0fdf4; font-weight:600; }
+  .btn {
+    display:inline-flex; align-items:center; gap:.4rem; border:none; border-radius:9px;
+    padding:.6rem 1.2rem; font-family:inherit; font-size:.88rem; font-weight:700; cursor:pointer; transition:.15s;
+  }
+  .btn-primary { background:var(--accent); color:#fff; }
+  .btn-primary:hover { background:#047c43; }
+  .btn-primary:disabled { opacity:.55; cursor:not-allowed; }
+  .btn-ghost { background:#fff; border:1.5px solid var(--border); color:var(--blue); }
+  .btn-ghost:hover { background:var(--blue-light); }
+
+  .doc-list { display:flex; flex-direction:column; gap:.75rem; }
+  .doc-item {
+    display:flex; align-items:flex-start; gap:.9rem; background:#fff; border:1px solid var(--border);
+    border-radius:12px; padding:1rem 1.1rem; box-shadow:0 1px 6px rgba(26,58,107,.04);
+  }
+  .doc-icon {
+    width:44px; height:44px; border-radius:10px; background:var(--accent-bg); color:var(--accent);
+    display:flex; align-items:center; justify-content:center; font-size:1.3rem; flex-shrink:0;
+  }
+  .doc-icon.pdf { background:#fef2f2; color:#dc2626; }
+  .doc-body { flex:1; min-width:0; }
+  .doc-title { font-size:.95rem; font-weight:700; color:var(--blue); }
+  .doc-desc { font-size:.82rem; color:var(--muted); margin-top:.15rem; line-height:1.5; white-space:pre-wrap; }
+  .doc-meta { font-size:.72rem; color:#9ca3af; margin-top:.4rem; }
+  .doc-actions { display:flex; align-items:center; gap:.4rem; flex-shrink:0; flex-wrap:wrap; justify-content:flex-end; }
+  .icon-btn {
+    border:1px solid var(--border); background:#fff; border-radius:8px; padding:.4rem .6rem;
+    font-size:.8rem; font-weight:600; cursor:pointer; color:var(--blue); transition:.15s; text-decoration:none; display:inline-flex; align-items:center; gap:.3rem;
+  }
+  .icon-btn:hover { background:var(--blue-light); }
+  .icon-btn.danger { color:#dc2626; }
+  .icon-btn.danger:hover { background:#fef2f2; }
+  .empty-docs { text-align:center; padding:3rem 1rem; color:var(--muted); }
+  .empty-docs .ei { font-size:2.5rem; margin-bottom:.75rem; opacity:.5; }
+
+  /* ── Modal (edit + lock) ── */
+  .overlay {
+    position:fixed; inset:0; background:rgba(15,23,42,.5); display:none; align-items:center;
+    justify-content:center; z-index:100; padding:1rem;
+  }
+  .overlay.on { display:flex; }
+  .modal { background:#fff; border-radius:16px; padding:1.5rem; width:100%; max-width:440px; box-shadow:0 20px 60px rgba(0,0,0,.25); }
+  .modal h3 { font-size:1.1rem; font-weight:700; color:var(--blue); margin-bottom:1rem; }
+  .modal .mfoot { display:flex; justify-content:flex-end; gap:.6rem; margin-top:1.25rem; }
+  .form-msg { font-size:.8rem; margin-top:.5rem; min-height:1em; }
+  .form-msg.err { color:#dc2626; }
+
+  .toast {
+    position:fixed; bottom:1.5rem; left:50%; transform:translateX(-50%) translateY(20px);
+    background:var(--blue); color:#fff; padding:.7rem 1.3rem; border-radius:10px; font-size:.85rem;
+    font-weight:600; opacity:0; pointer-events:none; transition:.25s; z-index:300;
+  }
+  .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+
   html, body { overflow-x: hidden; }
   @media (max-width:640px) {
     header { padding:0 .7rem; flex-wrap:wrap; gap:.4rem; }
     header .divider-v { display:none; }
     .page-title { font-size:.95rem; }
+    .doc-item { flex-wrap:wrap; }
+    .doc-actions { width:100%; justify-content:flex-start; }
   }
 </style>
 </head>
@@ -216,23 +318,239 @@
       Teacher Manager
     </div>
   </div>
+  <div class="header-right">
+    <button class="lock-btn" id="lock-btn" onclick="toggleLock()" title="Kunci / Buka Kunci (Admin)">🔓</button>
+  </div>
 </header>
 
-<main>
-  <div class="coming-soon-wrap">
-    <div class="cs-icon-big">👨‍🏫</div>
-    <h1 class="cs-title">Teacher Manager</h1>
-    <div class="cs-divider"></div>
-    <p class="cs-desc">Kelola data guru, jadwal mengajar, beban tugas, dan informasi kepegawaian.</p>
-    <div class="cs-badge">🚧 Halaman ini sedang dalam pengembangan</div>
-    <br>
-    <a class="back-link" href="index.html">← Kembali ke Dashboard</a>
+<main class="td-main">
+  <div class="td-head">
+    <h1>📋 Teacher Duty</h1>
+    <p>Dokumen tugas & piket guru yang diunggah admin.</p>
   </div>
+
+  <div class="view-banner">🔒 Mode Lihat Saja — hanya admin yang dapat mengunggah. Klik 🔓 di kanan atas untuk masuk sebagai admin.</div>
+
+  <!-- Form upload (admin) -->
+  <div class="card admin-only">
+    <h3>⬆️ Unggah Dokumen</h3>
+    <div class="fld">
+      <label>Judul <span style="color:#dc2626">*</span></label>
+      <input class="fi" id="td-judul" placeholder="mis. Jadwal Piket Guru Semester 1">
+    </div>
+    <div class="fld">
+      <label>Keterangan</label>
+      <textarea class="fi" id="td-ket" placeholder="Keterangan singkat (opsional)"></textarea>
+    </div>
+    <div class="fld">
+      <label>File (PDF / Word, maks 5MB) <span style="color:#dc2626">*</span></label>
+      <div class="file-drop" id="td-drop" onclick="document.getElementById('td-file').click()">📎 Klik untuk pilih file</div>
+      <input type="file" id="td-file" accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" style="display:none" onchange="onFilePick(this)">
+    </div>
+    <div class="form-msg" id="td-msg"></div>
+    <button class="btn btn-primary" id="td-upload-btn" onclick="uploadDuty()">Unggah</button>
+  </div>
+
+  <!-- Daftar dokumen (semua orang) -->
+  <div class="doc-list" id="doc-list"></div>
 </main>
 
 <footer>
   <strong>BTIS Manager</strong> — School Management System
 </footer>
+
+<!-- Edit modal -->
+<div class="overlay" id="editOverlay" onclick="if(event.target===this)closeEdit()">
+  <div class="modal">
+    <h3>✏️ Edit Dokumen</h3>
+    <div class="fld"><label>Judul <span style="color:#dc2626">*</span></label><input class="fi" id="ed-judul"></div>
+    <div class="fld"><label>Keterangan</label><textarea class="fi" id="ed-ket"></textarea></div>
+    <div class="fld">
+      <label>Ganti file (opsional)</label>
+      <div class="file-drop" id="ed-drop" onclick="document.getElementById('ed-file').click()">📎 Biarkan kosong jika tidak ganti</div>
+      <input type="file" id="ed-file" accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" style="display:none" onchange="onEditFilePick(this)">
+    </div>
+    <div class="form-msg" id="ed-msg"></div>
+    <div class="mfoot">
+      <button class="btn btn-ghost" onclick="closeEdit()">Batal</button>
+      <button class="btn btn-primary" onclick="saveEdit()">Simpan</button>
+    </div>
+  </div>
+</div>
+
+<!-- Lock modal -->
+<div class="overlay" id="lockOverlay" onclick="if(event.target===this)closeLockModal()">
+  <div class="modal" style="max-width:360px">
+    <h3>🔑 Masuk Mode Admin</h3>
+    <div class="fld"><label>Password Admin</label><input class="fi" type="password" id="lock-input" onkeydown="if(event.key==='Enter')doUnlock()"></div>
+    <div class="form-msg" id="lock-msg"></div>
+    <div class="mfoot">
+      <button class="btn btn-ghost" onclick="closeLockModal()">Batal</button>
+      <button class="btn btn-primary" onclick="doUnlock()">Masuk</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── Auth & admin gate ──
+var ADMIN_PIN = 'imron'; // fallback; di-update dari server
+function _authHeaders(extra){
+  var token=''; try{ token=localStorage.getItem('btis_token')||''; }catch(e){}
+  return Object.assign({'Authorization':'Bearer '+token,'Content-Type':'application/json','Accept':'application/json'}, extra||{});
+}
+var LOCK_KEY='btis_teacher_locked';
+var lockState={ locked:true };
+function loadLockState(){ try{ var v=localStorage.getItem(LOCK_KEY); lockState.locked = v===null ? true : v==='1'; }catch(e){ lockState.locked=true; } }
+function saveLockState(){ try{ localStorage.setItem(LOCK_KEY, lockState.locked?'1':'0'); }catch(e){} }
+function applyLockState(){
+  var btn=document.getElementById('lock-btn');
+  if(lockState.locked){
+    document.body.classList.add('locked');
+    if(btn){ btn.textContent='🔒'; btn.title='Admin: klik untuk masuk mode edit'; btn.classList.add('locked-active'); }
+  } else {
+    document.body.classList.remove('locked');
+    if(btn){ btn.textContent='🔓'; btn.title='Mode edit aktif — klik untuk mengunci'; btn.classList.remove('locked-active'); }
+  }
+}
+function toggleLock(){
+  if(lockState.locked){ openLockModal(); }
+  else { lockState.locked=true; saveLockState(); applyLockState(); showToast('🔒 Dikunci'); }
+}
+function openLockModal(){ document.getElementById('lock-msg').textContent=''; document.getElementById('lock-input').value=''; document.getElementById('lockOverlay').classList.add('on'); setTimeout(function(){document.getElementById('lock-input').focus();},80); }
+function closeLockModal(){ document.getElementById('lockOverlay').classList.remove('on'); }
+function doUnlock(){
+  var pin=document.getElementById('lock-input').value;
+  var msg=document.getElementById('lock-msg');
+  if(pin!==ADMIN_PIN){ msg.className='form-msg err'; msg.textContent='❌ Password salah.'; document.getElementById('lock-input').value=''; document.getElementById('lock-input').focus(); return; }
+  lockState.locked=false; saveLockState(); applyLockState(); closeLockModal(); showToast('🔓 Mode admin aktif');
+}
+
+function showToast(txt){ var t=document.getElementById('toast'); t.textContent=txt; t.classList.add('show'); clearTimeout(t._to); t._to=setTimeout(function(){ t.classList.remove('show'); },2200); }
+function escH(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function fmtSize(b){ if(!b)return''; if(b<1024)return b+' B'; if(b<1048576)return (b/1024).toFixed(0)+' KB'; return (b/1048576).toFixed(1)+' MB'; }
+function fmtDate(s){ if(!s)return''; try{ return new Date(s).toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'}); }catch(e){ return ''; } }
+
+// ── File pick → validasi + base64 ──
+var MAX_BYTES=5*1024*1024;
+var MIME_OK=['application/pdf','application/msword','application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+var pendingFile=null;   // {filename,mime,size,data} untuk form upload
+var editFile=null;      // untuk modal edit
+function readFileTo(input, cb, msgEl, dropEl){
+  var f=input.files&&input.files[0];
+  if(!f){ cb(null); return; }
+  if(f.size>MAX_BYTES){ if(msgEl){msgEl.className='form-msg err';msgEl.textContent='❌ File melebihi 5MB.';} input.value=''; cb(null); return; }
+  var okType = MIME_OK.indexOf(f.type)>=0 || /\.(pdf|docx?|)$/i.test(f.name);
+  if(!okType){ if(msgEl){msgEl.className='form-msg err';msgEl.textContent='❌ Hanya PDF atau Word.';} input.value=''; cb(null); return; }
+  var reader=new FileReader();
+  reader.onload=function(ev){
+    var b64=String(ev.target.result).split(',')[1]||'';
+    if(msgEl){ msgEl.className='form-msg'; msgEl.textContent=''; }
+    if(dropEl){ dropEl.classList.add('has-file'); dropEl.textContent='📄 '+f.name+' ('+fmtSize(f.size)+')'; }
+    cb({ filename:f.name, mime:f.type||'application/octet-stream', size:f.size, data:b64 });
+  };
+  reader.readAsDataURL(f);
+}
+function onFilePick(input){ readFileTo(input, function(res){ pendingFile=res; }, document.getElementById('td-msg'), document.getElementById('td-drop')); }
+function onEditFilePick(input){ readFileTo(input, function(res){ editFile=res; }, document.getElementById('ed-msg'), document.getElementById('ed-drop')); }
+
+// ── Render daftar ──
+var docs=[];
+function loadDocs(){
+  fetch('/api/teacher/duty', { headers:_authHeaders() })
+    .then(function(r){ return r.ok?r.json():null; })
+    .then(function(j){ docs=(j&&j.data)||[]; renderDocs(); })
+    .catch(function(){ renderDocs(); });
+}
+function renderDocs(){
+  var el=document.getElementById('doc-list');
+  if(!docs.length){ el.innerHTML='<div class="empty-docs"><div class="ei">📭</div><p>Belum ada dokumen.</p></div>'; return; }
+  el.innerHTML=docs.map(function(d){
+    var isPdf=(d.mime||'').indexOf('pdf')>=0;
+    var meta=[escH(d.filename), fmtSize(d.size), fmtDate(d.created_at)].filter(Boolean).join(' • ');
+    return '<div class="doc-item">'+
+      '<div class="doc-icon'+(isPdf?' pdf':'')+'">'+(isPdf?'📕':'📘')+'</div>'+
+      '<div class="doc-body">'+
+        '<div class="doc-title">'+escH(d.judul)+'</div>'+
+        (d.keterangan?'<div class="doc-desc">'+escH(d.keterangan)+'</div>':'')+
+        '<div class="doc-meta">'+meta+'</div>'+
+      '</div>'+
+      '<div class="doc-actions">'+
+        '<a class="icon-btn" href="/api/teacher/duty/'+d.id+'/download" target="_blank" rel="noopener">⬇️ Unduh</a>'+
+        '<button class="icon-btn admin-only" onclick="openEdit('+d.id+')">✏️ Edit</button>'+
+        '<button class="icon-btn danger admin-only" onclick="delDoc('+d.id+')">🗑️ Hapus</button>'+
+      '</div>'+
+    '</div>';
+  }).join('');
+}
+
+// ── Upload ──
+function uploadDuty(){
+  var judul=document.getElementById('td-judul').value.trim();
+  var ket=document.getElementById('td-ket').value.trim();
+  var msg=document.getElementById('td-msg');
+  if(!judul){ msg.className='form-msg err'; msg.textContent='❌ Judul wajib diisi.'; return; }
+  if(!pendingFile){ msg.className='form-msg err'; msg.textContent='❌ Pilih file dulu.'; return; }
+  var btn=document.getElementById('td-upload-btn'); btn.disabled=true; btn.textContent='Mengunggah…';
+  fetch('/api/teacher/duty', { method:'POST', headers:_authHeaders(), body:JSON.stringify(Object.assign({judul:judul,keterangan:ket}, pendingFile)) })
+    .then(function(r){ return r.json(); })
+    .then(function(j){
+      btn.disabled=false; btn.textContent='Unggah';
+      if(!j.success){ msg.className='form-msg err'; msg.textContent='❌ '+(j.message||'Gagal mengunggah'); return; }
+      document.getElementById('td-judul').value=''; document.getElementById('td-ket').value='';
+      document.getElementById('td-file').value=''; pendingFile=null;
+      var drop=document.getElementById('td-drop'); drop.classList.remove('has-file'); drop.textContent='📎 Klik untuk pilih file';
+      msg.className='form-msg'; msg.textContent=''; showToast('✅ Dokumen diunggah'); loadDocs();
+    })
+    .catch(function(){ btn.disabled=false; btn.textContent='Unggah'; msg.className='form-msg err'; msg.textContent='❌ Gagal terhubung ke server.'; });
+}
+
+// ── Edit ──
+var editId=null;
+function openEdit(id){
+  var d=docs.find(function(x){ return x.id===id; }); if(!d)return;
+  editId=id; editFile=null;
+  document.getElementById('ed-judul').value=d.judul||'';
+  document.getElementById('ed-ket').value=d.keterangan||'';
+  document.getElementById('ed-file').value='';
+  document.getElementById('ed-msg').textContent='';
+  var drop=document.getElementById('ed-drop'); drop.classList.remove('has-file'); drop.textContent='📎 Biarkan kosong jika tidak ganti';
+  document.getElementById('editOverlay').classList.add('on');
+}
+function closeEdit(){ document.getElementById('editOverlay').classList.remove('on'); editId=null; editFile=null; }
+function saveEdit(){
+  if(editId==null)return;
+  var judul=document.getElementById('ed-judul').value.trim();
+  var ket=document.getElementById('ed-ket').value.trim();
+  var msg=document.getElementById('ed-msg');
+  if(!judul){ msg.className='form-msg err'; msg.textContent='❌ Judul wajib diisi.'; return; }
+  var body={judul:judul, keterangan:ket};
+  if(editFile) body=Object.assign(body, editFile);
+  fetch('/api/teacher/duty/'+editId, { method:'PUT', headers:_authHeaders(), body:JSON.stringify(body) })
+    .then(function(r){ return r.json(); })
+    .then(function(j){ if(!j.success){ msg.className='form-msg err'; msg.textContent='❌ '+(j.message||'Gagal'); return; } closeEdit(); showToast('✅ Perubahan disimpan'); loadDocs(); })
+    .catch(function(){ msg.className='form-msg err'; msg.textContent='❌ Gagal terhubung ke server.'; });
+}
+
+// ── Delete ──
+function delDoc(id){
+  var d=docs.find(function(x){ return x.id===id; });
+  if(!confirm('Hapus dokumen "'+(d?d.judul:'')+'"?')) return;
+  fetch('/api/teacher/duty/'+id, { method:'DELETE', headers:_authHeaders() })
+    .then(function(r){ return r.json(); })
+    .then(function(j){ if(j.success){ showToast('🗑️ Dokumen dihapus'); loadDocs(); } })
+    .catch(function(){});
+}
+
+// ── Init ──
+loadLockState(); applyLockState();
+fetch('/api/auth/lock-password', { headers:_authHeaders() })
+  .then(function(r){ return r.ok?r.json():null; })
+  .then(function(j){ if(j&&j.password) ADMIN_PIN=j.password; })
+  .catch(function(){});
+loadDocs();
+</script>
 
 </body>
 </html>

@@ -146,6 +146,18 @@ async function init() {
       updated_at DATETIME NOT NULL DEFAULT NOW()
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
 
+    `CREATE TABLE IF NOT EXISTS teacher_duty (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      judul VARCHAR(255) NOT NULL,
+      keterangan TEXT,
+      filename VARCHAR(255) NOT NULL DEFAULT '',
+      mime VARCHAR(120) NOT NULL DEFAULT '',
+      size INT NOT NULL DEFAULT 0,
+      data LONGTEXT NOT NULL,
+      created_at DATETIME NOT NULL DEFAULT NOW(),
+      updated_at DATETIME NOT NULL DEFAULT NOW()
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
+
     `CREATE TABLE IF NOT EXISTS tasks (
       id INT AUTO_INCREMENT PRIMARY KEY,
       token VARCHAR(255) NOT NULL DEFAULT '',
