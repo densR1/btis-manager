@@ -4152,7 +4152,8 @@ function renderRekap() {
     return months.map(function(mo){
       var m=mo.m, y=mo.y;
       var ms=y+'-'+String(m+1).padStart(2,'0');
-      var mevs=events.filter(function(ev){ return ev.date.substring(0,7)===ms; });
+      var mevs=events.filter(function(ev){ return ev.date.substring(0,7)===ms; })
+        .sort(function(a,b){ return a.date<b.date?-1:a.date>b.date?1:0; });
       var calHtml=buildMiniCalTable(y,m);
       var chips='';
       if(mevs.length){
@@ -4160,8 +4161,18 @@ function renderRekap() {
         mevs.forEach(function(ev){
           var bg={kegiatan:'var(--c-kegiatan-bg)',libur:'var(--c-libur-bg)',ujian:'var(--c-ujian-bg)',rapat:'var(--c-rapat-bg)'}[ev.type]||'var(--blue-bg)';
           var col={kegiatan:'var(--c-kegiatan-text)',libur:'var(--c-libur-text)',ujian:'var(--c-ujian-text)',rapat:'var(--c-rapat-text)'}[ev.type]||'var(--accent)';
+          // Label tanggal: "5" atau rentang "22–26" / lintas bulan "22–3 Jan"
+          var tgl='';
+          if(ev.date){
+            tgl=String(parseInt(ev.date.substring(8,10),10));
+            if(ev.dateEnd&&ev.dateEnd!==ev.date){
+              var sameMonth=ev.dateEnd.substring(0,7)===ev.date.substring(0,7);
+              tgl+='–'+(sameMonth?String(parseInt(ev.dateEnd.substring(8,10),10)):fmtDateShort(ev.dateEnd));
+            }
+          }
           chips+='<span style="display:inline-flex;align-items:center;gap:3px;background:'+bg+';color:'+col+';border-radius:3px;padding:2px 6px;font-size:9px;font-weight:600">'
             +'<span style="display:inline-block;width:5px;height:5px;border-radius:50%;background:'+typeColor(ev.type)+'"></span>'
+            +(tgl?'<b style="font-weight:800">'+tgl+'</b> ':'')
             +escHtml2(ev.name)+'</span>';
         });
         chips+='</div>';
