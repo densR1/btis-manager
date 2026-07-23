@@ -331,6 +331,19 @@
   .form-msg { font-size:.8rem; margin-top:.5rem; min-height:1em; }
   .form-msg.err { color:#dc2626; }
 
+  /* ── Viewer dokumen (Word) ── */
+  .doc-view-modal { max-width:860px; width:100%; height:88vh; display:flex; flex-direction:column; padding:0; overflow:hidden; }
+  .dv-head { display:flex; align-items:center; justify-content:space-between; gap:1rem; padding:1rem 1.25rem; border-bottom:1px solid var(--border); flex-shrink:0; }
+  .dv-head h3 { margin:0; font-size:1rem; color:var(--blue); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .dv-body { flex:1; overflow:auto; padding:2rem 2.25rem; background:#f7f8fa; }
+  .dv-doc { background:#fff; max-width:720px; margin:0 auto; padding:2.5rem 3rem; box-shadow:0 2px 16px rgba(0,0,0,.08); border-radius:4px; color:#222; font-family:'Calibri','DM Sans',sans-serif; line-height:1.6; }
+  .dv-doc p { margin:0 0 .6rem; }
+  .dv-doc h1,.dv-doc h2,.dv-doc h3 { color:#1a1a1a; margin:1rem 0 .5rem; }
+  .dv-doc table { border-collapse:collapse; width:100%; margin:.8rem 0; }
+  .dv-doc td,.dv-doc th { border:1px solid #bbb; padding:.4rem .6rem; font-size:.92rem; vertical-align:top; }
+  .dv-doc img { max-width:100%; height:auto; }
+  .dv-loading { text-align:center; color:var(--muted); padding:3rem 1rem; }
+
   .toast {
     position:fixed; bottom:1.5rem; left:50%; transform:translateX(-50%) translateY(20px);
     background:var(--blue); color:#fff; padding:.7rem 1.3rem; border-radius:10px; font-size:.85rem;
@@ -476,6 +489,18 @@
 
 <div class="toast" id="toast"></div>
 
+<!-- Viewer dokumen (PDF via iframe, Word via mammoth.js) -->
+<div class="overlay" id="docViewOverlay" onclick="if(event.target===this)closeDocView()">
+  <div class="modal doc-view-modal">
+    <div class="dv-head">
+      <h3 id="dv-title">Lihat Dokumen</h3>
+      <button class="btn btn-ghost" onclick="closeDocView()">✕ Tutup</button>
+    </div>
+    <div class="dv-body" id="dv-body"></div>
+  </div>
+</div>
+
+<script src="assets/mammoth.browser.min.js"></script>
 <script>
 // ── Tab nav ──
 function switchTab(name){
@@ -579,17 +604,49 @@ function filteredDocs(){
         || String(d.filename||'').toLowerCase().indexOf(q)>=0;
   });
 }
-// Lihat dokumen. PDF → embed di iframe (tidak kena setelan "download PDF" top-level browser).
-// Non-PDF (Word) → buka tab biasa (browser yang menangani; di HTTP biasanya terunduh).
-function viewDoc(id, isPdf){
+// Lihat dokumen.
+// - PDF  → embed di iframe (tidak kena setelan "download PDF" top-level browser)
+// - .docx → dirender di browser via mammoth.js (tanpa HTTPS/layanan eksternal)
+// - lainnya (.doc lama) → buka tab biasa (fallback, biasanya terunduh)
+function viewDoc(id){
+  var d=docs.find(function(x){ return x.id===id; }); if(!d)return;
   var url='/api/teacher/duty/'+id+'/download';
-  if(!isPdf){ window.open(url,'_blank'); return; }
-  var w=window.open('','_blank');
-  if(!w){ window.open(url,'_blank'); return; } // popup diblokir → fallback tab biasa
-  w.document.write('<!doctype html><html><head><meta charset="utf-8"><title>Lihat Dokumen</title>'+
-    '<style>html,body{margin:0;height:100%;background:#525659}iframe{border:0;width:100%;height:100%}</style></head>'+
-    '<body><iframe src="'+url+'"></iframe></body></html>');
-  w.document.close();
+  var isPdf=(d.mime||'').indexOf('pdf')>=0;
+  var isDocx=/\.docx$/i.test(d.filename||'')||(d.mime||'').indexOf('wordprocessingml')>=0;
+  if(isPdf){
+    var w=window.open('','_blank');
+    if(!w){ window.open(url,'_blank'); return; }
+    w.document.write('<!doctype html><html><head><meta charset="utf-8"><title>Lihat Dokumen</title>'+
+      '<style>html,body{margin:0;height:100%;background:#525659}iframe{border:0;width:100%;height:100%}</style></head>'+
+      '<body><iframe src="'+url+'"></iframe></body></html>');
+    w.document.close();
+    return;
+  }
+  if(isDocx && typeof mammoth!=='undefined'){ openDocxViewer(d, url); return; }
+  window.open(url,'_blank'); // .doc lama atau mammoth belum termuat
+}
+function openDocView(title){
+  document.getElementById('dv-title').textContent=title||'Lihat Dokumen';
+  document.getElementById('docViewOverlay').classList.add('on');
+}
+function closeDocView(){
+  document.getElementById('docViewOverlay').classList.remove('on');
+  document.getElementById('dv-body').innerHTML='';
+}
+function openDocxViewer(d, url){
+  openDocView(d.judul||d.filename);
+  var body=document.getElementById('dv-body');
+  body.innerHTML='<div class="dv-loading">⏳ Memuat dokumen…</div>';
+  fetch(url, { headers:_authHeaders() })
+    .then(function(r){ if(!r.ok) throw new Error('gagal ambil file'); return r.arrayBuffer(); })
+    .then(function(buf){ return mammoth.convertToHtml({ arrayBuffer:buf }); })
+    .then(function(res){
+      body.innerHTML='<div class="dv-doc">'+(res.value||'<p style="color:#888">(Dokumen kosong)</p>')+'</div>';
+    })
+    .catch(function(){
+      body.innerHTML='<div class="dv-loading">❌ Gagal menampilkan dokumen. '+
+        '<a href="'+url+'?dl=1" style="color:var(--accent)">Unduh saja</a>.</div>';
+    });
 }
 function onDocSearch(v){ docSearch=v; docPage=1; renderDocs(); }
 function goPage(p){ docPage=p; renderDocs(); }
@@ -625,7 +682,7 @@ function renderDocs(){
       '</td>'+
       '<td class="dt-date">'+fmtDate(d.created_at)+'</td>'+
       '<td class="dt-act">'+
-        '<button class="icon-btn" onclick="viewDoc('+d.id+','+(isPdf?'1':'0')+')">👁️ Lihat</button>'+
+        '<button class="icon-btn" onclick="viewDoc('+d.id+')">👁️ Lihat</button>'+
         '<a class="icon-btn" href="/api/teacher/duty/'+d.id+'/download?dl=1">⬇️ Unduh</a>'+
         '<button class="icon-btn admin-only" onclick="openEdit('+d.id+')">✏️ Edit</button>'+
         '<button class="icon-btn danger admin-only" onclick="delDoc('+d.id+')">🗑️ Hapus</button>'+
