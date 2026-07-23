@@ -271,22 +271,24 @@
   .btn-ghost { background:#fff; border:1.5px solid var(--border); color:var(--blue); }
   .btn-ghost:hover { background:var(--blue-light); }
 
-  .doc-list { display:flex; flex-direction:column; }
-  .doc-item {
-    display:flex; align-items:flex-start; gap:.9rem; padding:1rem 0; border-bottom:1px solid var(--border);
+  /* ── Tabel dokumen ── */
+  .td-table-wrap { overflow-x:auto; }
+  .td-table { width:100%; border-collapse:collapse; font-size:.86rem; }
+  .td-table thead th {
+    text-align:left; font-size:.72rem; font-weight:700; text-transform:uppercase; letter-spacing:.03em;
+    color:var(--muted); padding:.6rem .7rem; border-bottom:2px solid var(--border); white-space:nowrap;
   }
-  .doc-item:first-child { padding-top:0; }
-  .doc-item:last-child { border-bottom:none; padding-bottom:0; }
-  .doc-icon {
-    width:44px; height:44px; border-radius:10px; background:var(--accent-bg); color:var(--accent);
-    display:flex; align-items:center; justify-content:center; font-size:1.3rem; flex-shrink:0;
-  }
-  .doc-icon.pdf { background:#fef2f2; color:#dc2626; }
-  .doc-body { flex:1; min-width:0; }
-  .doc-title { font-size:.95rem; font-weight:700; color:var(--blue); }
-  .doc-desc { font-size:.82rem; color:var(--muted); margin-top:.15rem; line-height:1.5; white-space:pre-wrap; }
-  .doc-meta { font-size:.72rem; color:#9ca3af; margin-top:.4rem; }
-  .doc-actions { display:flex; align-items:center; gap:.4rem; flex-shrink:0; flex-wrap:wrap; justify-content:flex-end; }
+  .td-table tbody td { padding:.75rem .7rem; border-bottom:1px solid var(--border); vertical-align:top; }
+  .td-table tbody tr:last-child td { border-bottom:none; }
+  .td-table tbody tr:hover { background:#fafcff; }
+  .td-no { color:var(--muted); font-weight:700; text-align:center; }
+  .dt-title { font-weight:700; color:var(--blue); }
+  .dt-desc { font-size:.8rem; color:var(--muted); margin-top:.15rem; line-height:1.5; white-space:pre-wrap; }
+  .dt-file { font-size:.72rem; color:#9ca3af; margin-top:.3rem; }
+  .dt-date { color:var(--muted); white-space:nowrap; }
+  .dt-act { display:flex; gap:.35rem; flex-wrap:wrap; }
+  .empty-docs { text-align:center; padding:3rem 1rem; color:var(--muted); }
+  .empty-docs .ei { font-size:2.5rem; margin-bottom:.75rem; opacity:.5; }
   .icon-btn {
     border:1px solid var(--border); background:#fff; border-radius:8px; padding:.4rem .6rem;
     font-size:.8rem; font-weight:600; cursor:pointer; color:var(--blue); transition:.15s; text-decoration:none; display:inline-flex; align-items:center; gap:.3rem;
@@ -294,8 +296,6 @@
   .icon-btn:hover { background:var(--blue-light); }
   .icon-btn.danger { color:#dc2626; }
   .icon-btn.danger:hover { background:#fef2f2; }
-  .empty-docs { text-align:center; padding:3rem 1rem; color:var(--muted); }
-  .empty-docs .ei { font-size:2.5rem; margin-bottom:.75rem; opacity:.5; }
 
   /* ── Modal (edit + lock) ── */
   .overlay {
@@ -322,8 +322,8 @@
     header { padding:0 .7rem; flex-wrap:wrap; gap:.4rem; }
     header .divider-v { display:none; }
     .page-title { font-size:.95rem; }
-    .doc-item { flex-wrap:wrap; }
-    .doc-actions { width:100%; justify-content:flex-start; }
+    .td-table { font-size:.8rem; }
+    .dt-act .icon-btn { padding:.35rem .5rem; font-size:.72rem; }
   }
 </style>
 </head>
@@ -521,24 +521,27 @@ function loadDocs(){
 function renderDocs(){
   var el=document.getElementById('doc-list');
   if(!docs.length){ el.innerHTML='<div class="empty-docs"><div class="ei">📭</div><p>Belum ada dokumen.</p></div>'; return; }
-  el.innerHTML=docs.map(function(d){
+  var rows=docs.map(function(d,i){
     var isPdf=(d.mime||'').indexOf('pdf')>=0;
-    var meta=[escH(d.filename), fmtSize(d.size), fmtDate(d.created_at)].filter(Boolean).join(' • ');
-    return '<div class="doc-item">'+
-      '<div class="doc-icon'+(isPdf?' pdf':'')+'">'+(isPdf?'📕':'📘')+'</div>'+
-      '<div class="doc-body">'+
-        '<div class="doc-title">'+escH(d.judul)+'</div>'+
-        (d.keterangan?'<div class="doc-desc">'+escH(d.keterangan)+'</div>':'')+
-        '<div class="doc-meta">'+meta+'</div>'+
-      '</div>'+
-      '<div class="doc-actions">'+
+    return '<tr>'+
+      '<td class="td-no">'+(i+1)+'</td>'+
+      '<td>'+
+        '<div class="dt-title">'+(isPdf?'📕':'📘')+' '+escH(d.judul)+'</div>'+
+        (d.keterangan?'<div class="dt-desc">'+escH(d.keterangan)+'</div>':'')+
+        '<div class="dt-file">'+escH(d.filename)+(d.size?' • '+fmtSize(d.size):'')+'</div>'+
+      '</td>'+
+      '<td class="dt-date">'+fmtDate(d.created_at)+'</td>'+
+      '<td class="dt-act">'+
         '<a class="icon-btn" href="/api/teacher/duty/'+d.id+'/download" target="_blank" rel="noopener">👁️ Lihat</a>'+
         '<a class="icon-btn" href="/api/teacher/duty/'+d.id+'/download?dl=1">⬇️ Unduh</a>'+
         '<button class="icon-btn admin-only" onclick="openEdit('+d.id+')">✏️ Edit</button>'+
         '<button class="icon-btn danger admin-only" onclick="delDoc('+d.id+')">🗑️ Hapus</button>'+
-      '</div>'+
-    '</div>';
+      '</td>'+
+    '</tr>';
   }).join('');
+  el.innerHTML='<div class="td-table-wrap"><table class="td-table">'+
+    '<thead><tr><th style="width:44px">No</th><th>Dokumen</th><th style="width:110px">Tanggal</th><th style="width:1%">Aksi</th></tr></thead>'+
+    '<tbody>'+rows+'</tbody></table></div>';
 }
 
 // ── Upload ──
