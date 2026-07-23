@@ -65,8 +65,12 @@
     transition: background .15s;
     text-decoration: none;
   }
-  .back-btn:hover { background: var(--blue-light); }
-  .back-btn .arrow { font-size: 1rem; }
+  .back-btn:hover { 
+    background: var(--blue-light); 
+  }
+  .back-btn .arrow { 
+    font-size: 1rem; 
+  }
 
   .divider-v {
     width: 1px;
@@ -308,7 +312,8 @@
     background:var(--blue); color:#fff; padding:.7rem 1.3rem; border-radius:10px; font-size:.85rem;
     font-weight:600; opacity:0; pointer-events:none; transition:.25s; z-index:300;
   }
-  .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+  .toast.show { 
+    opacity:1; transform:translateX(-50%) translateY(0); }
 
   html, body { overflow-x: hidden; }
   @media (max-width:640px) {
@@ -348,10 +353,10 @@
   <section class="tab-sec on" id="sec-duty">
     <div class="td-head">
       <h1>📋 Teacher Duty</h1>
-      <p>Dokumen tugas & piket guru yang diunggah admin.</p>
+      <p>Dokumen tugas & piket guru.</p>
     </div>
 
-    <div class="view-banner">🔒 Mode Lihat Saja — hanya admin yang dapat mengunggah. Klik 🔓 di kanan atas untuk masuk sebagai admin.</div>
+    <div class="view-banner">Klik 🔓 di kanan atas untuk masuk sebagai admin.</div>
 
     <!-- Form upload (admin) -->
     <div class="card admin-only">
@@ -487,7 +492,11 @@ function readFileTo(input, cb, msgEl, dropEl){
   reader.readAsDataURL(f);
 }
 function onFilePick(input){ readFileTo(input, function(res){ pendingFile=res; }, document.getElementById('td-msg'), document.getElementById('td-drop')); }
-function onEditFilePick(input){ readFileTo(input, function(res){ editFile=res; }, document.getElementById('ed-msg'), document.getElementById('ed-drop')); }
+function onEditFilePick(input){ 
+  readFileTo(input, function(res){ editFile=res; }, 
+  document.getElementById('ed-msg'), 
+  document.getElementById('ed-drop'));
+ }
 
 // ── Render daftar ──
 var docs=[];
