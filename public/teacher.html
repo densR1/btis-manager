@@ -580,9 +580,11 @@ function filteredDocs(){
         || String(d.filename||'').toLowerCase().indexOf(q)>=0;
   });
 }
-// Preview PDF di iframe (embed tidak terkena setelan "download PDF" top-level browser)
-function viewDoc(id){
+// Lihat dokumen. PDF → embed di iframe (tidak kena setelan "download PDF" top-level browser).
+// Non-PDF (Word) → buka tab biasa (browser yang menangani; di HTTP biasanya terunduh).
+function viewDoc(id, isPdf){
   var url='/api/teacher/duty/'+id+'/download';
+  if(!isPdf){ window.open(url,'_blank'); return; }
   var w=window.open('','_blank');
   if(!w){ window.open(url,'_blank'); return; } // popup diblokir → fallback tab biasa
   w.document.write('<!doctype html><html><head><meta charset="utf-8"><title>Lihat Dokumen</title>'+
@@ -624,7 +626,7 @@ function renderDocs(){
       '</td>'+
       '<td class="dt-date">'+fmtDate(d.created_at)+'</td>'+
       '<td class="dt-act">'+
-        (isPdf?'<button class="icon-btn" onclick="viewDoc('+d.id+')">👁️ Lihat</button>':'')+
+        '<button class="icon-btn" onclick="viewDoc('+d.id+','+(isPdf?'1':'0')+')">👁️ Lihat</button>'+
         '<a class="icon-btn" href="/api/teacher/duty/'+d.id+'/download?dl=1">⬇️ Unduh</a>'+
         '<button class="icon-btn admin-only" onclick="openEdit('+d.id+')">✏️ Edit</button>'+
         '<button class="icon-btn danger admin-only" onclick="delDoc('+d.id+')">🗑️ Hapus</button>'+
