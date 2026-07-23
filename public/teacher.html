@@ -206,6 +206,21 @@
   .lock-btn:hover { background:var(--blue-light); border-color:#c7d9f5; }
   .lock-btn.locked-active { background:#fef3c7; border-color:#f5d9a0; }
 
+  /* ── Tab nav ── */
+  .tabs-bar {
+    background:#fff; border-bottom:1px solid var(--border); padding:0 2rem;
+    display:flex; gap:.1rem; overflow-x:auto; position:sticky; top:64px; z-index:40;
+  }
+  .tab-btn {
+    display:flex; align-items:center; gap:.4rem; padding:.85rem 1.1rem; font-size:.875rem;
+    font-weight:600; color:var(--muted); border:none; background:none; cursor:pointer;
+    border-bottom:3px solid transparent; white-space:nowrap; font-family:inherit; transition:.15s;
+  }
+  .tab-btn:hover { color:var(--blue); }
+  .tab-btn.on { color:var(--blue); border-bottom-color:var(--blue); }
+  .tab-sec { display:none; }
+  .tab-sec.on { display:block; }
+
   /* ── Teacher Duty ── */
   .td-main { max-width:900px; margin:0 auto; padding:1.75rem 1.25rem 5rem; text-align:left; }
   .td-head { margin-bottom:1.25rem; }
@@ -323,36 +338,47 @@
   </div>
 </header>
 
+<!-- ── TAB NAV ── -->
+<div class="tabs-bar">
+  <button class="tab-btn on" id="tab-duty" onclick="switchTab('duty')">📋 Teacher Duty</button>
+</div>
+
 <main class="td-main">
-  <div class="td-head">
-    <h1>📋 Teacher Duty</h1>
-    <p>Dokumen tugas & piket guru yang diunggah admin.</p>
-  </div>
-
-  <div class="view-banner">🔒 Mode Lihat Saja — hanya admin yang dapat mengunggah. Klik 🔓 di kanan atas untuk masuk sebagai admin.</div>
-
-  <!-- Form upload (admin) -->
-  <div class="card admin-only">
-    <h3>⬆️ Unggah Dokumen</h3>
-    <div class="fld">
-      <label>Judul <span style="color:#dc2626">*</span></label>
-      <input class="fi" id="td-judul" placeholder="mis. Jadwal Piket Guru Semester 1">
+  <!-- ── TAB: Teacher Duty ── -->
+  <section class="tab-sec on" id="sec-duty">
+    <div class="td-head">
+      <h1>📋 Teacher Duty</h1>
+      <p>Dokumen tugas & piket guru yang diunggah admin.</p>
     </div>
-    <div class="fld">
-      <label>Keterangan</label>
-      <textarea class="fi" id="td-ket" placeholder="Keterangan singkat (opsional)"></textarea>
-    </div>
-    <div class="fld">
-      <label>File (PDF / Word, maks 5MB) <span style="color:#dc2626">*</span></label>
-      <div class="file-drop" id="td-drop" onclick="document.getElementById('td-file').click()">📎 Klik untuk pilih file</div>
-      <input type="file" id="td-file" accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" style="display:none" onchange="onFilePick(this)">
-    </div>
-    <div class="form-msg" id="td-msg"></div>
-    <button class="btn btn-primary" id="td-upload-btn" onclick="uploadDuty()">Unggah</button>
-  </div>
 
-  <!-- Daftar dokumen (semua orang) -->
-  <div class="doc-list" id="doc-list"></div>
+    <div class="view-banner">🔒 Mode Lihat Saja — hanya admin yang dapat mengunggah. Klik 🔓 di kanan atas untuk masuk sebagai admin.</div>
+
+    <!-- Form upload (admin) -->
+    <div class="card admin-only">
+      <h3>⬆️ Unggah Dokumen</h3>
+      <div class="fld">
+        <label>Judul <span style="color:#dc2626">*</span></label>
+        <input class="fi" id="td-judul" placeholder="mis. Jadwal Piket Guru Semester 1">
+      </div>
+      <div class="fld">
+        <label>Keterangan</label>
+        <textarea class="fi" id="td-ket" placeholder="Keterangan singkat (opsional)"></textarea>
+      </div>
+      <div class="fld">
+        <label>File (PDF / Word, maks 5MB) <span style="color:#dc2626">*</span></label>
+        <div class="file-drop" id="td-drop" onclick="document.getElementById('td-file').click()">📎 Klik untuk pilih file</div>
+        <input type="file" id="td-file" accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" style="display:none" onchange="onFilePick(this)">
+      </div>
+      <div class="form-msg" id="td-msg"></div>
+      <button class="btn btn-primary" id="td-upload-btn" onclick="uploadDuty()">Unggah</button>
+    </div>
+
+    <!-- Daftar dokumen (semua orang) -->
+    <div class="doc-list" id="doc-list"></div>
+  </section>
+
+  <!-- Tambah tab baru di sini: <section class="tab-sec" id="sec-xxx">...</section>
+       lalu tambahkan tombol <button class="tab-btn" onclick="switchTab('xxx')"> di .tabs-bar -->
 </main>
 
 <footer>
@@ -394,6 +420,14 @@
 <div class="toast" id="toast"></div>
 
 <script>
+// ── Tab nav ──
+function switchTab(name){
+  document.querySelectorAll('.tab-btn').forEach(function(b){ b.classList.remove('on'); });
+  document.querySelectorAll('.tab-sec').forEach(function(s){ s.classList.remove('on'); });
+  var btn=document.getElementById('tab-'+name); if(btn) btn.classList.add('on');
+  var sec=document.getElementById('sec-'+name); if(sec) sec.classList.add('on');
+}
+
 // ── Auth & admin gate ──
 var ADMIN_PIN = 'imron'; // fallback; di-update dari server
 function _authHeaders(extra){
