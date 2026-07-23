@@ -286,7 +286,8 @@
   .dt-desc { font-size:.8rem; color:var(--muted); margin-top:.15rem; line-height:1.5; white-space:pre-wrap; }
   .dt-file { font-size:.72rem; color:#9ca3af; margin-top:.3rem; }
   .dt-date { color:var(--muted); white-space:nowrap; }
-  .dt-act { display:flex; gap:.35rem; flex-wrap:nowrap; align-items:center; }
+  .dt-act { display:flex; gap:.35rem; flex-wrap:nowrap; align-items:center; justify-content:flex-end; }
+  .td-table td.dt-act, .td-table th.dt-th { text-align:right; }
   .empty-docs { text-align:center; padding:3rem 1rem; color:var(--muted); }
   .empty-docs .ei { font-size:2.5rem; margin-bottom:.75rem; opacity:.5; }
   .icon-btn {
@@ -560,7 +561,7 @@ function renderDocs(){
     '</tr>';
   }).join('');
   el.innerHTML='<div class="td-table-wrap"><table class="td-table">'+
-    '<thead><tr><th style="width:44px">No</th><th>Dokumen</th><th style="width:110px">Tanggal</th><th style="white-space:nowrap">Aksi</th></tr></thead>'+
+    '<thead><tr><th style="width:44px">No</th><th>Dokumen</th><th style="width:110px">Tanggal</th><th class="dt-th" style="white-space:nowrap;text-align:right">Aksi</th></tr></thead>'+
     '<tbody>'+rows+'</tbody></table></div>';
 }
 
