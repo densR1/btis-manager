@@ -271,6 +271,26 @@
   .btn-ghost { background:#fff; border:1.5px solid var(--border); color:var(--blue); }
   .btn-ghost:hover { background:var(--blue-light); }
 
+  /* ── Toolbar (search) & pager ── */
+  .td-toolbar { display:flex; align-items:center; gap:.75rem; margin-bottom:.9rem; flex-wrap:wrap; }
+  .td-search { position:relative; flex:1; min-width:200px; }
+  .td-search-ic { position:absolute; left:.7rem; top:50%; transform:translateY(-50%); font-size:.9rem; opacity:.6; pointer-events:none; }
+  .td-search input {
+    width:100%; padding:.55rem .75rem .55rem 2.1rem; border:1.5px solid var(--border); border-radius:9px;
+    font-family:inherit; font-size:.88rem; color:#1a3a6b; outline:none; background:#fff; transition:border-color .15s;
+  }
+  .td-search input:focus { border-color:var(--accent); }
+  .td-count { font-size:.78rem; color:var(--muted); white-space:nowrap; }
+  .td-pager { display:flex; align-items:center; justify-content:center; gap:.35rem; margin-top:1rem; flex-wrap:wrap; }
+  .pg-btn {
+    border:1px solid var(--border); background:#fff; border-radius:8px; min-width:34px; height:34px; padding:0 .55rem;
+    font-size:.82rem; font-weight:600; color:var(--blue); cursor:pointer; transition:.15s; font-family:inherit;
+  }
+  .pg-btn:hover:not(:disabled) { background:var(--blue-light); }
+  .pg-btn.on { background:var(--blue); color:#fff; border-color:var(--blue); }
+  .pg-btn:disabled { opacity:.4; cursor:not-allowed; }
+  .pg-ellipsis { padding:0 .3rem; color:var(--muted); }
+
   /* ── Tabel dokumen ── */
   .td-table-wrap { overflow-x:auto; }
   .td-table { width:100%; border-collapse:collapse; font-size:.86rem; }
@@ -402,7 +422,15 @@
     <!-- Daftar dokumen (semua orang) -->
     <div class="card">
       <h3>📄 Daftar Dokumen</h3>
+      <div class="td-toolbar">
+        <div class="td-search">
+          <span class="td-search-ic">🔍</span>
+          <input id="doc-search" placeholder="Cari judul, keterangan, atau nama file…" oninput="onDocSearch(this.value)">
+        </div>
+        <span class="td-count" id="doc-count"></span>
+      </div>
       <div class="doc-list" id="doc-list"></div>
+      <div class="td-pager" id="doc-pager"></div>
     </div>
   </section>
 
@@ -531,21 +559,53 @@ function wireDrop(dropId, inputId, onResult, msgId){
   });
 }
 
-// ── Render daftar ──
+// ── Render daftar (dengan search + pagination) ──
 var docs=[];
+var docSearch='';
+var docPage=1;
+var PAGE_SIZE=10;
 function loadDocs(){
   fetch('/api/teacher/duty', { headers:_authHeaders() })
     .then(function(r){ return r.ok?r.json():null; })
     .then(function(j){ docs=(j&&j.data)||[]; renderDocs(); })
     .catch(function(){ renderDocs(); });
 }
+function filteredDocs(){
+  var q=docSearch.trim().toLowerCase();
+  if(!q) return docs;
+  return docs.filter(function(d){
+    return String(d.judul||'').toLowerCase().indexOf(q)>=0
+        || String(d.keterangan||'').toLowerCase().indexOf(q)>=0
+        || String(d.filename||'').toLowerCase().indexOf(q)>=0;
+  });
+}
+function onDocSearch(v){ docSearch=v; docPage=1; renderDocs(); }
+function goPage(p){ docPage=p; renderDocs(); }
 function renderDocs(){
   var el=document.getElementById('doc-list');
-  if(!docs.length){ el.innerHTML='<div class="empty-docs"><div class="ei">📭</div><p>Belum ada dokumen.</p></div>'; return; }
-  var rows=docs.map(function(d,i){
+  var pager=document.getElementById('doc-pager');
+  var countEl=document.getElementById('doc-count');
+  if(pager)pager.innerHTML='';
+  if(!docs.length){
+    if(countEl)countEl.textContent='';
+    el.innerHTML='<div class="empty-docs"><div class="ei">📭</div><p>Belum ada dokumen.</p></div>';
+    return;
+  }
+  var list=filteredDocs();
+  if(countEl)countEl.textContent=docSearch.trim()? list.length+' dari '+docs.length+' dokumen' : docs.length+' dokumen';
+  if(!list.length){
+    el.innerHTML='<div class="empty-docs"><div class="ei">🔍</div><p>Tidak ada dokumen yang cocok dengan pencarian.</p></div>';
+    return;
+  }
+  var totalPages=Math.ceil(list.length/PAGE_SIZE);
+  if(docPage>totalPages)docPage=totalPages;
+  if(docPage<1)docPage=1;
+  var start=(docPage-1)*PAGE_SIZE;
+  var pageItems=list.slice(start, start+PAGE_SIZE);
+  var rows=pageItems.map(function(d,i){
     var isPdf=(d.mime||'').indexOf('pdf')>=0;
     return '<tr>'+
-      '<td class="td-no">'+(i+1)+'</td>'+
+      '<td class="td-no">'+(start+i+1)+'</td>'+
       '<td>'+
         '<div class="dt-title">'+(isPdf?'📕':'📘')+' '+escH(d.judul)+'</div>'+
         (d.keterangan?'<div class="dt-desc">'+escH(d.keterangan)+'</div>':'')+
@@ -563,6 +623,23 @@ function renderDocs(){
   el.innerHTML='<div class="td-table-wrap"><table class="td-table">'+
     '<thead><tr><th style="width:44px">No</th><th>Dokumen</th><th style="width:110px">Tanggal</th><th class="dt-th" style="white-space:nowrap;text-align:right">Aksi</th></tr></thead>'+
     '<tbody>'+rows+'</tbody></table></div>';
+  if(pager)pager.innerHTML=buildPager(totalPages);
+}
+function buildPager(totalPages){
+  if(totalPages<=1) return '';
+  var html='<button class="pg-btn" onclick="goPage('+(docPage-1)+')"'+(docPage<=1?' disabled':'')+'>‹</button>';
+  // tampilkan: 1 … (p-1) p (p+1) … last
+  var pages=[];
+  for(var p=1;p<=totalPages;p++){
+    if(p===1||p===totalPages||(p>=docPage-1&&p<=docPage+1)) pages.push(p);
+    else if(pages[pages.length-1]!=='…') pages.push('…');
+  }
+  pages.forEach(function(p){
+    if(p==='…'){ html+='<span class="pg-ellipsis">…</span>'; }
+    else { html+='<button class="pg-btn'+(p===docPage?' on':'')+'" onclick="goPage('+p+')">'+p+'</button>'; }
+  });
+  html+='<button class="pg-btn" onclick="goPage('+(docPage+1)+')"'+(docPage>=totalPages?' disabled':'')+'>›</button>';
+  return html;
 }
 
 // ── Upload ──
