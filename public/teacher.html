@@ -258,7 +258,8 @@
     border:1.5px dashed #c7d9f5; border-radius:10px; padding:.9rem 1rem; text-align:center;
     font-size:.85rem; color:var(--muted); cursor:pointer; transition:.15s; background:#fafcff;
   }
-  .file-drop:hover { border-color:var(--accent); background:#f5fbf7; }
+  .file-drop:hover, .file-drop.drag { border-color:var(--accent); background:#f5fbf7; }
+  .file-drop.drag { background:#eafaf0; }
   .file-drop.has-file { border-color:var(--accent); color:var(--accent); background:#f0fdf4; font-weight:600; }
   .btn {
     display:inline-flex; align-items:center; gap:.4rem; border:none; border-radius:9px;
@@ -270,11 +271,12 @@
   .btn-ghost { background:#fff; border:1.5px solid var(--border); color:var(--blue); }
   .btn-ghost:hover { background:var(--blue-light); }
 
-  .doc-list { display:flex; flex-direction:column; gap:.75rem; }
+  .doc-list { display:flex; flex-direction:column; }
   .doc-item {
-    display:flex; align-items:flex-start; gap:.9rem; background:#fff; border:1px solid var(--border);
-    border-radius:12px; padding:1rem 1.1rem; box-shadow:0 1px 6px rgba(26,58,107,.04);
+    display:flex; align-items:flex-start; gap:.9rem; padding:1rem 0; border-bottom:1px solid var(--border);
   }
+  .doc-item:first-child { padding-top:0; }
+  .doc-item:last-child { border-bottom:none; padding-bottom:0; }
   .doc-icon {
     width:44px; height:44px; border-radius:10px; background:var(--accent-bg); color:var(--accent);
     display:flex; align-items:center; justify-content:center; font-size:1.3rem; flex-shrink:0;
@@ -356,8 +358,6 @@
       <p>Dokumen tugas & piket guru.</p>
     </div>
 
-    <div class="view-banner">Klik 🔓 di kanan atas untuk masuk sebagai admin.</div>
-
     <!-- Form upload (admin) -->
     <div class="card admin-only">
       <h3>⬆️ Unggah Dokumen</h3>
@@ -371,7 +371,7 @@
       </div>
       <div class="fld">
         <label>File (PDF / Word, maks 5MB) <span style="color:#dc2626">*</span></label>
-        <div class="file-drop" id="td-drop" onclick="document.getElementById('td-file').click()">📎 Klik untuk pilih file</div>
+        <div class="file-drop" id="td-drop" onclick="document.getElementById('td-file').click()">📎 Seret & lepas file ke sini, atau klik untuk pilih</div>
         <input type="file" id="td-file" accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" style="display:none" onchange="onFilePick(this)">
       </div>
       <div class="form-msg" id="td-msg"></div>
@@ -379,7 +379,10 @@
     </div>
 
     <!-- Daftar dokumen (semua orang) -->
-    <div class="doc-list" id="doc-list"></div>
+    <div class="card">
+      <h3>📄 Daftar Dokumen</h3>
+      <div class="doc-list" id="doc-list"></div>
+    </div>
   </section>
 
   <!-- Tambah tab baru di sini: <section class="tab-sec" id="sec-xxx">...</section>
@@ -476,12 +479,12 @@ var MAX_BYTES=5*1024*1024;
 var MIME_OK=['application/pdf','application/msword','application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
 var pendingFile=null;   // {filename,mime,size,data} untuk form upload
 var editFile=null;      // untuk modal edit
-function readFileTo(input, cb, msgEl, dropEl){
-  var f=input.files&&input.files[0];
+// Validasi + baca 1 File jadi base64 (dipakai oleh input pilih & drag-drop)
+function handleFile(f, cb, msgEl, dropEl, inputEl){
   if(!f){ cb(null); return; }
-  if(f.size>MAX_BYTES){ if(msgEl){msgEl.className='form-msg err';msgEl.textContent='❌ File melebihi 5MB.';} input.value=''; cb(null); return; }
-  var okType = MIME_OK.indexOf(f.type)>=0 || /\.(pdf|docx?|)$/i.test(f.name);
-  if(!okType){ if(msgEl){msgEl.className='form-msg err';msgEl.textContent='❌ Hanya PDF atau Word.';} input.value=''; cb(null); return; }
+  if(f.size>MAX_BYTES){ if(msgEl){msgEl.className='form-msg err';msgEl.textContent='❌ File melebihi 5MB.';} if(inputEl)inputEl.value=''; cb(null); return; }
+  var okType = MIME_OK.indexOf(f.type)>=0 || /\.(pdf|docx?)$/i.test(f.name);
+  if(!okType){ if(msgEl){msgEl.className='form-msg err';msgEl.textContent='❌ Hanya PDF atau Word.';} if(inputEl)inputEl.value=''; cb(null); return; }
   var reader=new FileReader();
   reader.onload=function(ev){
     var b64=String(ev.target.result).split(',')[1]||'';
@@ -491,12 +494,21 @@ function readFileTo(input, cb, msgEl, dropEl){
   };
   reader.readAsDataURL(f);
 }
+function readFileTo(input, cb, msgEl, dropEl){ handleFile(input.files&&input.files[0], cb, msgEl, dropEl, input); }
 function onFilePick(input){ readFileTo(input, function(res){ pendingFile=res; }, document.getElementById('td-msg'), document.getElementById('td-drop')); }
-function onEditFilePick(input){ 
-  readFileTo(input, function(res){ editFile=res; }, 
-  document.getElementById('ed-msg'), 
-  document.getElementById('ed-drop'));
- }
+function onEditFilePick(input){ readFileTo(input, function(res){ editFile=res; }, document.getElementById('ed-msg'), document.getElementById('ed-drop')); }
+
+// Pasang drag & drop pada sebuah drop zone
+function wireDrop(dropId, inputId, onResult, msgId){
+  var drop=document.getElementById(dropId); if(!drop)return;
+  var input=document.getElementById(inputId), msg=document.getElementById(msgId);
+  ['dragenter','dragover'].forEach(function(ev){ drop.addEventListener(ev,function(e){ e.preventDefault(); e.stopPropagation(); drop.classList.add('drag'); }); });
+  ['dragleave','dragend','drop'].forEach(function(ev){ drop.addEventListener(ev,function(e){ e.preventDefault(); e.stopPropagation(); drop.classList.remove('drag'); }); });
+  drop.addEventListener('drop',function(e){
+    var f=e.dataTransfer&&e.dataTransfer.files&&e.dataTransfer.files[0];
+    if(f) handleFile(f, onResult, msg, drop, input);
+  });
+}
 
 // ── Render daftar ──
 var docs=[];
@@ -520,7 +532,8 @@ function renderDocs(){
         '<div class="doc-meta">'+meta+'</div>'+
       '</div>'+
       '<div class="doc-actions">'+
-        '<a class="icon-btn" href="/api/teacher/duty/'+d.id+'/download" target="_blank" rel="noopener">⬇️ Unduh</a>'+
+        '<a class="icon-btn" href="/api/teacher/duty/'+d.id+'/download" target="_blank" rel="noopener">👁️ Lihat</a>'+
+        '<a class="icon-btn" href="/api/teacher/duty/'+d.id+'/download?dl=1">⬇️ Unduh</a>'+
         '<button class="icon-btn admin-only" onclick="openEdit('+d.id+')">✏️ Edit</button>'+
         '<button class="icon-btn danger admin-only" onclick="delDoc('+d.id+')">🗑️ Hapus</button>'+
       '</div>'+
@@ -543,7 +556,7 @@ function uploadDuty(){
       if(!j.success){ msg.className='form-msg err'; msg.textContent='❌ '+(j.message||'Gagal mengunggah'); return; }
       document.getElementById('td-judul').value=''; document.getElementById('td-ket').value='';
       document.getElementById('td-file').value=''; pendingFile=null;
-      var drop=document.getElementById('td-drop'); drop.classList.remove('has-file'); drop.textContent='📎 Klik untuk pilih file';
+      var drop=document.getElementById('td-drop'); drop.classList.remove('has-file'); drop.textContent='📎 Seret & lepas file ke sini, atau klik untuk pilih';
       msg.className='form-msg'; msg.textContent=''; showToast('✅ Dokumen diunggah'); loadDocs();
     })
     .catch(function(){ btn.disabled=false; btn.textContent='Unggah'; msg.className='form-msg err'; msg.textContent='❌ Gagal terhubung ke server.'; });
@@ -587,6 +600,8 @@ function delDoc(id){
 }
 
 // ── Init ──
+wireDrop('td-drop','td-file', function(res){ pendingFile=res; }, 'td-msg');
+wireDrop('ed-drop','ed-file', function(res){ editFile=res; }, 'ed-msg');
 loadLockState(); applyLockState();
 fetch('/api/auth/lock-password', { headers:_authHeaders() })
   .then(function(r){ return r.ok?r.json():null; })

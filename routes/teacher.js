@@ -63,8 +63,10 @@ router.get('/duty/:id/download', async (req, res) => {
     const row = await getDb(req).queryOne('SELECT filename, mime, data FROM teacher_duty WHERE id = ?', [req.params.id]);
     if (!row) return res.status(404).json({ success: false, message: 'Dokumen tidak ditemukan' });
     const buf = Buffer.from(row.data, 'base64');
+    // ?dl=1 → paksa unduh (attachment); default → tampil di browser (inline/preview)
+    const disp = req.query.dl ? 'attachment' : 'inline';
     res.setHeader('Content-Type', row.mime || 'application/octet-stream');
-    res.setHeader('Content-Disposition', 'inline; filename="' + encodeURIComponent(row.filename || 'dokumen') + '"');
+    res.setHeader('Content-Disposition', disp + '; filename="' + encodeURIComponent(row.filename || 'dokumen') + '"');
     res.send(buf);
   } catch (err) { res.status(500).json({ success: false, message: err.message }); }
 });
