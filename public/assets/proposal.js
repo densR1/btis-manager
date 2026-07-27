@@ -357,13 +357,22 @@
         docP('Rekomendasi untuk Kegiatan Berikutnya', 'doc-bold') + docP(garis) +
         docP('Kesimpulan', 'doc-bold') + docP(garis) +
         docH2('Pengesahan') +
-        '<table class="doc-table"><tbody>' +
-          '<tr><td class="doc-bold">Disusun oleh</td><td class="doc-bold">Diperiksa oleh</td></tr>' +
-          '<tr><td class="doc-italic">PIC Kegiatan</td><td class="doc-italic">Wakil Kepala Sekolah</td></tr>' +
-          '<tr><td>Nama: ' + esc(state.namaPIC || '[Nama Lengkap]') + '</td><td>Nama: Muhammad Al Imron</td></tr>' +
-          '<tr><td>Tanggal:</td><td>Tanggal:</td></tr>' +
-          '<tr><td>Tanda Tangan:</td><td>Tanda Tangan:</td></tr>' +
-        '</tbody></table>' +
+        '<table class="doc-table doc-approval"><tbody><tr>' +
+          '<td>' +
+            '<div class="doc-center doc-bold">Disusun oleh</div>' +
+            '<div class="doc-center doc-italic">PIC Kegiatan</div>' +
+            '<div class="sign-gap">Nama: ' + esc(state.namaPIC || '[Nama Lengkap]') + '</div>' +
+            '<div>Tanggal:</div>' +
+            '<div class="sign-space">Tanda Tangan:</div>' +
+          '</td>' +
+          '<td>' +
+            '<div class="doc-center doc-bold">Diperiksa oleh</div>' +
+            '<div class="doc-center doc-italic">Wakil Kepala Sekolah</div>' +
+            '<div class="sign-gap">Nama: Muhammad Al Imron</div>' +
+            '<div>Tanggal:</div>' +
+            '<div class="sign-space">Tanda Tangan:</div>' +
+          '</td>' +
+        '</tr></tbody></table>' +
       '</div>';
 
     return cover + pengesahan + babI + babII + babIII + babIV + babV + babVI + laporan;

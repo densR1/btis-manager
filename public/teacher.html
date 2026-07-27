@@ -469,10 +469,14 @@
   #previewDoc .doc-table th { background:#dceefb; font-weight:bold; text-align:left; }
   #previewDoc .doc-table.label-value td:first-child { font-weight:bold; background:#dceefb; width:32%; }
   #previewDoc .doc-table .sig-blank td { height:46px; }
-  /* Blok tanda tangan (pengesahan) — tanpa garis tabel, hanya ruang TTD */
+  /* Blok tanda tangan (lembar pengesahan) — tanpa garis tabel, hanya ruang TTD */
   #previewDoc .doc-table.doc-sign,
   #previewDoc .doc-table.doc-sign th,
   #previewDoc .doc-table.doc-sign td { border:none; background:none; padding:2px 8px; }
+  /* Kotak pengesahan laporan (Disusun/Diperiksa) — 1 sel per kolom, isi menumpuk */
+  #previewDoc .doc-table.doc-approval td { vertical-align:top; padding:10px 14px; }
+  #previewDoc .doc-approval .sign-gap { margin-top:12px; }
+  #previewDoc .doc-approval .sign-space { margin-top:34px; }
 
   /* toast proposal (pakai warna biru BTIS) */
   .pp-toast {
