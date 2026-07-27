@@ -368,6 +368,26 @@
   #sec-proposal .req { color:#dc2626; }
   #sec-proposal .pp-grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:.85rem; }
 
+  /* Semua input/textarea di tab proposal (termasuk yang dibuat dinamis
+     tanpa class .fi) diseragamkan agar teks tidak mepet ke garis. */
+  #sec-proposal input[type=text],
+  #sec-proposal input[type=date],
+  #sec-proposal input[type=number],
+  #sec-proposal textarea {
+    width:100%; padding:.62rem .85rem; border:1.5px solid var(--border); border-radius:9px;
+    font-family:inherit; font-size:.9rem; line-height:1.5; color:#1a3a6b; background:#fff;
+    outline:none; transition:border-color .15s, box-shadow .15s;
+  }
+  #sec-proposal input[type=text]:focus,
+  #sec-proposal input[type=date]:focus,
+  #sec-proposal input[type=number]:focus,
+  #sec-proposal textarea:focus {
+    border-color:var(--accent); box-shadow:0 0 0 3px rgba(5,156,82,.12);
+  }
+  #sec-proposal textarea { min-height:96px; resize:vertical; }
+  #sec-proposal input::placeholder,
+  #sec-proposal textarea::placeholder { color:#9ca3af; }
+
   /* list dinamis */
   #sec-proposal .pp-list-row { display:flex; gap:.5rem; align-items:center; margin-bottom:.5rem; }
   #sec-proposal .pp-list-idx { width:22px; text-align:right; color:var(--muted); font-size:.8rem; font-weight:700; flex-shrink:0; }
@@ -886,6 +906,7 @@ function closeDocView(){
   document.getElementById('docViewOverlay').classList.remove('on');
   document.getElementById('dv-body').innerHTML='';
 }
+
 function openDocxViewer(d, url){
   openDocView(d.judul||d.filename);
   var body=document.getElementById('dv-body');
@@ -901,6 +922,7 @@ function openDocxViewer(d, url){
         '<a href="'+url+'?dl=1" style="color:var(--accent)">Unduh saja</a>.</div>';
     });
 }
+
 function onDocSearch(v){ docSearch=v; docPage=1; renderDocs(); }
 function goPage(p){ docPage=p; renderDocs(); }
 function renderDocs(){
