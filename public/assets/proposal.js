@@ -277,14 +277,14 @@
         ]) +
         docP('Demikian proposal ini kami ajukan. Besar harapan kami agar kegiatan ini dapat disetujui dan terlaksana dengan baik.') +
         docP((state.kotaPengajuan || '[Kota]') + ', ' + (formatTanggal(state.tanggalPengajuan) || '[Tanggal Pengajuan]'), 'doc-italic') +
-        '<table class="doc-table"><tbody>' +
+        '<table class="doc-table doc-sign"><tbody>' +
           '<tr><td class="doc-bold">Ketua Panitia</td><td class="doc-bold">Mengetahui,<br>Wakil Kepala Sekolah,</td></tr>' +
           '<tr class="sig-blank"><td>&nbsp;</td><td>&nbsp;</td></tr>' +
           '<tr class="sig-blank"><td>&nbsp;</td><td>&nbsp;</td></tr>' +
           '<tr><td class="doc-bold">' + esc(state.ketuaNama || '[Nama Ketua]') + '</td><td class="doc-bold">' + esc(state.wakilKepsekNama || '[Nama Wakil Kepala Sekolah]') + '</td></tr>' +
         '</tbody></table>' +
         docP('Menyetujui,') +
-        '<table class="doc-table"><tbody>' +
+        '<table class="doc-table doc-sign"><tbody>' +
           '<tr><td class="doc-bold">Kepala Sekolah</td></tr>' +
           '<tr class="sig-blank"><td>&nbsp;</td></tr>' +
           '<tr class="sig-blank"><td>&nbsp;</td></tr>' +
