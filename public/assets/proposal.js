@@ -14,12 +14,8 @@
   };
   var DEFAULT_PANITIA = [
     'Penanggung Jawab', 'Koordinator Kegiatan', 'Ketua Panitia', 'Bendahara',
-    'Bagian Acara', 'Bagian Acara', 'Bagian Acara',
-    'Bagian Perlengkapan', 'Bagian Perlengkapan', 'Bagian Perlengkapan',
-    'Bagian Konsumsi', 'Bagian Konsumsi', 'Bagian Konsumsi',
-    'Bagian Humas & Publikasi', 'Bagian Humas & Publikasi', 'Bagian Humas & Publikasi',
-    'Bagian Dokumentasi', 'Bagian Dokumentasi', 'Bagian Dokumentasi',
-    'Bagian Keamanan', 'Bagian Keamanan', 'Bagian Keamanan'
+    'Bagian Acara', 'Bagian Perlengkapan', 'Bagian Konsumsi',
+    'Bagian Humas & Publikasi', 'Bagian Dokumentasi', 'Bagian Keamanan'
   ].map(function (j) { return { jabatan: j, nama: '' }; });
   var DEFAULT_ACARA = [
     'Registrasi peserta', 'Pembukaan', 'Sambutan-sambutan', 'Acara inti',
