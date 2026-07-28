@@ -28,7 +28,7 @@
     'Surat Permohonan Sponsor/Dana (jika ada)',
     'Denah Lokasi Kegiatan',
     'Dokumen Pendukung Lainnya'
-  ].map(function (t) { return { label: t, checked: true }; });
+  ].map(function (t) { return { label: t, checked: false }; });
 
   var PP_PAGE_SIZE = 10;
 
