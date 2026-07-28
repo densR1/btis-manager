@@ -18,10 +18,16 @@
     'Bagian Acara', 'Bagian Perlengkapan', 'Bagian Konsumsi',
     'Bagian Humas & Publikasi', 'Bagian Dokumentasi', 'Bagian Keamanan'
   ].map(function (j) { return { jabatan: j, nama: '' }; });
-  var DEFAULT_ACARA = [
+  // Contoh dipakai sebagai placeholder (hint abu-abu), bukan nilai default.
+  var DASAR_PEMIKIRAN_PH = [
+    'Misal: Program Kerja Tahun Ajaran 2026/2027',
+    'Misal: Kalender Pendidikan Sekolah 2026/2027',
+    'Misal: Hasil rapat panitia tanggal ...'
+  ];
+  var ACARA_KEGIATAN_PH = [
     'Registrasi peserta', 'Pembukaan', 'Sambutan-sambutan', 'Acara inti',
     'Ishoma', 'Acara inti (lanjutan)', 'Pengumuman/Penutupan'
-  ].map(function (k) { return { waktu: '', kegiatan: k, pj: '' }; });
+  ];
   var DEFAULT_LAMPIRAN = [
     'Susunan Panitia Lengkap (jika berbeda dari Bab III)',
     'Surat Permohonan Izin Tempat/Kegiatan',
@@ -44,16 +50,12 @@
       deskripsiSingkat: '',
       panitia: JSON.parse(JSON.stringify(DEFAULT_PANITIA)),
       anggaranGambar: [],
-      acara: JSON.parse(JSON.stringify(DEFAULT_ACARA)),
+      acara: ACARA_KEGIATAN_PH.map(function () { return { waktu: '', kegiatan: '', pj: '' }; }),
       acaraGambar: [],
       totalAnggaran: '', ketuaNama: '', wakilKepsekNama: '', kepsekNama: '',
       lampiran: JSON.parse(JSON.stringify(DEFAULT_LAMPIRAN))
     };
-    s.dasarPemikiran = [
-      'Program Kerja Tahun Ajaran ' + s.tahunAjaran,
-      'Kalender Pendidikan Sekolah ' + s.tahunAjaran,
-      'Hasil rapat panitia tanggal [Tanggal Rapat]'
-    ];
+    s.dasarPemikiran = ['', '', ''];
     return s;
   }
 
@@ -90,6 +92,16 @@
     var bln = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
     return d.getDate() + ' ' + bln[d.getMonth()] + ' ' + d.getFullYear();
   }
+  // Nilai input type=time ("07:30") → format template ("07.30 WIB").
+  // Rentang mulai–selesai digabung: "07.30 - 12.00 WIB".
+  function jamRange() {
+    var m = state.jamMulai ? state.jamMulai.replace(':', '.') : '';
+    var s = state.jamSelesai ? state.jamSelesai.replace(':', '.') : '';
+    if (m && s) return m + ' - ' + s + ' WIB';
+    if (m) return m + ' WIB';
+    if (s) return s + ' WIB';
+    return '';
+  }
   function shortDate(s) {
     if (typeof fmtDate === 'function') return fmtDate(s); // helper global
     if (!s) return '';
@@ -123,7 +135,7 @@
     var box = $('dpList');
     box.innerHTML = state.dasarPemikiran.map(function (d, i) {
       return '<div class="pp-list-row"><div class="pp-list-idx">' + (i + 1) + '.</div>' +
-        '<input type="text" data-i="' + i + '" value="' + esc(d) + '">' +
+        '<input type="text" data-i="' + i + '" value="' + esc(d) + '" placeholder="' + esc(DASAR_PEMIKIRAN_PH[i] || 'Poin dasar pemikiran…') + '">' +
         '<button type="button" class="pp-btn-remove" data-i="' + i + '" title="Hapus">&times;</button></div>';
     }).join('');
     box.querySelectorAll('input').forEach(function (inp) {
@@ -167,7 +179,7 @@
     box.innerHTML = state.acara.map(function (a, i) {
       return '<div class="pp-acara-row">' +
         '<input type="text" class="ac-w" data-i="' + i + '" value="' + esc(a.waktu) + '" placeholder="Jam">' +
-        '<input type="text" class="ac-k" data-i="' + i + '" value="' + esc(a.kegiatan) + '" placeholder="Kegiatan">' +
+        '<input type="text" class="ac-k" data-i="' + i + '" value="' + esc(a.kegiatan) + '" placeholder="' + esc(ACARA_KEGIATAN_PH[i] || 'Kegiatan') + '">' +
         '<input type="text" class="ac-p" data-i="' + i + '" value="' + esc(a.pj) + '" placeholder="Penanggung jawab">' +
         '<button type="button" class="pp-btn-remove" data-i="' + i + '" title="Hapus">&times;</button></div>';
     }).join('');
@@ -277,7 +289,7 @@
     return out.join('');
   }
   function buildProposalHTML() {
-    var waktuPelaksanaan = state.hariTanggal + (state.jamMulai ? ', ' + state.jamMulai + ' - ' + state.jamSelesai : '');
+    var waktuPelaksanaan = state.hariTanggal + (jamRange() ? ', ' + jamRange() : '');
 
     var cover =
       '<div class="doc-section">' +
@@ -331,7 +343,7 @@
           ['Nama Kegiatan', state.namaKegiatan], ['Tema Kegiatan', state.temaKegiatan],
           ['Bentuk Kegiatan', state.bentukKegiatan], ['Sasaran/Peserta', state.sasaranPeserta],
           ['Hari, Tanggal', state.hariTanggal],
-          ['Waktu', state.jamMulai ? state.jamMulai + ' - ' + state.jamSelesai : ''],
+          ['Waktu', jamRange()],
           ['Tempat', state.tempatPelaksanaan]
         ]) +
         docH2('Deskripsi Singkat') + docP(state.deskripsiSingkat) +
@@ -349,7 +361,8 @@
         (state.anggaranGambar.length ? state.anggaranGambar.map(function (im) { return docImg(im.dataUrl, im.name); }).join('') : docP('[Belum ada gambar anggaran]', 'doc-italic')) +
       '</div>';
 
-    var acaraRows = state.acara.map(function (a) { return '<tr><td>' + esc(a.waktu || '[Jam]') + '</td><td>' + esc(a.kegiatan) + '</td><td>' + esc(a.pj || '[Nama PJ]') + '</td></tr>'; }).join('');
+    var acaraRows = state.acara.filter(function (a) { return a.waktu || a.kegiatan || a.pj; })
+      .map(function (a) { return '<tr><td>' + esc(a.waktu || '[Jam]') + '</td><td>' + esc(a.kegiatan) + '</td><td>' + esc(a.pj || '[Nama PJ]') + '</td></tr>'; }).join('');
     var babV =
       '<div class="doc-section">' + docH1('BAB V. SUSUNAN ACARA') +
         docP('Rundown berikut dapat disesuaikan dengan jenis dan durasi kegiatan.') +
@@ -598,7 +611,6 @@
   function wireNav() {
     $('ppNewBtn').addEventListener('click', openNew);
     $('ppBackBtn').addEventListener('click', showList);
-    var back2 = $('ppBackBtn2'); if (back2) back2.addEventListener('click', showList);
     $('ppSaveBtn').addEventListener('click', saveProposal);
     var save2 = $('ppSaveBtn2'); if (save2) save2.addEventListener('click', saveProposal);
     var srch = $('pp-search');

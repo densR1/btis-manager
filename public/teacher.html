@@ -361,7 +361,6 @@
   #sec-proposal .pp-list-head { display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap; }
   #sec-proposal .pp-form-head-l { display:flex; align-items:center; gap:.75rem; flex-wrap:wrap; }
   #sec-proposal .pp-form-head-l h1 { margin:0; }
-  #sec-proposal .pp-form-foot { display:flex; align-items:center; justify-content:flex-end; gap:.6rem; margin-top:1.1rem; flex-wrap:wrap; }
   #sec-proposal .pp-list-head .btn { flex-shrink:0; }
   #sec-proposal .pp-section { margin-bottom:1.1rem; }
   #sec-proposal .pp-section > h3 { display:flex; align-items:center; gap:.55rem; }
@@ -378,6 +377,7 @@
      tanpa class .fi) diseragamkan agar teks tidak mepet ke garis. */
   #sec-proposal input[type=text],
   #sec-proposal input[type=date],
+  #sec-proposal input[type=time],
   #sec-proposal input[type=number],
   #sec-proposal textarea {
     width:100%; padding:.62rem .85rem; border:1.5px solid var(--border); border-radius:9px;
@@ -386,6 +386,7 @@
   }
   #sec-proposal input[type=text]:focus,
   #sec-proposal input[type=date]:focus,
+  #sec-proposal input[type=time]:focus,
   #sec-proposal input[type=number]:focus,
   #sec-proposal textarea:focus {
     border-color:var(--accent); box-shadow:0 0 0 3px rgba(5,156,82,.12);
@@ -660,8 +661,8 @@
         <h3><span class="pp-num">2</span> Waktu &amp; Tempat Pelaksanaan</h3>
         <div class="fld"><label>Hari, Tanggal Pelaksanaan</label><input class="fi" type="text" id="f_hariTanggal" placeholder="Misal: Senin, 13 Juli 2026"></div>
         <div class="pp-grid-2">
-          <div class="fld"><label>Jam Mulai</label><input class="fi" type="text" id="f_jamMulai" placeholder="07.30 WIB"></div>
-          <div class="fld"><label>Jam Selesai</label><input class="fi" type="text" id="f_jamSelesai" placeholder="12.00 WIB"></div>
+          <div class="fld"><label>Jam Mulai</label><input class="fi" type="time" id="f_jamMulai"></div>
+          <div class="fld"><label>Jam Selesai</label><input class="fi" type="time" id="f_jamSelesai"></div>
         </div>
         <div class="fld"><label>Tempat Pelaksanaan</label><input class="fi" type="text" id="f_tempatPelaksanaan" placeholder="Misal: Aula dan Lapangan BTIS"></div>
         <div class="pp-grid-2">
@@ -754,18 +755,13 @@
           <h3 style="margin:0">Pratinjau Proposal <span class="pp-sub">(bisa diedit)</span></h3>
           <div class="pp-preview-actions">
             <button type="button" class="pp-btn-add" id="refreshPreviewBtn">🔄 Perbarui dari Formulir</button>
+            <button type="button" class="pp-big-btn" id="ppSaveBtn2">💾 Simpan Proposal</button>
             <button type="button" class="pp-big-btn" id="downloadPdfBtn">⬇️ Unduh PDF</button>
           </div>
         </div>
         <div class="preview-scroll" id="previewWrap">
           <div class="doc-page" id="previewDoc" contenteditable="true"></div>
         </div>
-      </div>
-
-      <!-- Aksi simpan bawah -->
-      <div class="pp-form-foot no-print">
-        <button type="button" class="btn btn-ghost" id="ppBackBtn2">← Kembali ke Daftar</button>
-        <button type="button" class="btn btn-primary" id="ppSaveBtn2">💾 Simpan Proposal</button>
       </div>
       </form>
     </div>
