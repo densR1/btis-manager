@@ -158,6 +158,16 @@ async function init() {
       updated_at DATETIME NOT NULL DEFAULT NOW()
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
 
+    `CREATE TABLE IF NOT EXISTS proposals (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      judul VARCHAR(255) NOT NULL,
+      nama_pic VARCHAR(255) NOT NULL DEFAULT '',
+      tahun_ajaran VARCHAR(60) NOT NULL DEFAULT '',
+      data LONGTEXT NOT NULL,
+      created_at DATETIME NOT NULL DEFAULT NOW(),
+      updated_at DATETIME NOT NULL DEFAULT NOW()
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
+
     `CREATE TABLE IF NOT EXISTS tasks (
       id INT AUTO_INCREMENT PRIMARY KEY,
       token VARCHAR(255) NOT NULL DEFAULT '',

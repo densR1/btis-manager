@@ -357,6 +357,12 @@
      agar tidak bocor ke bagian lain halaman.
      ══════════════════════════════════════════════════════════════════ */
   #sec-proposal .pp-intro { font-size:.9rem; color:var(--muted); margin-bottom:1.25rem; line-height:1.6; }
+  /* Header list/form: judul kiri, tombol aksi kanan */
+  #sec-proposal .pp-list-head { display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap; }
+  #sec-proposal .pp-form-head-l { display:flex; align-items:center; gap:.75rem; flex-wrap:wrap; }
+  #sec-proposal .pp-form-head-l h1 { margin:0; }
+  #sec-proposal .pp-form-foot { display:flex; align-items:center; justify-content:flex-end; gap:.6rem; margin-top:1.1rem; flex-wrap:wrap; }
+  #sec-proposal .pp-list-head .btn { flex-shrink:0; }
   #sec-proposal .pp-section { margin-bottom:1.1rem; }
   #sec-proposal .pp-section > h3 { display:flex; align-items:center; gap:.55rem; }
   #sec-proposal .pp-num {
@@ -602,8 +608,36 @@
 
   <!-- ── TAB: Pengajuan Proposal Kegiatan ── -->
   <section class="tab-sec" id="sec-proposal">
-    <form id="pp-form" onsubmit="return false">
-      <div class="td-head"><h1>📝 Pengajuan Proposal Kegiatan</h1></div>
+    <!-- LIST VIEW: daftar proposal tersimpan -->
+    <div id="pp-list-view">
+      <div class="td-head pp-list-head">
+        <h1>📝 Pengajuan Proposal Kegiatan</h1>
+        <button type="button" class="btn btn-primary" id="ppNewBtn">＋ Buat Proposal</button>
+      </div>
+      <div class="card">
+        <h3>🗂️ Daftar Proposal</h3>
+        <div class="td-toolbar">
+          <div class="td-search">
+            <span class="td-search-ic">🔍</span>
+            <input id="pp-search" placeholder="Cari nama kegiatan, PIC, atau tahun ajaran…">
+          </div>
+          <span class="td-count" id="pp-count"></span>
+        </div>
+        <div id="pp-list"></div>
+        <div class="td-pager" id="pp-pager"></div>
+      </div>
+    </div>
+
+    <!-- FORM VIEW: buat / edit proposal -->
+    <div id="pp-form-view" style="display:none">
+      <div class="td-head pp-list-head">
+        <div class="pp-form-head-l">
+          <button type="button" class="btn btn-ghost" id="ppBackBtn">← Daftar</button>
+          <h1 id="pp-form-title">Buat Proposal</h1>
+        </div>
+        <button type="button" class="btn btn-primary" id="ppSaveBtn">💾 Simpan Proposal</button>
+      </div>
+      <form id="pp-form" onsubmit="return false">
       <p class="pp-intro">Isi tiap bagian di bawah, lalu buat pratinjau di bagian akhir. Hasilnya mengikuti format Template Proposal Kegiatan BTIS dan bisa diunduh sebagai PDF.</p>
 
       <!-- 1. Informasi Dasar -->
@@ -727,7 +761,14 @@
           <div class="doc-page" id="previewDoc" contenteditable="true"></div>
         </div>
       </div>
-    </form>
+
+      <!-- Aksi simpan bawah -->
+      <div class="pp-form-foot no-print">
+        <button type="button" class="btn btn-ghost" id="ppBackBtn2">← Kembali ke Daftar</button>
+        <button type="button" class="btn btn-primary" id="ppSaveBtn2">💾 Simpan Proposal</button>
+      </div>
+      </form>
+    </div>
   </section>
 </main>
 
@@ -1004,7 +1045,7 @@ function uploadDuty(){
   var btn=document.getElementById('td-upload-btn'); btn.disabled=true; btn.textContent='Mengunggah…';
   fetch('/api/teacher/duty', { method:'POST', headers:_authHeaders(), body:JSON.stringify(Object.assign({judul:judul,keterangan:ket}, pendingFile)) })
     .then(function(r){ return r.json(); })
-    .then(function(j){
+    .then(function(j){x 
       btn.disabled=false; btn.textContent='Unggah';
       if(!j.success){ msg.className='form-msg err'; msg.textContent='❌ '+(j.message||'Gagal mengunggah'); return; }
       document.getElementById('td-judul').value=''; document.getElementById('td-ket').value='';

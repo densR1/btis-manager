@@ -1,6 +1,7 @@
 /* ============================================================================
    proposal.js — Generator Proposal Kegiatan (tab di Teacher Manager)
-   Form → pratinjau dokumen (bisa diedit) → unduh PDF (via print browser).
+   Daftar proposal tersimpan → form buat/edit → pratinjau (bisa diedit) →
+   simpan ke server / unduh PDF (via print browser).
    Vanilla JS, tanpa dependency. Aktif hanya bila markup tab proposal ada.
    ========================================================================== */
 (function () {
@@ -29,26 +30,38 @@
     'Dokumen Pendukung Lainnya'
   ].map(function (t) { return { label: t, checked: true }; });
 
+  var PP_PAGE_SIZE = 10;
+
   // ── State ─────────────────────────────────────────────────────────────
-  var state = {
-    namaKegiatan: '', temaKegiatan: '', tahunAjaran: '2026/2027', namaPIC: '',
-    kotaPengajuan: 'Jakarta Timur', tanggalPengajuan: '',
-    hariTanggal: '', jamMulai: '', jamSelesai: '', tempatPelaksanaan: '',
-    bentukKegiatan: '', sasaranPeserta: '',
-    latarBelakang: '', dasarPemikiran: [], tujuanKegiatan: [''],
-    deskripsiSingkat: '',
-    panitia: JSON.parse(JSON.stringify(DEFAULT_PANITIA)),
-    anggaranGambar: [],
-    acara: JSON.parse(JSON.stringify(DEFAULT_ACARA)),
-    acaraGambar: [],
-    totalAnggaran: '', ketuaNama: '', wakilKepsekNama: '', kepsekNama: '',
-    lampiran: JSON.parse(JSON.stringify(DEFAULT_LAMPIRAN))
-  };
-  state.dasarPemikiran = [
-    'Program Kerja Tahun Ajaran ' + state.tahunAjaran,
-    'Kalender Pendidikan Sekolah ' + state.tahunAjaran,
-    'Hasil rapat panitia tanggal [Tanggal Rapat]'
-  ];
+  // freshState(): buffer default untuk proposal baru / reset form.
+  function freshState() {
+    var s = {
+      namaKegiatan: '', temaKegiatan: '', tahunAjaran: '2026/2027', namaPIC: '',
+      kotaPengajuan: 'Jakarta Timur', tanggalPengajuan: '',
+      hariTanggal: '', jamMulai: '', jamSelesai: '', tempatPelaksanaan: '',
+      bentukKegiatan: '', sasaranPeserta: '',
+      latarBelakang: '', dasarPemikiran: [], tujuanKegiatan: [''],
+      deskripsiSingkat: '',
+      panitia: JSON.parse(JSON.stringify(DEFAULT_PANITIA)),
+      anggaranGambar: [],
+      acara: JSON.parse(JSON.stringify(DEFAULT_ACARA)),
+      acaraGambar: [],
+      totalAnggaran: '', ketuaNama: '', wakilKepsekNama: '', kepsekNama: '',
+      lampiran: JSON.parse(JSON.stringify(DEFAULT_LAMPIRAN))
+    };
+    s.dasarPemikiran = [
+      'Program Kerja Tahun Ajaran ' + s.tahunAjaran,
+      'Kalender Pendidikan Sekolah ' + s.tahunAjaran,
+      'Hasil rapat panitia tanggal [Tanggal Rapat]'
+    ];
+    return s;
+  }
+
+  var state = freshState();   // proposal yang sedang dibuka/diedit
+  var currentId = null;       // id record aktif (null = proposal baru)
+  var proposals = [];         // metadata daftar proposal
+  var ppSearch = '';
+  var ppPage = 1;
 
   // ── Helpers ───────────────────────────────────────────────────────────
   function esc(s) {
@@ -57,6 +70,11 @@
   }
   function uid() { return 'img_' + Math.random().toString(36).slice(2, 10); }
   function $(id) { return document.getElementById(id); }
+  function authHeaders(extra) {
+    // Pakai helper global dari teacher.html bila ada (menyertakan token admin).
+    if (typeof _authHeaders === 'function') return _authHeaders(extra);
+    return Object.assign({ 'Content-Type': 'application/json', 'Accept': 'application/json' }, extra || {});
+  }
   function ppToast(msg, isError) {
     var t = $('pp-toast');
     t.textContent = msg;
@@ -72,6 +90,12 @@
     var bln = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
     return d.getDate() + ' ' + bln[d.getMonth()] + ' ' + d.getFullYear();
   }
+  function shortDate(s) {
+    if (typeof fmtDate === 'function') return fmtDate(s); // helper global
+    if (!s) return '';
+    try { return new Date(s).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }); }
+    catch (e) { return ''; }
+  }
 
   // ── Bind field teks sederhana ─────────────────────────────────────────
   var TEXT_FIELDS = [
@@ -80,11 +104,17 @@
     'latarBelakang', 'deskripsiSingkat',
     'totalAnggaran', 'ketuaNama', 'wakilKepsekNama', 'kepsekNama'
   ];
-  function bindTextFields() {
+  // Pasang listener sekali saja; nilainya diisi ulang lewat fillTextFields().
+  function attachTextListeners() {
     TEXT_FIELDS.forEach(function (key) {
       var el = $('f_' + key); if (!el) return;
-      el.value = state[key];
       el.addEventListener('input', function () { state[key] = el.value; });
+    });
+  }
+  function fillTextFields() {
+    TEXT_FIELDS.forEach(function (key) {
+      var el = $('f_' + key); if (!el) return;
+      el.value = state[key] == null ? '' : state[key];
     });
   }
 
@@ -398,13 +428,189 @@
     });
   }
 
+  // ── Isi ulang seluruh form dari `state` ───────────────────────────────
+  function hydrateForm() {
+    fillTextFields();
+    renderDasarPemikiran(); renderTujuan(); renderPanitia(); renderAcara(); renderLampiran();
+    renderImageGrid('anggaranGambar', 'anggaranImgGrid');
+    renderImageGrid('acaraGambar', 'acaraImgGrid');
+    var pv = $('pp-sec-preview'); if (pv) pv.style.display = 'none';
+    $('previewDoc').innerHTML = '';
+  }
+
+  // ── Navigasi daftar ⇄ form ────────────────────────────────────────────
+  function showList() {
+    $('pp-form-view').style.display = 'none';
+    $('pp-list-view').style.display = '';
+    window.scrollTo(0, 0);
+    loadProposals();
+  }
+  function enterForm() {
+    $('pp-form-title').textContent = currentId ? 'Edit Proposal' : 'Buat Proposal';
+    $('pp-list-view').style.display = 'none';
+    $('pp-form-view').style.display = '';
+    hydrateForm();
+    window.scrollTo(0, 0);
+  }
+  function openNew() {
+    state = freshState();
+    currentId = null;
+    enterForm();
+  }
+  function openEditProposal(id) {
+    fetch('/api/teacher/proposal/' + id, { headers: authHeaders() })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (j) {
+        if (!j || !j.data) { ppToast('Gagal memuat proposal', true); return; }
+        var parsed = {};
+        try { parsed = JSON.parse(j.data.data || '{}'); } catch (e) { parsed = {}; }
+        state = Object.assign(freshState(), parsed); // isi field baru pakai default
+        currentId = id;
+        enterForm();
+      })
+      .catch(function () { ppToast('Gagal memuat proposal', true); });
+  }
+
+  // ── Simpan / hapus ────────────────────────────────────────────────────
+  function saveProposal() {
+    if (!state.namaKegiatan.trim()) {
+      ppToast('Nama Kegiatan wajib diisi', true);
+      $('pp-sec-info').scrollIntoView({ behavior: 'smooth', block: 'center' });
+      $('f_namaKegiatan').focus();
+      return;
+    }
+    var payload = {
+      judul: state.namaKegiatan.trim(),
+      nama_pic: state.namaPIC || '',
+      tahun_ajaran: state.tahunAjaran || '',
+      data: JSON.stringify(state)
+    };
+    var url = currentId ? '/api/teacher/proposal/' + currentId : '/api/teacher/proposal';
+    var method = currentId ? 'PUT' : 'POST';
+    var btns = [$('ppSaveBtn'), $('ppSaveBtn2')];
+    btns.forEach(function (b) { if (b) b.disabled = true; });
+    fetch(url, { method: method, headers: authHeaders(), body: JSON.stringify(payload) })
+      .then(function (r) { return r.json(); })
+      .then(function (j) {
+        if (!j.success) { ppToast('❌ ' + (j.message || 'Gagal menyimpan'), true); return; }
+        ppToast('✅ Proposal disimpan');
+        showList();
+      })
+      .catch(function () { ppToast('❌ Gagal menyimpan (jaringan)', true); })
+      .finally(function () { btns.forEach(function (b) { if (b) b.disabled = false; }); });
+  }
+  function deleteProposal(id) {
+    var p = proposals.find(function (x) { return x.id === id; });
+    if (!confirm('Hapus proposal "' + (p ? p.judul : '') + '"? Tindakan ini tidak bisa dibatalkan.')) return;
+    fetch('/api/teacher/proposal/' + id, { method: 'DELETE', headers: authHeaders() })
+      .then(function (r) { return r.json(); })
+      .then(function (j) {
+        if (j.success) { ppToast('🗑️ Proposal dihapus'); loadProposals(); }
+        else ppToast('❌ ' + (j.message || 'Gagal menghapus'), true);
+      })
+      .catch(function () { ppToast('❌ Gagal menghapus (jaringan)', true); });
+  }
+
+  // ── Daftar proposal ───────────────────────────────────────────────────
+  function loadProposals() {
+    fetch('/api/teacher/proposal', { headers: authHeaders() })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (j) { proposals = (j && j.data) || []; renderProposalList(); })
+      .catch(function () { renderProposalList(); });
+  }
+  function filteredProposals() {
+    var q = ppSearch.trim().toLowerCase();
+    if (!q) return proposals;
+    return proposals.filter(function (p) {
+      return String(p.judul || '').toLowerCase().indexOf(q) >= 0
+          || String(p.nama_pic || '').toLowerCase().indexOf(q) >= 0
+          || String(p.tahun_ajaran || '').toLowerCase().indexOf(q) >= 0;
+    });
+  }
+  function buildPPPager(totalPages) {
+    if (totalPages <= 1) return '';
+    var html = '<button class="pg-btn" data-pg="' + (ppPage - 1) + '"' + (ppPage <= 1 ? ' disabled' : '') + '>‹</button>';
+    var pages = [];
+    for (var p = 1; p <= totalPages; p++) {
+      if (p === 1 || p === totalPages || (p >= ppPage - 1 && p <= ppPage + 1)) pages.push(p);
+      else if (pages[pages.length - 1] !== '…') pages.push('…');
+    }
+    pages.forEach(function (p) {
+      if (p === '…') html += '<span class="pg-ellipsis">…</span>';
+      else html += '<button class="pg-btn' + (p === ppPage ? ' on' : '') + '" data-pg="' + p + '">' + p + '</button>';
+    });
+    html += '<button class="pg-btn" data-pg="' + (ppPage + 1) + '"' + (ppPage >= totalPages ? ' disabled' : '') + '>›</button>';
+    return html;
+  }
+  function renderProposalList() {
+    var el = $('pp-list'), pager = $('pp-pager'), countEl = $('pp-count');
+    if (pager) pager.innerHTML = '';
+    if (!proposals.length) {
+      if (countEl) countEl.textContent = '';
+      el.innerHTML = '<div class="empty-docs"><div class="ei">📭</div><p>Belum ada proposal. Klik "Buat Proposal" untuk memulai.</p></div>';
+      return;
+    }
+    var list = filteredProposals();
+    if (countEl) countEl.textContent = ppSearch.trim() ? list.length + ' dari ' + proposals.length + ' proposal' : proposals.length + ' proposal';
+    if (!list.length) {
+      el.innerHTML = '<div class="empty-docs"><div class="ei">🔍</div><p>Tidak ada proposal yang cocok dengan pencarian.</p></div>';
+      return;
+    }
+    var totalPages = Math.ceil(list.length / PP_PAGE_SIZE);
+    if (ppPage > totalPages) ppPage = totalPages;
+    if (ppPage < 1) ppPage = 1;
+    var start = (ppPage - 1) * PP_PAGE_SIZE;
+    var pageItems = list.slice(start, start + PP_PAGE_SIZE);
+    var rows = pageItems.map(function (p, i) {
+      return '<tr>' +
+        '<td class="td-no">' + (start + i + 1) + '</td>' +
+        '<td>' +
+          '<div class="dt-title">📝 ' + esc(p.judul || '(Tanpa judul)') + '</div>' +
+          (p.tahun_ajaran ? '<div class="dt-file">T.A. ' + esc(p.tahun_ajaran) + '</div>' : '') +
+        '</td>' +
+        '<td>' + esc(p.nama_pic || '—') + '</td>' +
+        '<td class="dt-date">' + shortDate(p.updated_at || p.created_at) + '</td>' +
+        '<td class="dt-act">' +
+          '<button class="icon-btn" data-act="open" data-id="' + p.id + '">✏️ Buka</button>' +
+          '<button class="icon-btn danger" data-act="del" data-id="' + p.id + '">🗑️ Hapus</button>' +
+        '</td>' +
+      '</tr>';
+    }).join('');
+    el.innerHTML = '<div class="td-table-wrap"><table class="td-table">' +
+      '<thead><tr><th style="width:44px">No</th><th>Kegiatan</th><th style="width:150px">PIC</th><th style="width:110px">Diperbarui</th><th class="dt-th" style="white-space:nowrap;text-align:right">Aksi</th></tr></thead>' +
+      '<tbody>' + rows + '</tbody></table></div>';
+    el.querySelectorAll('button[data-act]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        var id = +b.dataset.id;
+        if (b.dataset.act === 'open') openEditProposal(id);
+        else if (b.dataset.act === 'del') deleteProposal(id);
+      });
+    });
+    if (pager) {
+      pager.innerHTML = buildPPPager(totalPages);
+      pager.querySelectorAll('button[data-pg]').forEach(function (b) {
+        b.addEventListener('click', function () { ppPage = +b.dataset.pg; renderProposalList(); });
+      });
+    }
+  }
+
+  // ── Wire tombol navigasi & pencarian ──────────────────────────────────
+  function wireNav() {
+    $('ppNewBtn').addEventListener('click', openNew);
+    $('ppBackBtn').addEventListener('click', showList);
+    var back2 = $('ppBackBtn2'); if (back2) back2.addEventListener('click', showList);
+    $('ppSaveBtn').addEventListener('click', saveProposal);
+    var save2 = $('ppSaveBtn2'); if (save2) save2.addEventListener('click', saveProposal);
+    var srch = $('pp-search');
+    if (srch) srch.addEventListener('input', function () { ppSearch = srch.value; ppPage = 1; renderProposalList(); });
+  }
+
   // ── Init ──────────────────────────────────────────────────────────────
-  bindTextFields();
-  renderDasarPemikiran(); renderTujuan(); renderPanitia(); renderAcara(); renderLampiran();
-  renderImageGrid('anggaranGambar', 'anggaranImgGrid');
-  renderImageGrid('acaraGambar', 'acaraImgGrid');
+  attachTextListeners();
   wireAddButtons();
   wireImageUpload('anggaranGambar', 'uploadDrop', 'anggaranFileInput', 'anggaranImgGrid');
   wireImageUpload('acaraGambar', 'acaraUploadDrop', 'acaraFileInput', 'acaraImgGrid');
   wirePreviewButtons();
+  wireNav();
+  showList(); // tampilan awal = daftar proposal
 })();

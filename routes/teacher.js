@@ -118,6 +118,63 @@ router.delete('/duty/:id', async (req, res) => {
   res.json({ success: true });
 });
 
+// ── PROPOSAL KEGIATAN (proposal tersimpan) ───────────────────────
+// Catatan: rute /proposal* HARUS sebelum /:id agar tidak tertangkap sebagai id.
+// GET /api/teacher/proposal — list metadata (tanpa blob data biar ringan)
+router.get('/proposal', async (req, res) => {
+  try {
+    const rows = await getDb(req).query(
+      'SELECT id, judul, nama_pic, tahun_ajaran, created_at, updated_at FROM proposals ORDER BY updated_at DESC'
+    );
+    res.json({ success: true, data: rows });
+  } catch (err) { res.status(500).json({ success: false, message: err.message }); }
+});
+
+// GET /api/teacher/proposal/:id — satu proposal lengkap (dengan data JSON)
+router.get('/proposal/:id', async (req, res) => {
+  try {
+    const row = await getDb(req).queryOne('SELECT * FROM proposals WHERE id = ?', [req.params.id]);
+    if (!row) return res.status(404).json({ success: false, message: 'Proposal tidak ditemukan' });
+    res.json({ success: true, data: row });
+  } catch (err) { res.status(500).json({ success: false, message: err.message }); }
+});
+
+// POST /api/teacher/proposal — simpan proposal baru
+router.post('/proposal', async (req, res) => {
+  try {
+    const { judul, nama_pic, tahun_ajaran, data } = req.body;
+    if (!judul || !judul.trim()) return res.status(400).json({ success: false, message: 'Nama Kegiatan wajib diisi' });
+    if (!data) return res.status(400).json({ success: false, message: 'Data proposal kosong' });
+    const result = await getDb(req).execute(
+      'INSERT INTO proposals (judul, nama_pic, tahun_ajaran, data) VALUES (?, ?, ?, ?)',
+      [judul.trim(), nama_pic || '', tahun_ajaran || '', data]
+    );
+    res.status(201).json({ success: true, id: result.insertId });
+  } catch (err) { res.status(500).json({ success: false, message: err.message }); }
+});
+
+// PUT /api/teacher/proposal/:id — perbarui proposal
+router.put('/proposal/:id', async (req, res) => {
+  try {
+    const { judul, nama_pic, tahun_ajaran, data } = req.body;
+    if (!judul || !judul.trim()) return res.status(400).json({ success: false, message: 'Nama Kegiatan wajib diisi' });
+    if (!data) return res.status(400).json({ success: false, message: 'Data proposal kosong' });
+    const result = await getDb(req).execute(
+      'UPDATE proposals SET judul=?, nama_pic=?, tahun_ajaran=?, data=?, updated_at=NOW() WHERE id=?',
+      [judul.trim(), nama_pic || '', tahun_ajaran || '', data, req.params.id]
+    );
+    if (result.affectedRows === 0) return res.status(404).json({ success: false, message: 'Proposal tidak ditemukan' });
+    res.json({ success: true });
+  } catch (err) { res.status(500).json({ success: false, message: err.message }); }
+});
+
+// DELETE /api/teacher/proposal/:id
+router.delete('/proposal/:id', async (req, res) => {
+  const result = await getDb(req).execute('DELETE FROM proposals WHERE id = ?', [req.params.id]);
+  if (result.affectedRows === 0) return res.status(404).json({ success: false, message: 'Proposal tidak ditemukan' });
+  res.json({ success: true });
+});
+
 // GET /api/teacher/:id
 router.get('/:id', async (req, res) => {
   const row = await getDb(req).queryOne('SELECT * FROM teachers WHERE id = ?', [req.params.id]);
