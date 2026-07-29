@@ -907,6 +907,8 @@ var docs=[];
 var docSearch='';
 var docPage=1;
 var PAGE_SIZE=10;
+// HP tidak me-render PDF di dalam iframe → pakai pola buka langsung.
+var IS_MOBILE=/Android|iPhone|iPad|iPod|Mobile|webOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 function loadDocs(){
   fetch('/api/teacher/duty', { headers:_authHeaders() })
     .then(function(r){ return r.ok?r.json():null; })
@@ -932,6 +934,10 @@ function viewDoc(id){
   var isPdf=(d.mime||'').indexOf('pdf')>=0;
   var isDocx=/\.docx$/i.test(d.filename||'')||(d.mime||'').indexOf('wordprocessingml')>=0;
   if(isPdf){
+    // HP: browser mobile tidak me-render PDF di dalam iframe (malah munculkan
+    // tombol unduh dulu). Buka URL langsung → viewer PDF bawaan HP yang handle.
+    if(IS_MOBILE){ window.open(url,'_blank'); return; }
+    // Desktop: embed via iframe supaya tidak kena setelan "download PDF" Chrome.
     var w=window.open('','_blank');
     if(!w){ window.open(url,'_blank'); return; }
     w.document.write('<!doctype html><html><head><meta charset="utf-8"><title>Lihat Dokumen</title>'+
