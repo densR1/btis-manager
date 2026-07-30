@@ -595,6 +595,7 @@ html, body { overflow-x: hidden; }
   }
 }
 </style>
+<link rel="stylesheet" href="assets/proposal.css">
 </head>
 <body>
 
@@ -665,6 +666,7 @@ html, body { overflow-x: hidden; }
   <button class="tab-btn" id="tab-timeline"  onclick="switchTab('timeline')">📌 Timeline PIC</button>
   <button class="tab-btn" id="tab-rapat"     onclick="switchTab('rapat')">📅 Rapat &amp; Notulen</button>
   <button class="tab-btn" id="tab-evaluasi"  onclick="switchTab('evaluasi')">📋 Evaluasi Kegiatan</button>
+  <button class="tab-btn" id="tab-proposal"  onclick="switchTab('proposal')">📝 Pengajuan Proposal</button>
 </div>
 
 <!-- ══ MAIN ══ -->
@@ -725,6 +727,166 @@ html, body { overflow-x: hidden; }
       <div class="sec-title">Evaluasi Kegiatan</div>
     </div>
     <div id="evaluasiList"></div>
+  </div>
+
+  <!-- ─ PENGAJUAN PROPOSAL KEGIATAN ─ -->
+  <div class="section" id="sec-proposal">
+    <!-- LIST VIEW: daftar proposal tersimpan -->
+    <div id="pp-list-view">
+      <div class="td-head pp-list-head">
+        <h1>📝 Pengajuan Proposal Kegiatan</h1>
+        <button type="button" class="btn btn-primary" id="ppNewBtn">＋ Buat Proposal</button>
+      </div>
+      <div class="card">
+        <h3>🗂️ Daftar Proposal</h3>
+        <div class="td-toolbar">
+          <div class="td-search">
+            <span class="td-search-ic">🔍</span>
+            <input id="pp-search" placeholder="Cari nama kegiatan, PIC, atau tahun ajaran…">
+          </div>
+          <span class="td-count" id="pp-count"></span>
+        </div>
+        <div id="pp-list"></div>
+        <div class="td-pager" id="pp-pager"></div>
+      </div>
+    </div>
+
+    <!-- FORM VIEW: buat / edit proposal -->
+    <div id="pp-form-view" style="display:none">
+      <div class="td-head pp-list-head">
+        <div class="pp-form-head-l">
+          <button type="button" class="btn btn-ghost" id="ppBackBtn">← Daftar</button>
+          <h1 id="pp-form-title">Buat Proposal</h1>
+        </div>
+        <button type="button" class="btn btn-primary" id="ppSaveBtn">💾 Simpan Proposal</button>
+      </div>
+      <form id="pp-form" onsubmit="return false">
+      <p class="pp-intro">Isi tiap bagian di bawah, lalu buat pratinjau di bagian akhir. Hasilnya mengikuti format Template Proposal Kegiatan BTIS dan bisa diunduh sebagai PDF.</p>
+
+      <!-- 1. Informasi Dasar -->
+      <div class="card pp-section" id="pp-sec-info">
+        <h3><span class="pp-num">1</span> Informasi Dasar</h3>
+        <div class="fld"><label>Nama Kegiatan <span class="req">*</span></label><input class="fi" type="text" id="f_namaKegiatan" placeholder='Misal: MPLS "MPLS RAMAH"'></div>
+        <div class="fld"><label>Tema Kegiatan</label><input class="fi" type="text" id="f_temaKegiatan" placeholder="Misal: Ramah, Aktif, Mandiri, Amanah, Hebat"></div>
+        <div class="pp-grid-2">
+          <div class="fld"><label>Tahun Ajaran</label><input class="fi" type="text" id="f_tahunAjaran" placeholder="2026/2027"></div>
+          <div class="fld"><label>Nama PIC / Penanggung Jawab</label><input class="fi" type="text" id="f_namaPIC" placeholder="Misal: Ms. Anin"></div>
+        </div>
+        <div class="pp-grid-2">
+          <div class="fld"><label>Kota Pengajuan</label><input class="fi" type="text" id="f_kotaPengajuan"></div>
+          <div class="fld"><label>Tanggal Pengajuan</label><input class="fi" type="date" id="f_tanggalPengajuan"></div>
+        </div>
+      </div>
+
+      <!-- 2. Waktu & Tempat -->
+      <div class="card pp-section">
+        <h3><span class="pp-num">2</span> Waktu &amp; Tempat Pelaksanaan</h3>
+        <div class="fld"><label>Hari, Tanggal Pelaksanaan</label><input class="fi" type="text" id="f_hariTanggal" placeholder="Misal: Senin, 13 Juli 2026"></div>
+        <div class="pp-grid-2">
+          <div class="fld"><label>Jam Mulai</label><input class="fi" type="time" id="f_jamMulai"></div>
+          <div class="fld"><label>Jam Selesai</label><input class="fi" type="time" id="f_jamSelesai"></div>
+        </div>
+        <div class="fld"><label>Tempat Pelaksanaan</label><input class="fi" type="text" id="f_tempatPelaksanaan" placeholder="Misal: Aula dan Lapangan BTIS"></div>
+        <div class="pp-grid-2">
+          <div class="fld"><label>Bentuk Kegiatan</label><input class="fi" type="text" id="f_bentukKegiatan" placeholder="Misal: Orientasi Siswa Baru"></div>
+          <div class="fld"><label>Sasaran / Peserta</label><input class="fi" type="text" id="f_sasaranPeserta" placeholder="Misal: Seluruh siswa kelas VII"></div>
+        </div>
+      </div>
+
+      <!-- 3. Latar Belakang & Dasar Pemikiran -->
+      <div class="card pp-section">
+        <h3><span class="pp-num">3</span> Latar Belakang &amp; Dasar Pemikiran</h3>
+        <div class="fld"><label>A. Latar Belakang</label><textarea class="fi" id="f_latarBelakang" placeholder="Jelaskan alasan dan konteks diadakannya kegiatan (1–2 paragraf)…"></textarea></div>
+        <div class="fld"><label>B. Dasar Pemikiran</label><div id="dpList"></div><button type="button" class="pp-btn-add" id="addDP">+ Tambah poin dasar</button></div>
+      </div>
+
+      <!-- 4. Tujuan -->
+      <div class="card pp-section">
+        <h3><span class="pp-num">4</span> Tujuan Kegiatan</h3>
+        <div class="fld"><label>C. Tujuan Kegiatan</label><div id="tjList"></div><button type="button" class="pp-btn-add" id="addTJ">+ Tambah tujuan</button></div>
+      </div>
+
+      <!-- 5. Deskripsi Singkat -->
+      <div class="card pp-section">
+        <h3><span class="pp-num">5</span> Deskripsi Singkat Kegiatan</h3>
+        <div class="fld"><label>Deskripsi Singkat</label><textarea class="fi" id="f_deskripsiSingkat" placeholder="Gambaran umum jalannya kegiatan, rangkaian acara, dan hal menarik dari kegiatan ini…"></textarea></div>
+      </div>
+
+      <!-- 6. Susunan Panitia -->
+      <div class="card pp-section">
+        <h3><span class="pp-num">6</span> Susunan Panitia</h3>
+        <div class="fld"><label>Jabatan dan Nama Panitia</label><div id="pnList"></div><button type="button" class="pp-btn-add" id="addPN">+ Tambah jabatan</button></div>
+      </div>
+
+      <!-- 7. Rencana Anggaran (upload gambar) -->
+      <div class="card pp-section">
+        <h3><span class="pp-num">7</span> Rencana Anggaran</h3>
+        <p class="pp-hint">Unggah foto/tangkapan layar rincian anggaran (mis. dari spreadsheet). Gambar disertakan langsung ke dokumen, tanpa perlu ketik ulang.</p>
+        <label id="uploadDrop" class="pp-upload">
+          <div class="pp-upload-ic">📷</div>
+          <div class="pp-upload-t">Klik untuk unggah gambar anggaran</div>
+          <div class="pp-upload-s">atau seret &amp; lepas — bisa lebih dari satu (JPG, PNG, dsb.)</div>
+          <input type="file" id="anggaranFileInput" accept="image/*" multiple hidden>
+        </label>
+        <div class="pp-img-grid" id="anggaranImgGrid"></div>
+      </div>
+
+      <!-- 8. Susunan Acara -->
+      <div class="card pp-section">
+        <h3><span class="pp-num">8</span> Susunan Acara</h3>
+        <div class="fld"><label>Rundown Acara</label><div id="acList"></div><button type="button" class="pp-btn-add" id="addAC">+ Tambah baris</button></div>
+        <div class="fld">
+          <label>Atau Unggah Gambar Rundown (opsional)</label>
+          <label id="acaraUploadDrop" class="pp-upload">
+            <div class="pp-upload-ic">📷</div>
+            <div class="pp-upload-t">Klik untuk unggah gambar rundown</div>
+            <div class="pp-upload-s">atau seret &amp; lepas — bisa lebih dari satu</div>
+            <input type="file" id="acaraFileInput" accept="image/*" multiple hidden>
+          </label>
+          <div class="pp-img-grid" id="acaraImgGrid"></div>
+        </div>
+      </div>
+
+      <!-- 9. Pengesahan -->
+      <div class="card pp-section">
+        <h3><span class="pp-num">9</span> Lembar Pengesahan</h3>
+        <div class="fld"><label>Perkiraan Anggaran</label><input class="fi" type="text" id="f_totalAnggaran" placeholder="Misal: Rp 5.000.000"></div>
+        <div class="pp-grid-2">
+          <div class="fld"><label>Nama Ketua Panitia</label><input class="fi" type="text" id="f_ketuaNama"></div>
+          <div class="fld"><label>Nama Wakil Kepala Sekolah <span class="pp-sub">(Mengetahui)</span></label><input class="fi" type="text" id="f_wakilKepsekNama"></div>
+        </div>
+        <div class="fld"><label>Nama Kepala Sekolah <span class="pp-sub">(Menyetujui)</span></label><input class="fi" type="text" id="f_kepsekNama"></div>
+      </div>
+
+      <!-- 10. Lampiran -->
+      <div class="card pp-section">
+        <h3><span class="pp-num">10</span> Lampiran</h3>
+        <div class="fld"><label>Centang lampiran yang akan disertakan</label><div id="lpList"></div></div>
+      </div>
+
+      <!-- 11. Pratinjau & Unduh -->
+      <div class="card pp-section pp-final">
+        <h3 style="color:#fff"><span class="pp-num" style="background:#fff;color:var(--blue)">✓</span> Pratinjau &amp; Unduh</h3>
+        <p class="pp-hint" style="color:#e3f0ff">Klik "Buat Pratinjau" untuk menyusun proposal dari isian di atas. Teks bisa diedit langsung di area pratinjau sebelum diunduh.</p>
+        <button type="button" class="pp-big-btn" id="previewBtn">📄 Buat Pratinjau</button>
+      </div>
+
+      <!-- 12. Area pratinjau -->
+      <div class="card pp-section" id="pp-sec-preview" style="display:none">
+        <div class="pp-preview-head no-print">
+          <h3 style="margin:0">Pratinjau Proposal <span class="pp-sub">(bisa diedit)</span></h3>
+          <div class="pp-preview-actions">
+            <button type="button" class="pp-btn-add" id="refreshPreviewBtn">🔄 Perbarui dari Formulir</button>
+            <button type="button" class="pp-big-btn" id="ppSaveBtn2">💾 Simpan Proposal</button>
+            <button type="button" class="pp-big-btn" id="downloadPdfBtn">⬇️ Unduh PDF</button>
+          </div>
+        </div>
+        <div class="preview-scroll" id="previewWrap">
+          <div class="doc-page" id="previewDoc" contenteditable="true"></div>
+        </div>
+      </div>
+      </form>
+    </div>
   </div>
 
 </main>
@@ -2057,5 +2219,9 @@ function _autoSyncCalendar(){
     .catch(function(){});
 }
 </script>
+
+<!-- Pengajuan Proposal Kegiatan (logic terpisah, lihat assets/proposal.js) -->
+<div class="pp-toast" id="pp-toast"></div>
+<script src="assets/proposal.js"></script>
 </body>
 </html>

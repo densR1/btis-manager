@@ -1,0 +1,265 @@
+/* ============================================================================
+   proposal.css — Style fitur "Pengajuan Proposal Kegiatan".
+   Semua aturan di-scope ke #sec-proposal / #previewDoc / .pp-toast agar bisa
+   dipasang di halaman mana pun (mis. Event Manager) tanpa bentrok style lain.
+   Variabel warna didefinisikan lokal supaya tak bergantung :root halaman.
+   ========================================================================== */
+#sec-proposal, .pp-toast {
+  --blue:       #1a3a6b;
+  --blue-mid:   #2257a8;
+  --blue-light: #e8f0fb;
+  --muted:      #6b7280;
+  --border:     #e2e8f0;
+  --accent:     #059c52;
+}
+
+/* ── Kelas dasar (di-scope ke #sec-proposal biar tak bentrok halaman host) ── */
+#sec-proposal .td-head { margin-bottom:1.25rem; }
+#sec-proposal .td-head h1 { font-size:1.4rem; font-weight:700; font-style:italic; color:var(--blue); font-family:'Eras Bold ITC','Century Gothic',sans-serif; }
+#sec-proposal .card {
+  background:#fff; border:1px solid var(--border); border-radius:14px;
+  padding:1.25rem; box-shadow:0 2px 10px rgba(26,58,107,.05); margin-bottom:1.25rem;
+}
+#sec-proposal .card h3 { font-size:1rem; font-weight:700; color:var(--blue); margin-bottom:1rem; display:flex; align-items:center; gap:.5rem; }
+#sec-proposal .fld { margin-bottom:.85rem; }
+#sec-proposal .fld label { display:block; font-size:.78rem; font-weight:700; color:var(--blue); margin-bottom:.35rem; }
+#sec-proposal .fi {
+  width:100%; padding:.6rem .75rem; border:1.5px solid var(--border); border-radius:9px;
+  font-family:inherit; font-size:.9rem; color:#1a3a6b; outline:none; background:#fff; transition:border-color .15s;
+}
+#sec-proposal .fi:focus { border-color:var(--accent); }
+#sec-proposal textarea.fi { resize:vertical; min-height:64px; }
+#sec-proposal .btn {
+  display:inline-flex; align-items:center; gap:.4rem; border:none; border-radius:9px;
+  padding:.6rem 1.2rem; font-family:inherit; font-size:.88rem; font-weight:700; cursor:pointer; transition:.15s;
+}
+#sec-proposal .btn-primary { background:var(--accent); color:#fff; }
+#sec-proposal .btn-primary:hover { background:#047c43; }
+#sec-proposal .btn-primary:disabled { opacity:.55; cursor:not-allowed; }
+#sec-proposal .btn-ghost { background:#fff; border:1.5px solid var(--border); color:var(--blue); }
+#sec-proposal .btn-ghost:hover { background:var(--blue-light); }
+
+/* Toolbar (search) & pager */
+#sec-proposal .td-toolbar { display:flex; align-items:center; gap:.75rem; margin-bottom:.9rem; flex-wrap:wrap; }
+#sec-proposal .td-search { position:relative; width:240px; max-width:100%; }
+#sec-proposal .td-search-ic { position:absolute; left:.6rem; top:50%; transform:translateY(-50%); font-size:.8rem; opacity:.6; pointer-events:none; }
+#sec-proposal .td-search input {
+  width:100%; padding:.4rem .6rem .4rem 1.9rem; border:1.5px solid var(--border); border-radius:8px;
+  font-family:inherit; font-size:.8rem; color:#1a3a6b; outline:none; background:#fff; transition:border-color .15s;
+}
+#sec-proposal .td-search input:focus { border-color:var(--accent); }
+#sec-proposal .td-count { font-size:.78rem; color:var(--muted); white-space:nowrap; }
+#sec-proposal .td-pager { display:flex; align-items:center; justify-content:center; gap:.35rem; margin-top:1rem; flex-wrap:wrap; }
+#sec-proposal .pg-btn {
+  border:1px solid var(--border); background:#fff; border-radius:8px; min-width:34px; height:34px; padding:0 .55rem;
+  font-size:.82rem; font-weight:600; color:var(--blue); cursor:pointer; transition:.15s; font-family:inherit;
+}
+#sec-proposal .pg-btn:hover:not(:disabled) { background:var(--blue-light); }
+#sec-proposal .pg-btn.on { background:var(--blue); color:#fff; border-color:var(--blue); }
+#sec-proposal .pg-btn:disabled { opacity:.4; cursor:not-allowed; }
+#sec-proposal .pg-ellipsis { padding:0 .3rem; color:var(--muted); }
+
+/* Tabel daftar */
+#sec-proposal .td-table-wrap { overflow-x:auto; }
+#sec-proposal .td-table { width:100%; border-collapse:collapse; font-size:.86rem; }
+#sec-proposal .td-table thead th {
+  text-align:left; font-size:.72rem; font-weight:700; text-transform:uppercase; letter-spacing:.03em;
+  color:var(--muted); padding:.6rem .7rem; border-bottom:2px solid var(--border); white-space:nowrap;
+}
+#sec-proposal .td-table tbody td { padding:.75rem .7rem; border-bottom:1px solid var(--border); vertical-align:top; }
+#sec-proposal .td-table tbody tr:last-child td { border-bottom:none; }
+#sec-proposal .td-table tbody tr:hover { background:#fafcff; }
+#sec-proposal .td-no { color:var(--muted); font-weight:700; text-align:center; }
+#sec-proposal .dt-title { font-weight:700; color:var(--blue); }
+#sec-proposal .dt-desc { font-size:.8rem; color:var(--muted); margin-top:.15rem; line-height:1.5; white-space:pre-wrap; }
+#sec-proposal .dt-file { font-size:.72rem; color:#9ca3af; margin-top:.3rem; }
+#sec-proposal .dt-date { color:var(--muted); white-space:nowrap; }
+#sec-proposal .dt-act { display:flex; gap:.35rem; flex-wrap:nowrap; align-items:center; justify-content:flex-end; }
+#sec-proposal .td-table td.dt-act, #sec-proposal .td-table th.dt-th { text-align:right; }
+#sec-proposal .empty-docs { text-align:center; padding:3rem 1rem; color:var(--muted); }
+#sec-proposal .empty-docs .ei { font-size:2.5rem; margin-bottom:.75rem; opacity:.5; }
+#sec-proposal .icon-btn {
+  border:1px solid var(--border); background:#fff; border-radius:8px; padding:.4rem .6rem;
+  font-size:.8rem; font-weight:600; cursor:pointer; color:var(--blue); transition:.15s; text-decoration:none; display:inline-flex; align-items:center; gap:.3rem; white-space:nowrap;
+}
+#sec-proposal .icon-btn:hover { background:var(--blue-light); }
+#sec-proposal .icon-btn.danger { color:#dc2626; }
+#sec-proposal .icon-btn.danger:hover { background:#fef2f2; }
+
+/* ── Bagian khusus proposal ── */
+#sec-proposal .pp-intro { font-size:.9rem; color:var(--muted); margin-bottom:1.25rem; line-height:1.6; }
+#sec-proposal .pp-list-head { display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap; }
+#sec-proposal .pp-form-head-l { display:flex; align-items:center; gap:.75rem; flex-wrap:wrap; }
+#sec-proposal .pp-form-head-l h1 { margin:0; }
+#sec-proposal .pp-list-head .btn { flex-shrink:0; }
+#sec-proposal .pp-section { margin-bottom:1.1rem; }
+#sec-proposal .pp-section > h3 { display:flex; align-items:center; gap:.55rem; }
+#sec-proposal .pp-num {
+  display:inline-flex; align-items:center; justify-content:center; width:24px; height:24px;
+  border-radius:50%; background:var(--blue); color:#fff; font-size:.75rem; font-weight:800; flex-shrink:0;
+}
+#sec-proposal .pp-hint { font-size:.82rem; color:var(--muted); margin:-.4rem 0 .9rem; line-height:1.5; }
+#sec-proposal .pp-sub { font-size:.75rem; font-weight:500; color:var(--muted); }
+#sec-proposal .req { color:#dc2626; }
+#sec-proposal .pp-grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:.85rem; }
+
+/* Input/textarea proposal diseragamkan agar teks tidak mepet ke garis */
+#sec-proposal input[type=text],
+#sec-proposal input[type=date],
+#sec-proposal input[type=time],
+#sec-proposal input[type=number],
+#sec-proposal textarea {
+  width:100%; padding:.62rem .85rem; border:1.5px solid var(--border); border-radius:9px;
+  font-family:inherit; font-size:.9rem; line-height:1.5; color:#1a3a6b; background:#fff;
+  outline:none; transition:border-color .15s, box-shadow .15s;
+}
+#sec-proposal input[type=text]:focus,
+#sec-proposal input[type=date]:focus,
+#sec-proposal input[type=time]:focus,
+#sec-proposal input[type=number]:focus,
+#sec-proposal textarea:focus {
+  border-color:var(--accent); box-shadow:0 0 0 3px rgba(5,156,82,.12);
+}
+#sec-proposal textarea { min-height:96px; resize:vertical; }
+#sec-proposal input::placeholder,
+#sec-proposal textarea::placeholder { color:#9ca3af; }
+
+/* list dinamis */
+#sec-proposal .pp-list-row { display:flex; gap:.5rem; align-items:center; margin-bottom:.5rem; }
+#sec-proposal .pp-list-idx { width:22px; text-align:right; color:var(--muted); font-size:.8rem; font-weight:700; flex-shrink:0; }
+#sec-proposal .pp-list-row input { flex:1; }
+#sec-proposal .pp-panitia-row { display:grid; grid-template-columns:1fr 1fr 40px; gap:.5rem; margin-bottom:.5rem; }
+#sec-proposal .pp-acara-row { display:grid; grid-template-columns:.7fr 1.4fr 1fr 40px; gap:.5rem; margin-bottom:.5rem; }
+#sec-proposal .pp-btn-remove {
+  border:1.5px solid var(--border); background:#fff; border-radius:8px; width:40px; height:40px;
+  color:#dc2626; font-size:1.1rem; cursor:pointer; flex-shrink:0; line-height:1;
+}
+#sec-proposal .pp-btn-remove:hover { background:#fef2f2; border-color:#f0b8b0; }
+#sec-proposal .pp-btn-add {
+  margin-top:.3rem; background:#fff; border:1.5px dashed var(--accent); color:var(--accent);
+  border-radius:9px; padding:.5rem 1rem; font-size:.82rem; font-weight:700; cursor:pointer; font-family:inherit;
+}
+#sec-proposal .pp-btn-add:hover { background:#f0fdf4; }
+#sec-proposal .pp-check { display:flex; align-items:center; gap:.6rem; padding:.5rem 0; border-bottom:1px solid var(--border); }
+#sec-proposal .pp-check:last-child { border-bottom:none; }
+#sec-proposal .pp-check input { width:17px; height:17px; accent-color:var(--accent); }
+#sec-proposal .pp-check label { margin:0; font-size:.88rem; font-weight:500; }
+
+/* unggah gambar */
+#sec-proposal .pp-upload {
+  display:block; border:1.5px dashed #c7d9f5; border-radius:12px; padding:1.4rem 1rem; text-align:center;
+  cursor:pointer; background:#fafcff; transition:.15s; margin-bottom:.5rem;
+}
+#sec-proposal .pp-upload:hover, #sec-proposal .pp-upload.dragover { border-color:var(--accent); background:#f0fdf4; }
+#sec-proposal .pp-upload-ic { font-size:1.6rem; }
+#sec-proposal .pp-upload-t { font-weight:700; color:var(--blue); font-size:.9rem; margin-top:.3rem; }
+#sec-proposal .pp-upload-s { font-size:.78rem; color:var(--muted); margin-top:.2rem; }
+#sec-proposal .pp-img-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(130px,1fr)); gap:.7rem; }
+#sec-proposal .pp-img-card { position:relative; border:1px solid var(--border); border-radius:10px; overflow:hidden; background:#fff; }
+#sec-proposal .pp-img-card img { display:block; width:100%; height:110px; object-fit:cover; }
+#sec-proposal .pp-img-name { font-size:.68rem; color:var(--muted); padding:.35rem .5rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+#sec-proposal .pp-img-remove {
+  position:absolute; top:5px; right:5px; width:24px; height:24px; border-radius:50%;
+  background:rgba(20,40,60,.6); color:#fff; border:none; font-size:.85rem; cursor:pointer; line-height:1;
+}
+#sec-proposal .pp-img-remove:hover { background:#dc2626; }
+
+/* final & pratinjau */
+#sec-proposal .pp-final { background:linear-gradient(135deg,var(--blue),var(--blue-mid)); border:none; text-align:center; }
+#sec-proposal .pp-final .pp-hint { text-align:center; }
+#sec-proposal .pp-big-btn {
+  display:inline-flex; align-items:center; gap:.5rem; background:#fff; color:var(--blue);
+  border:none; border-radius:10px; padding:.8rem 1.6rem; font-size:.95rem; font-weight:700;
+  cursor:pointer; font-family:inherit; box-shadow:0 4px 12px rgba(0,0,0,.12);
+}
+#sec-proposal .pp-big-btn:hover { background:#eaf6ff; }
+#sec-proposal .pp-preview-head { display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap; margin-bottom:1rem; }
+#sec-proposal .pp-preview-actions { display:flex; gap:.6rem; flex-wrap:wrap; }
+#sec-proposal .pp-preview-actions .pp-big-btn { background:var(--accent); color:#fff; box-shadow:none; }
+#sec-proposal .pp-preview-actions .pp-big-btn:hover { background:#047c43; }
+#sec-proposal .preview-scroll { overflow-x:auto; background:#dbe7f0; border-radius:12px; padding:1.25rem .6rem; }
+
+/* ── Dokumen preview (meniru template Word; scope: #previewDoc) ── */
+#previewDoc {
+  width:210mm; min-height:297mm; margin:0 auto; background:#fff; box-shadow:0 2px 14px rgba(12,58,99,.18);
+  padding:20mm; font-family:'Times New Roman',Times,serif; font-size:12pt; line-height:1.6; color:#000; outline:none;
+}
+#previewDoc:focus { box-shadow:0 0 0 3px rgba(5,156,82,.35), 0 2px 14px rgba(12,58,99,.18); }
+#previewDoc .doc-section + .doc-section { border-top:1px dashed #c9dcee; margin-top:26px; padding-top:22px; }
+#previewDoc .doc-h1 { font-size:14pt; font-weight:bold; margin:0 0 12px; text-transform:uppercase; }
+#previewDoc .doc-h2 { font-size:12.5pt; font-weight:bold; margin:14px 0 6px; }
+#previewDoc .doc-p { margin:0 0 10px; text-align:justify; }
+#previewDoc .doc-center { text-align:center; }
+#previewDoc .doc-bold { font-weight:bold; }
+#previewDoc .doc-italic { font-style:italic; }
+#previewDoc ul, #previewDoc ol { margin:0 0 10px; padding-left:26px; }
+#previewDoc li { margin-bottom:4px; }
+#previewDoc .doc-logo { display:block; margin:14px auto; width:100px; height:100px; object-fit:contain; }
+#previewDoc .doc-cover-title { font-size:36pt; margin-bottom:8px; }
+#previewDoc .doc-cover-heading { font-size:24pt; margin-bottom:6px; }
+#previewDoc .doc-cover-pic { font-size:22pt; margin-bottom:4px; }
+#previewDoc .doc-cover-school { font-size:11pt; }
+#previewDoc .doc-img { display:block; max-width:100%; margin:10px auto 16px; }
+#previewDoc .doc-table { border-collapse:collapse; width:100%; margin:8px 0 16px; font-size:11pt; }
+#previewDoc .doc-table th, #previewDoc .doc-table td { border:1px solid #888; padding:6px 10px; vertical-align:top; }
+#previewDoc .doc-table th { background:#dceefb; font-weight:bold; text-align:left; }
+#previewDoc .doc-table.label-value td:first-child { font-weight:bold; background:#dceefb; width:32%; }
+#previewDoc .doc-table .sig-blank td { height:46px; }
+/* Blok tanda tangan (lembar pengesahan) — tanpa garis tabel, hanya ruang TTD */
+#previewDoc .doc-table.doc-sign,
+#previewDoc .doc-table.doc-sign th,
+#previewDoc .doc-table.doc-sign td { border:none; background:none; padding:2px 8px; }
+/* Kotak pengesahan laporan (Disusun/Diperiksa) — 1 sel per kolom, isi menumpuk */
+#previewDoc .doc-table.doc-approval td { vertical-align:top; padding:10px 14px; }
+#previewDoc .doc-approval .sign-gap { margin-top:12px; }
+#previewDoc .doc-approval .sign-space { margin-top:34px; }
+
+/* toast proposal (pakai warna biru BTIS) */
+.pp-toast {
+  position:fixed; bottom:1.5rem; left:50%; transform:translateX(-50%) translateY(20px);
+  background:var(--blue); color:#fff; padding:.7rem 1.3rem; border-radius:10px; font-size:.85rem;
+  font-weight:600; opacity:0; pointer-events:none; transition:.25s; z-index:400; max-width:90vw; text-align:center;
+}
+.pp-toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+.pp-toast.error { background:#dc2626; }
+
+/* Print: hanya dokumen proposal yang tercetak */
+@media print {
+  body.pp-printing * { visibility:hidden; }
+  body.pp-printing #previewWrap, body.pp-printing #previewWrap * { visibility:visible; }
+  body.pp-printing #previewWrap { position:absolute; left:0; top:0; width:100%; padding:0; background:none; }
+  body.pp-printing .preview-scroll { background:none; padding:0; overflow:visible; }
+  body.pp-printing #previewDoc { box-shadow:none; margin:0; width:auto; min-height:0; padding:16mm; }
+  body.pp-printing #previewDoc .doc-section { page-break-before:always; }
+  body.pp-printing #previewDoc .doc-section:first-child { page-break-before:avoid; }
+  body.pp-printing .no-print { display:none !important; }
+}
+
+/* Responsif HP */
+@media (max-width:720px) {
+  #sec-proposal .card { padding:1rem; }
+  #sec-proposal .pp-grid-2,
+  #sec-proposal .pp-panitia-row,
+  #sec-proposal .pp-acara-row { grid-template-columns:1fr; }
+  #sec-proposal .preview-scroll { padding:.6rem .3rem; }
+  /* Tabel → kartu bertumpuk (tanpa scroll nyamping) */
+  #sec-proposal .td-table-wrap { overflow:visible; }
+  #sec-proposal .td-table thead { display:none; }
+  #sec-proposal .td-table, #sec-proposal .td-table tbody, #sec-proposal .td-table tr, #sec-proposal .td-table td { display:block; width:100%; }
+  #sec-proposal .td-table tr {
+    border:1px solid var(--border); border-radius:12px; padding:.85rem 1rem;
+    margin-bottom:.75rem; background:#fff; position:relative;
+  }
+  #sec-proposal .td-table tbody tr:hover { background:#fff; }
+  #sec-proposal .td-table td { border:none !important; padding:.15rem 0; }
+  #sec-proposal .td-no {
+    position:absolute; top:.7rem; right:.85rem; text-align:center;
+    background:var(--blue-light); color:var(--blue); border-radius:6px;
+    min-width:26px; padding:.1rem .4rem; font-size:.75rem;
+  }
+  #sec-proposal .dt-title { padding-right:2.5rem; }
+  #sec-proposal .dt-date { margin-top:.35rem; font-size:.78rem; }
+  #sec-proposal .dt-date::before { content:'📅 '; }
+  #sec-proposal .dt-act { flex-wrap:wrap; margin-top:.65rem; gap:.4rem; }
+  #sec-proposal .dt-act .icon-btn { flex:1; min-width:calc(50% - .2rem); justify-content:center; padding:.5rem; }
+}

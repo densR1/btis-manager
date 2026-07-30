@@ -352,159 +352,6 @@
   .toast.show { 
     opacity:1; transform:translateX(-50%) translateY(0); }
 
-  /* ══════════════════════════════════════════════════════════════════
-     PENGAJUAN PROPOSAL — semua selector di-scope ke #sec-proposal
-     agar tidak bocor ke bagian lain halaman.
-     ══════════════════════════════════════════════════════════════════ */
-  #sec-proposal .pp-intro { font-size:.9rem; color:var(--muted); margin-bottom:1.25rem; line-height:1.6; }
-  /* Header list/form: judul kiri, tombol aksi kanan */
-  #sec-proposal .pp-list-head { display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap; }
-  #sec-proposal .pp-form-head-l { display:flex; align-items:center; gap:.75rem; flex-wrap:wrap; }
-  #sec-proposal .pp-form-head-l h1 { margin:0; }
-  #sec-proposal .pp-list-head .btn { flex-shrink:0; }
-  #sec-proposal .pp-section { margin-bottom:1.1rem; }
-  #sec-proposal .pp-section > h3 { display:flex; align-items:center; gap:.55rem; }
-  #sec-proposal .pp-num {
-    display:inline-flex; align-items:center; justify-content:center; width:24px; height:24px;
-    border-radius:50%; background:var(--blue); color:#fff; font-size:.75rem; font-weight:800; flex-shrink:0;
-  }
-  #sec-proposal .pp-hint { font-size:.82rem; color:var(--muted); margin:-.4rem 0 .9rem; line-height:1.5; }
-  #sec-proposal .pp-sub { font-size:.75rem; font-weight:500; color:var(--muted); }
-  #sec-proposal .req { color:#dc2626; }
-  #sec-proposal .pp-grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:.85rem; }
-
-  /* Semua input/textarea di tab proposal (termasuk yang dibuat dinamis
-     tanpa class .fi) diseragamkan agar teks tidak mepet ke garis. */
-  #sec-proposal input[type=text],
-  #sec-proposal input[type=date],
-  #sec-proposal input[type=time],
-  #sec-proposal input[type=number],
-  #sec-proposal textarea {
-    width:100%; padding:.62rem .85rem; border:1.5px solid var(--border); border-radius:9px;
-    font-family:inherit; font-size:.9rem; line-height:1.5; color:#1a3a6b; background:#fff;
-    outline:none; transition:border-color .15s, box-shadow .15s;
-  }
-  #sec-proposal input[type=text]:focus,
-  #sec-proposal input[type=date]:focus,
-  #sec-proposal input[type=time]:focus,
-  #sec-proposal input[type=number]:focus,
-  #sec-proposal textarea:focus {
-    border-color:var(--accent); box-shadow:0 0 0 3px rgba(5,156,82,.12);
-  }
-  #sec-proposal textarea { min-height:96px; resize:vertical; }
-  #sec-proposal input::placeholder,
-  #sec-proposal textarea::placeholder { color:#9ca3af; }
-
-  /* list dinamis */
-  #sec-proposal .pp-list-row { display:flex; gap:.5rem; align-items:center; margin-bottom:.5rem; }
-  #sec-proposal .pp-list-idx { width:22px; text-align:right; color:var(--muted); font-size:.8rem; font-weight:700; flex-shrink:0; }
-  #sec-proposal .pp-list-row input { flex:1; }
-  #sec-proposal .pp-panitia-row { display:grid; grid-template-columns:1fr 1fr 40px; gap:.5rem; margin-bottom:.5rem; }
-  #sec-proposal .pp-acara-row { display:grid; grid-template-columns:.7fr 1.4fr 1fr 40px; gap:.5rem; margin-bottom:.5rem; }
-  #sec-proposal .pp-btn-remove {
-    border:1.5px solid var(--border); background:#fff; border-radius:8px; width:40px; height:40px;
-    color:#dc2626; font-size:1.1rem; cursor:pointer; flex-shrink:0; line-height:1;
-  }
-  #sec-proposal .pp-btn-remove:hover { background:#fef2f2; border-color:#f0b8b0; }
-  #sec-proposal .pp-btn-add {
-    margin-top:.3rem; background:#fff; border:1.5px dashed var(--accent); color:var(--accent);
-    border-radius:9px; padding:.5rem 1rem; font-size:.82rem; font-weight:700; cursor:pointer; font-family:inherit;
-  }
-  #sec-proposal .pp-btn-add:hover { background:#f0fdf4; }
-  #sec-proposal .pp-check { display:flex; align-items:center; gap:.6rem; padding:.5rem 0; border-bottom:1px solid var(--border); }
-  #sec-proposal .pp-check:last-child { border-bottom:none; }
-  #sec-proposal .pp-check input { width:17px; height:17px; accent-color:var(--accent); }
-  #sec-proposal .pp-check label { margin:0; font-size:.88rem; font-weight:500; }
-
-  /* unggah gambar */
-  #sec-proposal .pp-upload {
-    display:block; border:1.5px dashed #c7d9f5; border-radius:12px; padding:1.4rem 1rem; text-align:center;
-    cursor:pointer; background:#fafcff; transition:.15s; margin-bottom:.5rem;
-  }
-  #sec-proposal .pp-upload:hover, #sec-proposal .pp-upload.dragover { border-color:var(--accent); background:#f0fdf4; }
-  #sec-proposal .pp-upload-ic { font-size:1.6rem; }
-  #sec-proposal .pp-upload-t { font-weight:700; color:var(--blue); font-size:.9rem; margin-top:.3rem; }
-  #sec-proposal .pp-upload-s { font-size:.78rem; color:var(--muted); margin-top:.2rem; }
-  #sec-proposal .pp-img-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(130px,1fr)); gap:.7rem; }
-  #sec-proposal .pp-img-card { position:relative; border:1px solid var(--border); border-radius:10px; overflow:hidden; background:#fff; }
-  #sec-proposal .pp-img-card img { display:block; width:100%; height:110px; object-fit:cover; }
-  #sec-proposal .pp-img-name { font-size:.68rem; color:var(--muted); padding:.35rem .5rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-  #sec-proposal .pp-img-remove {
-    position:absolute; top:5px; right:5px; width:24px; height:24px; border-radius:50%;
-    background:rgba(20,40,60,.6); color:#fff; border:none; font-size:.85rem; cursor:pointer; line-height:1;
-  }
-  #sec-proposal .pp-img-remove:hover { background:#dc2626; }
-
-  /* final & pratinjau */
-  #sec-proposal .pp-final { background:linear-gradient(135deg,var(--blue),var(--blue-mid)); border:none; text-align:center; }
-  #sec-proposal .pp-final .pp-hint { text-align:center; }
-  #sec-proposal .pp-big-btn {
-    display:inline-flex; align-items:center; gap:.5rem; background:#fff; color:var(--blue);
-    border:none; border-radius:10px; padding:.8rem 1.6rem; font-size:.95rem; font-weight:700;
-    cursor:pointer; font-family:inherit; box-shadow:0 4px 12px rgba(0,0,0,.12);
-  }
-  #sec-proposal .pp-big-btn:hover { background:#eaf6ff; }
-  #sec-proposal .pp-preview-head { display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap; margin-bottom:1rem; }
-  #sec-proposal .pp-preview-actions { display:flex; gap:.6rem; flex-wrap:wrap; }
-  #sec-proposal .pp-preview-actions .pp-big-btn { background:var(--accent); color:#fff; box-shadow:none; }
-  #sec-proposal .pp-preview-actions .pp-big-btn:hover { background:#047c43; }
-  #sec-proposal .preview-scroll { overflow-x:auto; background:#dbe7f0; border-radius:12px; padding:1.25rem .6rem; }
-
-  /* ── Dokumen preview (meniru template Word; scope: #previewDoc) ── */
-  #previewDoc {
-    width:210mm; min-height:297mm; margin:0 auto; background:#fff; box-shadow:0 2px 14px rgba(12,58,99,.18);
-    padding:20mm; font-family:'Times New Roman',Times,serif; font-size:12pt; line-height:1.6; color:#000; outline:none;
-  }
-  #previewDoc:focus { box-shadow:0 0 0 3px rgba(5,156,82,.35), 0 2px 14px rgba(12,58,99,.18); }
-  #previewDoc .doc-section + .doc-section { border-top:1px dashed #c9dcee; margin-top:26px; padding-top:22px; }
-  #previewDoc .doc-h1 { font-size:14pt; font-weight:bold; margin:0 0 12px; text-transform:uppercase; }
-  #previewDoc .doc-h2 { font-size:12.5pt; font-weight:bold; margin:14px 0 6px; }
-  #previewDoc .doc-p { margin:0 0 10px; text-align:justify; }
-  #previewDoc .doc-center { text-align:center; }
-  #previewDoc .doc-bold { font-weight:bold; }
-  #previewDoc .doc-italic { font-style:italic; }
-  #previewDoc ul, #previewDoc ol { margin:0 0 10px; padding-left:26px; }
-  #previewDoc li { margin-bottom:4px; }
-  #previewDoc .doc-logo { display:block; margin:14px auto; width:100px; height:100px; object-fit:contain; }
-  #previewDoc .doc-cover-title { font-size:36pt; margin-bottom:8px; }
-  #previewDoc .doc-cover-heading { font-size:24pt; margin-bottom:6px; }
-  #previewDoc .doc-cover-pic { font-size:22pt; margin-bottom:4px; }
-  #previewDoc .doc-cover-school { font-size:11pt; }
-  #previewDoc .doc-img { display:block; max-width:100%; margin:10px auto 16px; }
-  #previewDoc .doc-table { border-collapse:collapse; width:100%; margin:8px 0 16px; font-size:11pt; }
-  #previewDoc .doc-table th, #previewDoc .doc-table td { border:1px solid #888; padding:6px 10px; vertical-align:top; }
-  #previewDoc .doc-table th { background:#dceefb; font-weight:bold; text-align:left; }
-  #previewDoc .doc-table.label-value td:first-child { font-weight:bold; background:#dceefb; width:32%; }
-  #previewDoc .doc-table .sig-blank td { height:46px; }
-  /* Blok tanda tangan (lembar pengesahan) — tanpa garis tabel, hanya ruang TTD */
-  #previewDoc .doc-table.doc-sign,
-  #previewDoc .doc-table.doc-sign th,
-  #previewDoc .doc-table.doc-sign td { border:none; background:none; padding:2px 8px; }
-  /* Kotak pengesahan laporan (Disusun/Diperiksa) — 1 sel per kolom, isi menumpuk */
-  #previewDoc .doc-table.doc-approval td { vertical-align:top; padding:10px 14px; }
-  #previewDoc .doc-approval .sign-gap { margin-top:12px; }
-  #previewDoc .doc-approval .sign-space { margin-top:34px; }
-
-  /* toast proposal (pakai warna biru BTIS) */
-  .pp-toast {
-    position:fixed; bottom:1.5rem; left:50%; transform:translateX(-50%) translateY(20px);
-    background:var(--blue); color:#fff; padding:.7rem 1.3rem; border-radius:10px; font-size:.85rem;
-    font-weight:600; opacity:0; pointer-events:none; transition:.25s; z-index:400; max-width:90vw; text-align:center;
-  }
-  .pp-toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
-  .pp-toast.error { background:#dc2626; }
-
-  /* Print: hanya dokumen proposal yang tercetak */
-  @media print {
-    body.pp-printing * { visibility:hidden; }
-    body.pp-printing #previewWrap, body.pp-printing #previewWrap * { visibility:visible; }
-    body.pp-printing #previewWrap { position:absolute; left:0; top:0; width:100%; padding:0; background:none; }
-    body.pp-printing .preview-scroll { background:none; padding:0; overflow:visible; }
-    body.pp-printing #previewDoc { box-shadow:none; margin:0; width:auto; min-height:0; padding:16mm; }
-    body.pp-printing #previewDoc .doc-section { page-break-before:always; }
-    body.pp-printing #previewDoc .doc-section:first-child { page-break-before:avoid; }
-    body.pp-printing .no-print { display:none !important; }
-  }
 
   html, body { overflow-x: hidden; }
   @media (max-width:720px) {
@@ -513,11 +360,6 @@
     .page-title { font-size:.95rem; }
     .td-main { padding:1.25rem 1rem 4rem; }
     .card { padding:1rem; }
-    /* Proposal: grid & baris jadi satu kolom di HP */
-    #sec-proposal .pp-grid-2,
-    #sec-proposal .pp-panitia-row,
-    #sec-proposal .pp-acara-row { grid-template-columns:1fr; }
-    #sec-proposal .preview-scroll { padding:.6rem .3rem; }
     /* Tabel → kartu bertumpuk (tanpa scroll nyamping) */
     .td-table-wrap { overflow:visible; }
     .td-table thead { display:none; }
@@ -562,7 +404,6 @@
 <!-- ── TAB NAV ── -->
 <div class="tabs-bar">
   <button class="tab-btn on" id="tab-duty" onclick="switchTab('duty')">📋 Teacher Documents</button>
-  <button class="tab-btn" id="tab-proposal" onclick="switchTab('proposal')">📝 Pengajuan Proposal</button>
 </div>
 
 <main class="td-main">
@@ -607,165 +448,6 @@
     </div>
   </section>
 
-  <!-- ── TAB: Pengajuan Proposal Kegiatan ── -->
-  <section class="tab-sec" id="sec-proposal">
-    <!-- LIST VIEW: daftar proposal tersimpan -->
-    <div id="pp-list-view">
-      <div class="td-head pp-list-head">
-        <h1>📝 Pengajuan Proposal Kegiatan</h1>
-        <button type="button" class="btn btn-primary" id="ppNewBtn">＋ Buat Proposal</button>
-      </div>
-      <div class="card">
-        <h3>🗂️ Daftar Proposal</h3>
-        <div class="td-toolbar">
-          <div class="td-search">
-            <span class="td-search-ic">🔍</span>
-            <input id="pp-search" placeholder="Cari nama kegiatan, PIC, atau tahun ajaran…">
-          </div>
-          <span class="td-count" id="pp-count"></span>
-        </div>
-        <div id="pp-list"></div>
-        <div class="td-pager" id="pp-pager"></div>
-      </div>
-    </div>
-
-    <!-- FORM VIEW: buat / edit proposal -->
-    <div id="pp-form-view" style="display:none">
-      <div class="td-head pp-list-head">
-        <div class="pp-form-head-l">
-          <button type="button" class="btn btn-ghost" id="ppBackBtn">← Daftar</button>
-          <h1 id="pp-form-title">Buat Proposal</h1>
-        </div>
-        <button type="button" class="btn btn-primary" id="ppSaveBtn">💾 Simpan Proposal</button>
-      </div>
-      <form id="pp-form" onsubmit="return false">
-      <p class="pp-intro">Isi tiap bagian di bawah, lalu buat pratinjau di bagian akhir. Hasilnya mengikuti format Template Proposal Kegiatan BTIS dan bisa diunduh sebagai PDF.</p>
-
-      <!-- 1. Informasi Dasar -->
-      <div class="card pp-section" id="pp-sec-info">
-        <h3><span class="pp-num">1</span> Informasi Dasar</h3>
-        <div class="fld"><label>Nama Kegiatan <span class="req">*</span></label><input class="fi" type="text" id="f_namaKegiatan" placeholder='Misal: MPLS "MPLS RAMAH"'></div>
-        <div class="fld"><label>Tema Kegiatan</label><input class="fi" type="text" id="f_temaKegiatan" placeholder="Misal: Ramah, Aktif, Mandiri, Amanah, Hebat"></div>
-        <div class="pp-grid-2">
-          <div class="fld"><label>Tahun Ajaran</label><input class="fi" type="text" id="f_tahunAjaran" placeholder="2026/2027"></div>
-          <div class="fld"><label>Nama PIC / Penanggung Jawab</label><input class="fi" type="text" id="f_namaPIC" placeholder="Misal: Ms. Anin"></div>
-        </div>
-        <div class="pp-grid-2">
-          <div class="fld"><label>Kota Pengajuan</label><input class="fi" type="text" id="f_kotaPengajuan"></div>
-          <div class="fld"><label>Tanggal Pengajuan</label><input class="fi" type="date" id="f_tanggalPengajuan"></div>
-        </div>
-      </div>
-
-      <!-- 2. Waktu & Tempat -->
-      <div class="card pp-section">
-        <h3><span class="pp-num">2</span> Waktu &amp; Tempat Pelaksanaan</h3>
-        <div class="fld"><label>Hari, Tanggal Pelaksanaan</label><input class="fi" type="text" id="f_hariTanggal" placeholder="Misal: Senin, 13 Juli 2026"></div>
-        <div class="pp-grid-2">
-          <div class="fld"><label>Jam Mulai</label><input class="fi" type="time" id="f_jamMulai"></div>
-          <div class="fld"><label>Jam Selesai</label><input class="fi" type="time" id="f_jamSelesai"></div>
-        </div>
-        <div class="fld"><label>Tempat Pelaksanaan</label><input class="fi" type="text" id="f_tempatPelaksanaan" placeholder="Misal: Aula dan Lapangan BTIS"></div>
-        <div class="pp-grid-2">
-          <div class="fld"><label>Bentuk Kegiatan</label><input class="fi" type="text" id="f_bentukKegiatan" placeholder="Misal: Orientasi Siswa Baru"></div>
-          <div class="fld"><label>Sasaran / Peserta</label><input class="fi" type="text" id="f_sasaranPeserta" placeholder="Misal: Seluruh siswa kelas VII"></div>
-        </div>
-      </div>
-
-      <!-- 3. Latar Belakang & Dasar Pemikiran -->
-      <div class="card pp-section">
-        <h3><span class="pp-num">3</span> Latar Belakang &amp; Dasar Pemikiran</h3>
-        <div class="fld"><label>A. Latar Belakang</label><textarea class="fi" id="f_latarBelakang" placeholder="Jelaskan alasan dan konteks diadakannya kegiatan (1–2 paragraf)…"></textarea></div>
-        <div class="fld"><label>B. Dasar Pemikiran</label><div id="dpList"></div><button type="button" class="pp-btn-add" id="addDP">+ Tambah poin dasar</button></div>
-      </div>
-
-      <!-- 4. Tujuan -->
-      <div class="card pp-section">
-        <h3><span class="pp-num">4</span> Tujuan Kegiatan</h3>
-        <div class="fld"><label>C. Tujuan Kegiatan</label><div id="tjList"></div><button type="button" class="pp-btn-add" id="addTJ">+ Tambah tujuan</button></div>
-      </div>
-
-      <!-- 5. Deskripsi Singkat -->
-      <div class="card pp-section">
-        <h3><span class="pp-num">5</span> Deskripsi Singkat Kegiatan</h3>
-        <div class="fld"><label>Deskripsi Singkat</label><textarea class="fi" id="f_deskripsiSingkat" placeholder="Gambaran umum jalannya kegiatan, rangkaian acara, dan hal menarik dari kegiatan ini…"></textarea></div>
-      </div>
-
-      <!-- 6. Susunan Panitia -->
-      <div class="card pp-section">
-        <h3><span class="pp-num">6</span> Susunan Panitia</h3>
-        <div class="fld"><label>Jabatan dan Nama Panitia</label><div id="pnList"></div><button type="button" class="pp-btn-add" id="addPN">+ Tambah jabatan</button></div>
-      </div>
-
-      <!-- 7. Rencana Anggaran (upload gambar) -->
-      <div class="card pp-section">
-        <h3><span class="pp-num">7</span> Rencana Anggaran</h3>
-        <p class="pp-hint">Unggah foto/tangkapan layar rincian anggaran (mis. dari spreadsheet). Gambar disertakan langsung ke dokumen, tanpa perlu ketik ulang.</p>
-        <label id="uploadDrop" class="pp-upload">
-          <div class="pp-upload-ic">📷</div>
-          <div class="pp-upload-t">Klik untuk unggah gambar anggaran</div>
-          <div class="pp-upload-s">atau seret &amp; lepas — bisa lebih dari satu (JPG, PNG, dsb.)</div>
-          <input type="file" id="anggaranFileInput" accept="image/*" multiple hidden>
-        </label>
-        <div class="pp-img-grid" id="anggaranImgGrid"></div>
-      </div>
-
-      <!-- 8. Susunan Acara -->
-      <div class="card pp-section">
-        <h3><span class="pp-num">8</span> Susunan Acara</h3>
-        <div class="fld"><label>Rundown Acara</label><div id="acList"></div><button type="button" class="pp-btn-add" id="addAC">+ Tambah baris</button></div>
-        <div class="fld">
-          <label>Atau Unggah Gambar Rundown (opsional)</label>
-          <label id="acaraUploadDrop" class="pp-upload">
-            <div class="pp-upload-ic">📷</div>
-            <div class="pp-upload-t">Klik untuk unggah gambar rundown</div>
-            <div class="pp-upload-s">atau seret &amp; lepas — bisa lebih dari satu</div>
-            <input type="file" id="acaraFileInput" accept="image/*" multiple hidden>
-          </label>
-          <div class="pp-img-grid" id="acaraImgGrid"></div>
-        </div>
-      </div>
-
-      <!-- 9. Pengesahan -->
-      <div class="card pp-section">
-        <h3><span class="pp-num">9</span> Lembar Pengesahan</h3>
-        <div class="fld"><label>Perkiraan Anggaran</label><input class="fi" type="text" id="f_totalAnggaran" placeholder="Misal: Rp 5.000.000"></div>
-        <div class="pp-grid-2">
-          <div class="fld"><label>Nama Ketua Panitia</label><input class="fi" type="text" id="f_ketuaNama"></div>
-          <div class="fld"><label>Nama Wakil Kepala Sekolah <span class="pp-sub">(Mengetahui)</span></label><input class="fi" type="text" id="f_wakilKepsekNama"></div>
-        </div>
-        <div class="fld"><label>Nama Kepala Sekolah <span class="pp-sub">(Menyetujui)</span></label><input class="fi" type="text" id="f_kepsekNama"></div>
-      </div>
-
-      <!-- 10. Lampiran -->
-      <div class="card pp-section">
-        <h3><span class="pp-num">10</span> Lampiran</h3>
-        <div class="fld"><label>Centang lampiran yang akan disertakan</label><div id="lpList"></div></div>
-      </div>
-
-      <!-- 11. Pratinjau & Unduh -->
-      <div class="card pp-section pp-final">
-        <h3 style="color:#fff"><span class="pp-num" style="background:#fff;color:var(--blue)">✓</span> Pratinjau &amp; Unduh</h3>
-        <p class="pp-hint" style="color:#e3f0ff">Klik "Buat Pratinjau" untuk menyusun proposal dari isian di atas. Teks bisa diedit langsung di area pratinjau sebelum diunduh.</p>
-        <button type="button" class="pp-big-btn" id="previewBtn">📄 Buat Pratinjau</button>
-      </div>
-
-      <!-- 12. Area pratinjau -->
-      <div class="card pp-section" id="pp-sec-preview" style="display:none">
-        <div class="pp-preview-head no-print">
-          <h3 style="margin:0">Pratinjau Proposal <span class="pp-sub">(bisa diedit)</span></h3>
-          <div class="pp-preview-actions">
-            <button type="button" class="pp-btn-add" id="refreshPreviewBtn">🔄 Perbarui dari Formulir</button>
-            <button type="button" class="pp-big-btn" id="ppSaveBtn2">💾 Simpan Proposal</button>
-            <button type="button" class="pp-big-btn" id="downloadPdfBtn">⬇️ Unduh PDF</button>
-          </div>
-        </div>
-        <div class="preview-scroll" id="previewWrap">
-          <div class="doc-page" id="previewDoc" contenteditable="true"></div>
-        </div>
-      </div>
-      </form>
-    </div>
-  </section>
 </main>
 
 <footer>
@@ -805,7 +487,6 @@
 </div>
 
 <div class="toast" id="toast"></div>
-<div class="pp-toast" id="pp-toast"></div>
 
 <!-- Viewer dokumen (PDF via iframe, Word via mammoth.js) -->
 <div class="overlay" id="docViewOverlay" onclick="if(event.target===this)closeDocView()">
@@ -1106,8 +787,6 @@ fetch('/api/auth/lock-password', { headers:_authHeaders() })
 loadDocs();
 </script>
 
-<!-- Generator Proposal Kegiatan (logic terpisah, lihat assets/proposal.js) -->
-<script src="assets/proposal.js"></script>
 
 </body>
 </html>
