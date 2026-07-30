@@ -27,7 +27,11 @@
     background: #fdf8f0;
     color: #1a3a6b;
     min-height: 100vh;
+    display: flex;
+    flex-direction: column;
   }
+  /* Dorong footer ke bawah saat konten pendek (sticky footer) */
+  .td-main { flex: 1 0 auto; }
 
   /* ── HEADER ── */
   header {
