@@ -35,6 +35,8 @@
     background: #fdf8f0;
     color: #1a3a6b;
     min-height: 100vh;
+    display: flex;
+    flex-direction: column;
   }
 
   /* ── HEADER ── */
@@ -510,7 +512,7 @@
 
   .empty-row td { text-align:center; padding:3rem; color:var(--muted); font-size:.9rem; }
 
-  footer { text-align:center; padding:1.25rem 2rem; font-size:.76rem; color:var(--muted); border-top:1px solid var(--border); background:var(--white); margin-top:2rem; }
+  footer { text-align:center; padding:1.25rem 2rem; font-size:.76rem; color:var(--muted); border-top:1px solid var(--border); background:var(--white); margin-top:auto; }
   footer strong { color:var(--blue); }
 
   /* ── PRINT STYLES ── */
@@ -671,7 +673,7 @@
 </div>
 
 <footer>
-  <strong>BTIS Manager</strong> — School Management System
+  © <script>document.write(new Date().getFullYear())</script> • <strong>BTIS Manager</strong> • Bojana Tirta Islamic School
 </footer>
 
 <script>

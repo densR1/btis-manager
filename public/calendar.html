@@ -28,6 +28,8 @@
     background: #fdf8f0;
     color: #1a3a6b;
     min-height: 100vh;
+    display: flex;
+    flex-direction: column;
   }
 
   /* ── HEADER ── */
@@ -103,7 +105,7 @@
     color: var(--btis-muted);
     border-top: 1px solid var(--btis-border);
     background: var(--btis-white);
-    margin-top: 2rem;
+    margin-top: auto;
   }
   footer strong { color: var(--btis-blue); }
 
@@ -4336,7 +4338,7 @@ fetch('/api/auth/lock-password', { headers: _calAuthHeaders() })
 
 <!-- ── BTIS FOOTER ── -->
 <footer>
-  <strong>BTIS Manager</strong> — School Management System
+  © <script>document.write(new Date().getFullYear())</script> • <strong>BTIS Manager</strong> • Bojana Tirta Islamic School
 </footer>
 
 </body>

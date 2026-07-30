@@ -27,6 +27,8 @@
     background: #fdf8f0;
     color: #1a3a6b;
     min-height: 100vh;
+    display: flex;
+    flex-direction: column;
   }
 
   header {
@@ -187,6 +189,7 @@
     color: var(--muted);
     border-top: 1px solid var(--border);
     background: var(--white);
+    margin-top: auto;
   }
   footer strong { color: var(--blue); }
   html, body { overflow-x: hidden; }
@@ -225,7 +228,7 @@
 </main>
 
 <footer>
-  <strong>BTIS Manager</strong> — School Management System
+  © <script>document.write(new Date().getFullYear())</script> • <strong>BTIS Manager</strong> • Bojana Tirta Islamic School
 </footer>
 
 </body>

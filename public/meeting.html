@@ -29,7 +29,7 @@
   --shadow:     0 2px 16px rgba(26,58,107,.09);
 }
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: 'DM Sans', sans-serif; background: var(--surface); color: var(--blue); min-height: 100vh; }
+body { font-family: 'DM Sans', sans-serif; background: var(--surface); color: var(--blue); min-height: 100vh; display: flex; flex-direction: column; }
 
 /* ── HEADER ── */
 header {
@@ -535,7 +535,7 @@ table.eval-tbl tr:hover td { background: #f8fafc; }
 @keyframes spin { to{transform:rotate(360deg);} }
 .loader-text { color: #fff; font-size: .9rem; font-weight: 600; }
 
-footer { text-align: center; padding: 1.1rem 2rem; font-size: .75rem; color: var(--muted); border-top: 1px solid var(--border); background: var(--white); }
+footer { text-align: center; padding: 1.1rem 2rem; font-size: .75rem; color: var(--muted); border-top: 1px solid var(--border); background: var(--white); margin-top: auto; }
 footer strong { color: var(--blue); }
 
 @media(max-width:640px){
@@ -962,7 +962,7 @@ html, body { overflow-x: hidden; }
   </div>
 </div>
 
-<footer><strong>BTIS Manager</strong> — School Management System</footer>
+<footer>© <script>document.write(new Date().getFullYear())</script> • <strong>BTIS Manager</strong> • Bojana Tirta Islamic School</footer>
 
 <script>
 // ══════════════════════════════════════════════════

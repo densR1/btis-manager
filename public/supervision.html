@@ -37,7 +37,7 @@
     --partner-bd: #6ee7b7;
   }
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'DM Sans', sans-serif; background: #fdf8f0; color: #1a3a6b; min-height: 100vh; }
+  body { font-family: 'DM Sans', sans-serif; background: #fdf8f0; color: #1a3a6b; min-height: 100vh; display: flex; flex-direction: column; }
 
   /* TAHUN AJARAN */
   .tahun-ajaran-wrap {
@@ -530,7 +530,7 @@
 
   footer {
     text-align: center; padding: 1.25rem 2rem; font-size: .76rem; color: var(--muted);
-    border-top: 1px solid var(--border); background: var(--white);
+    border-top: 1px solid var(--border); background: var(--white); margin-top: auto;
   }
   footer strong { color: var(--blue); }
 
@@ -1015,9 +1015,8 @@
 <div class="toast" id="toast"></div>
 
 <footer>
-  <strong>BTIS Manager</strong> · Supervisi Module · <span id="footerYear"></span>
+  © <script>document.write(new Date().getFullYear())</script> • <strong>BTIS Manager</strong> • Bojana Tirta Islamic School
 </footer>
-<script>document.getElementById('footerYear').textContent = new Date().getFullYear();</script>
 
 <script>
 // ════════════════════════════════════════
