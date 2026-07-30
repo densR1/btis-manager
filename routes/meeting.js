@@ -1,4 +1,4 @@
-// routes/meeting.js — Meeting Manager API
+// routes/meeting.js — Event Manager API
 const express = require('express');
 const router  = express.Router();
 
