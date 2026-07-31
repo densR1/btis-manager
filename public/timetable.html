@@ -2695,6 +2695,24 @@ var _ttReady=false;
 function _ttDebounceMeta(fn){ clearTimeout(_ttSaveMetaTimer); _ttSaveMetaTimer=setTimeout(fn,800); }
 function _ttDebounceTA(fn){ clearTimeout(_ttSaveTATimer); _ttSaveTATimer=setTimeout(fn,800); }
 
+// Load awal dari server GAGAL → biarkan _ttReady tetap false supaya autosave TIDAK
+// menimpa data server dengan kosong (ini akar bug "data hilang"), lalu tampilkan
+// peringatan agar user memuat ulang, bukan mengedit di atas data yang gagal dimuat.
+function _ttLoadFailed(){
+  _ttReady = false;
+  try{
+    if(document.getElementById('tt-load-warn')) return;
+    var b=document.createElement('div');
+    b.id='tt-load-warn';
+    b.style.cssText='position:fixed;top:0;left:0;right:0;z-index:99999;background:#dc2626;color:#fff;'
+      +'padding:.8rem 1rem;text-align:center;font-weight:700;font-size:.9rem;box-shadow:0 2px 12px rgba(0,0,0,.3)';
+    b.innerHTML='⚠️ Gagal memuat jadwal dari server — JANGAN mengedit (perubahan bisa menimpa data). '
+      +'<button onclick="location.reload()" style="margin-left:.6rem;padding:.35rem .9rem;border:none;'
+      +'border-radius:6px;background:#fff;color:#dc2626;font-weight:800;cursor:pointer">Muat Ulang</button>';
+    document.body.appendChild(b);
+  }catch(e){}
+}
+
 function loadMeta(){
   try{var r=localStorage.getItem(META_KEY);if(r)_meta=JSON.parse(r);}catch(e){}
   if(!_meta.list||!_meta.list.length){
@@ -6799,32 +6817,41 @@ document.getElementById('lock-overlay').addEventListener('click', function(e){
     .then(function(json){ if(json) _activeTAName = json.name || ''; })
     .catch(function(){});
 
-  // Ambil meta dari API
+  // Ambil meta dari API.
+  // PENTING (cegah data hilang): _ttReady hanya boleh true kalau server BENAR-BENAR
+  // menjawab sukses. Kalau load gagal (jaringan/timeout/HTTP error), _ttReady tetap
+  // false supaya autosave tidak menimpa data server dengan kosong.
+  var _loadOk = false;
   fetch('/api/timetable/meta', { headers: _ttAuthHeaders() })
-    .then(function(r){ return r.ok ? r.json() : null; })
+    .then(function(r){ if(!r.ok) throw new Error('meta HTTP '+r.status); return r.json(); })
     .then(function(json){
-      if(json && json.meta && json.meta.list && json.meta.list.length){
-        _meta = json.meta;
-        try{ localStorage.setItem(META_KEY, JSON.stringify(_meta)); }catch(e){}
-        // Ambil data tahun ajaran aktif dari API
-        return fetch('/api/timetable/'+encodeURIComponent(_meta.activeTA), { headers: _ttAuthHeaders() });
+      if(!(json && json.meta && json.meta.list && json.meta.list.length)){
+        _loadOk = true; // server sehat tapi memang belum ada data → boleh mulai
+        return null;
       }
-      return null;
+      _meta = json.meta;
+      try{ localStorage.setItem(META_KEY, JSON.stringify(_meta)); }catch(e){}
+      // Ambil data tahun ajaran aktif dari API
+      return fetch('/api/timetable/'+encodeURIComponent(_meta.activeTA), { headers: _ttAuthHeaders() })
+        .then(function(r){ if(!r.ok) throw new Error('data HTTP '+r.status); return r.json(); })
+        .then(function(dj){
+          _loadOk = true; // server menjawab sukses (baik ada data maupun kosong)
+          if(dj && dj.data){
+            var d = dj.data;
+            if(!Array.isArray(d.days)||d.days.length<2) d.days=['Senin','Selasa','Rabu','Kamis','Jumat'];
+            try{ localStorage.setItem(TA_PREFIX+_meta.activeTA, JSON.stringify(d)); }catch(e){}
+            Object.assign(D, defaultData(), d);
+            if(!D.levelConfig) D.levelConfig={};
+            renderTASelector();
+            _activeDay = D.days[0] || 'Senin';
+            renderDayTabs();
+            renderGuruSidebar();
+            renderKelasTable();
+          }
+        });
     })
-    .then(function(r){ return (r && r.ok) ? r.json() : null; })
-    .then(function(json){
-      if(json && json.data){
-        var d = json.data;
-        if(!Array.isArray(d.days)||d.days.length<2) d.days=['Senin','Selasa','Rabu','Kamis','Jumat'];
-        try{ localStorage.setItem(TA_PREFIX+_meta.activeTA, JSON.stringify(d)); }catch(e){}
-        Object.assign(D, defaultData(), d);
-        if(!D.levelConfig) D.levelConfig={};
-        renderTASelector();
-        _activeDay = D.days[0] || 'Senin';
-        renderDayTabs();
-        renderGuruSidebar();
-        renderKelasTable();
-      }
+    .then(function(){
+      if(!_loadOk){ _ttLoadFailed(); return; } // load gagal → jangan izinkan simpan
       // Data awal sudah dimuat dari server → aman untuk PUT mulai sekarang
       _ttReady=true;
       // Refresh halaman aktif agar grid menampilkan data server (bukan cache stale)
@@ -6832,9 +6859,8 @@ document.getElementById('lock-overlay').addEventListener('click', function(e){
     })
     .catch(function(err){
       console.warn('[timetable] init from API failed:', err);
-      // Server gagal dihubungi: izinkan save (PUT akan gagal juga jika offline,
-      // tapi jangan kunci app selamanya). Data lokal dari cache tetap dipakai.
-      _ttReady=true;
+      // Server gagal dihubungi → JANGAN aktifkan simpan (cegah timpa data kosong).
+      _ttLoadFailed();
     });
 })();
 function renderActivePage(){

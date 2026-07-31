@@ -52,7 +52,17 @@ router.get('/:id', async (req, res) => {
 router.put('/:id', async (req, res) => {
   try {
     const { data } = req.body;
-    await ttSet(getDb(req), 'ta:' + req.params.id, JSON.stringify(data));
+    const db = getDb(req);
+    const key = 'ta:' + req.params.id;
+    const newStr = JSON.stringify(data);
+    const prev = await ttGet(db, key);
+    // Jaring pengaman: kalau data lama "besar" tapi data baru menyusut drastis
+    // (indikasi wipe/kosong), cadangkan dulu versi lama bertimestamp agar tidak
+    // hilang diam-diam. Cadangan bisa dipulihkan via GET ta:<id>:bak:<ts>.
+    if (prev && prev.length > 20000 && newStr.length < prev.length * 0.4) {
+      await ttSet(db, key + ':bak:' + Date.now(), prev);
+    }
+    await ttSet(db, key, newStr);
     res.json({ success: true });
   } catch (err) { res.status(500).json({ success: false, message: err.message }); }
 });
