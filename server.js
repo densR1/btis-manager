@@ -13,7 +13,16 @@ app.use(cors({ origin: '*', methods: ['GET','POST','PUT','PATCH','DELETE'], allo
 // yang sebelumnya bikin PUT /api/timetable/:id error 500 → data tidak tersimpan.
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
-app.use(express.static(path.join(__dirname, 'public')));
+// HTML/JS/CSS pakai no-cache (revalidate) supaya browser SELALU ambil versi
+// terbaru tiap buka/refresh — mencegah tab lama menjalankan kode buggy dari
+// cache (penyebab wipe berulang). Aset lain (gambar/font) tetap boleh di-cache.
+app.use(express.static(path.join(__dirname, 'public'), {
+  setHeaders: (res, filePath) => {
+    if (/\.(html|js|css)$/i.test(filePath)) {
+      res.setHeader('Cache-Control', 'no-cache, must-revalidate');
+    }
+  }
+}));
 
 // ── Start: inisialisasi DB dulu, baru buka server ─────────────────
 async function start() {
