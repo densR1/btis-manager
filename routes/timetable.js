@@ -56,11 +56,16 @@ router.put('/:id', async (req, res) => {
     const key = 'ta:' + req.params.id;
     const newStr = JSON.stringify(data);
     const prev = await ttGet(db, key);
-    // Jaring pengaman: kalau data lama "besar" tapi data baru menyusut drastis
-    // (indikasi wipe/kosong), cadangkan dulu versi lama bertimestamp agar tidak
-    // hilang diam-diam. Cadangan bisa dipulihkan via GET ta:<id>:bak:<ts>.
+    // Proteksi anti-wipe: TOLAK menimpa data besar dengan data yang menyusut
+    // drastis (indikasi bug/wipe — mis. dari tab browser yang masih pakai kode
+    // lama). Data lama DIPERTAHANKAN; yang masuk disimpan sebagai bukti di key
+    // :rejected. Ini melindungi walau klien belum hard-refresh.
     if (prev && prev.length > 20000 && newStr.length < prev.length * 0.4) {
-      await ttSet(db, key + ':bak:' + Date.now(), prev);
+      await ttSet(db, key + ':rejected:' + Date.now(), newStr);
+      return res.status(409).json({
+        success: false, code: 'SHRINK_BLOCKED',
+        message: 'Penyimpanan ditolak: data menyusut drastis (dugaan wipe). Data lama dipertahankan — muat ulang halaman.'
+      });
     }
     await ttSet(db, key, newStr);
     res.json({ success: true });
