@@ -61,6 +61,7 @@
 
   var state = freshState();   // proposal yang sedang dibuka/diedit
   var currentId = null;       // id record aktif (null = proposal baru)
+  var currentViewOnly = false;// true = mode "Lihat" (pratinjau saja, form disembunyikan)
   var proposals = [];         // metadata daftar proposal
   var ppSearch = '';
   var ppPage = 1;
@@ -458,19 +459,36 @@
     window.scrollTo(0, 0);
     loadProposals();
   }
-  function enterForm() {
-    $('pp-form-title').textContent = currentId ? 'Edit Proposal' : 'Buat Proposal';
+  function enterForm(viewOnly) {
+    currentViewOnly = !!viewOnly;
+    $('pp-form-title').textContent = currentViewOnly ? 'Lihat Proposal' : (currentId ? 'Edit Proposal' : 'Buat Proposal');
     $('pp-list-view').style.display = 'none';
     $('pp-form-view').style.display = '';
     hydrateForm();
+    applyViewMode(currentViewOnly);
     window.scrollTo(0, 0);
+    if (currentViewOnly) renderPreview(); // mode lihat: langsung tampilkan dokumen
+  }
+  // Mode "Lihat": sembunyikan form isian + tombol simpan, sisakan area pratinjau.
+  function applyViewMode(viewOnly) {
+    var form = $('pp-form');
+    form.querySelectorAll('.pp-section').forEach(function (s) {
+      if (s.id === 'pp-sec-preview') return;        // area pratinjau tetap tampil
+      s.style.display = viewOnly ? 'none' : '';
+    });
+    var intro = form.querySelector('.pp-intro');
+    if (intro) intro.style.display = viewOnly ? 'none' : '';
+    [$('ppSaveBtn'), $('ppSaveBtn2'), $('refreshPreviewBtn')].forEach(function (b) {
+      if (b) b.style.display = viewOnly ? 'none' : '';
+    });
   }
   function openNew() {
     state = freshState();
     currentId = null;
-    enterForm();
+    enterForm(false);
   }
-  function openEditProposal(id) {
+  // Ambil satu proposal dari server, lalu buka form (edit) atau pratinjau (lihat).
+  function loadProposalInto(id, viewOnly) {
     fetch('/api/teacher/proposal/' + id, { headers: authHeaders() })
       .then(function (r) { return r.ok ? r.json() : null; })
       .then(function (j) {
@@ -479,10 +497,12 @@
         try { parsed = JSON.parse(j.data.data || '{}'); } catch (e) { parsed = {}; }
         state = Object.assign(freshState(), parsed); // isi field baru pakai default
         currentId = id;
-        enterForm();
+        enterForm(viewOnly);
       })
       .catch(function () { ppToast('Gagal memuat proposal', true); });
   }
+  function openEditProposal(id) { loadProposalInto(id, false); }
+  function viewProposal(id) { loadProposalInto(id, true); }
 
   // ── Simpan / hapus ────────────────────────────────────────────────────
   function saveProposal() {
@@ -584,7 +604,8 @@
         '<td>' + esc(p.nama_pic || '—') + '</td>' +
         '<td class="dt-date">' + shortDate(p.updated_at || p.created_at) + '</td>' +
         '<td class="dt-act">' +
-          '<button class="icon-btn" data-act="open" data-id="' + p.id + '">✏️ Buka</button>' +
+          '<button class="icon-btn" data-act="view" data-id="' + p.id + '">👁️ Lihat</button>' +
+          '<button class="icon-btn" data-act="open" data-id="' + p.id + '">✏️ Edit</button>' +
           '<button class="icon-btn danger" data-act="del" data-id="' + p.id + '">🗑️ Hapus</button>' +
         '</td>' +
       '</tr>';
@@ -596,6 +617,7 @@
       b.addEventListener('click', function () {
         var id = +b.dataset.id;
         if (b.dataset.act === 'open') openEditProposal(id);
+        else if (b.dataset.act === 'view') viewProposal(id);
         else if (b.dataset.act === 'del') deleteProposal(id);
       });
     });
