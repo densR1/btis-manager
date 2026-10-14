@@ -977,8 +977,25 @@ function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(
 
 let meetings = ld(K.mtg);
 let notulen  = ld(K.nt);
-let pics     = ld(K.pics);
+let pics     = [];
+// Penanda PIC kalender yang sudah dihapus user ({name,kegiatan,dismissed:true}).
+// Disimpan bersama `pics` di server, tapi dipisah di memori agar tidak ikut
+// dirender — dipakai auto-sync supaya PIC yang dihapus tidak muncul lagi.
+let picsDismissed = [];
+_setPics(ld(K.pics));
 let evaluasi = ld(K.eval);
+
+function _setPics(arr){
+  arr=Array.isArray(arr)?arr:[];
+  pics=arr.filter(p=>!p.dismissed);
+  picsDismissed=arr.filter(p=>p.dismissed);
+}
+function _allPics(){ return pics.concat(picsDismissed); }
+// PIC kalender sudah ada (aktif) atau sudah pernah dihapus → jangan ditambah lagi.
+// calName/calKegiatan = nama asli dari kalender, tetap dipakai walau PIC diedit.
+function _calPicKnown(name,kegiatan){
+  return _allPics().some(p=>p.source==='calendar'&&(p.calName||p.name)===name&&(p.calKegiatan||p.kegiatan)===kegiatan);
+}
 
 // ── API helpers ──
 function _mtgAuthHeaders(extra){
@@ -1001,7 +1018,7 @@ function saveAll(){
   try{
     sv(K.mtg,meetingsSafe);
     sv(K.nt,notulen);
-    sv(K.pics,pics);
+    sv(K.pics,_allPics());
     sv(K.eval,evaluasi);
   }catch(e){
     if(e.name==='QuotaExceededError'||e.code===22){
@@ -1017,7 +1034,7 @@ function saveAll(){
     const payload={
       meetings: meetingsSafe,
       notulen,
-      pics,
+      pics: _allPics(),
       evaluasi
     };
     fetch('/api/meeting/data',{
@@ -1178,8 +1195,7 @@ function _doSync(calPics){
   let added=0;
   calPics.forEach(function(cp){
     if(!cp.name) return;
-    const exists=pics.find(function(p){ return p.name===cp.name&&p.kegiatan===cp.kegiatan&&p.source==='calendar'; });
-    if(!exists){ pics.push({id:uid(),name:cp.name,jabatan:cp.jabatan||'',kegiatan:cp.kegiatan||'Kegiatan',source:'calendar',tasks:[]}); added++; }
+    if(!_calPicKnown(cp.name,cp.kegiatan||'Kegiatan')){ pics.push({id:uid(),name:cp.name,jabatan:cp.jabatan||'',kegiatan:cp.kegiatan||'Kegiatan',source:'calendar',calName:cp.name,calKegiatan:cp.kegiatan||'Kegiatan',tasks:[]}); added++; }
   });
   saveAll(); renderAll();
   st.style.color=added>0?'var(--green)':'var(--accent)';
@@ -1252,6 +1268,8 @@ function saveEditPIC(){
   if(!name||!keg){alert('Nama PIC dan Kegiatan wajib diisi.');return;}
   const pic=pics.find(p=>p.id===picId); if(!pic)return;
   const openIds=getOpenPICs();
+  // simpan nama asli kalender sebelum diubah, agar auto-sync tidak menambah ulang
+  if(pic.source==='calendar'){ if(!pic.calName) pic.calName=pic.name; if(!pic.calKegiatan) pic.calKegiatan=pic.kegiatan; }
   pic.name=name; pic.kegiatan=keg; pic.jabatan=gv('editPicJab'); pic.tanggalPelaksanaan=gv('editPicTgl');
   saveAll(); closeModal('modalEditPIC'); renderAll();
   restoreOpenPICs(openIds);
@@ -1275,7 +1293,10 @@ function confirmDeleteTask(picId,taskId){ showConfirm('Hapus task ini?',()=>dele
 function confirmDeleteEval(evalId,picId){ showConfirm('Hapus baris catatan evaluasi ini?',()=>deleteEvalRow(evalId,picId)); }
 
 function deleteMeeting(id){ meetings=meetings.filter(m=>m.id!==id); notulen=notulen.filter(n=>n.meetingId!==id); saveAll(); renderAll(); }
-function deletePIC(id){ pics=pics.filter(p=>p.id!==id); evaluasi=evaluasi.filter(e=>e.picId!==id); saveAll(); renderAll(); }
+function deletePIC(id){
+  const del=pics.find(p=>p.id===id);
+  if(del&&del.source==='calendar') picsDismissed.push({id:del.id,name:del.calName||del.name,kegiatan:del.calKegiatan||del.kegiatan,source:'calendar',dismissed:true});
+  pics=pics.filter(p=>p.id!==id); evaluasi=evaluasi.filter(e=>e.picId!==id); saveAll(); renderAll(); }
 function deleteTask(picId,taskId){
   const openIds=getOpenPICs();
   const p=pics.find(p=>p.id===picId); if(!p)return;
@@ -2185,10 +2206,10 @@ function renderAll(){
       if(json){
         if(Array.isArray(json.meetings)) meetings = json.meetings;
         if(Array.isArray(json.notulen))  notulen  = json.notulen;
-        if(Array.isArray(json.pics))     pics     = json.pics;
+        if(Array.isArray(json.pics))     _setPics(json.pics);
         if(Array.isArray(json.evaluasi)) evaluasi = json.evaluasi;
         // Update cache
-        try{ sv(K.mtg,meetings); sv(K.nt,notulen); sv(K.pics,pics); sv(K.eval,evaluasi); }catch(e){}
+        try{ sv(K.mtg,meetings); sv(K.nt,notulen); sv(K.pics,_allPics()); sv(K.eval,evaluasi); }catch(e){}
         // Data server sudah dimuat → aman untuk PUT mulai sekarang
         _mtgReady=true;
       }
@@ -2211,8 +2232,7 @@ function _autoSyncCalendar(){
       calEvents.forEach(function(e){
         if(!e.pic||!e.pic.trim()) return;
         var name=e.pic.trim(), kegiatan=e.name||'Kegiatan';
-        var exists=pics.find(function(p){ return p.name===name&&p.kegiatan===kegiatan&&p.source==='calendar'; });
-        if(!exists){ pics.push({id:uid(),name:name,jabatan:'',kegiatan:kegiatan,source:'calendar',tasks:[]}); added++; }
+        if(!_calPicKnown(name,kegiatan)){ pics.push({id:uid(),name:name,jabatan:'',kegiatan:kegiatan,source:'calendar',calName:name,calKegiatan:kegiatan,tasks:[]}); added++; }
       });
       if(added>0){ saveAll(); renderTimeline(); }
     })
