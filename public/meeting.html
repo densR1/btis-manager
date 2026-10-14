@@ -1030,6 +1030,8 @@ function saveAll(){
   }
   // Kirim ke API (debounced) — hanya bila data awal sudah dimuat dari server
   if(!_mtgReady) return; // localStorage cache tetap ditulis di atas; PUT ditahan
+  // HP peserta yang buka link absensi tidak boleh menimpa data rapat di server
+  if(new URLSearchParams(window.location.search).has('absensi')) return;
   _mtgDebounceSave(function(){
     const payload={
       meetings: meetingsSafe,
@@ -1143,33 +1145,57 @@ function copyAbsensiLink(mid){
   const btn=document.getElementById('copy_link_'+mid);
   if(btn){ const orig=btn.textContent; btn.textContent='✓ Tersalin!'; setTimeout(()=>btn.textContent=orig,1800); }
 }
+// Absen dari link/QR: dikirim ke server (POST /api/meeting/absensi/:mid),
+// bukan localStorage HP peserta — dulu nama tidak pernah sampai ke panitia.
 function submitAbsensi(){
   const mid=document.getElementById('absensiMid').value;
   const name=document.getElementById('absensiName').value.trim();
   if(!name){ alert('Silakan isi nama lengkap Anda.'); return; }
-  meetings=ld(K.mtg);
-  const m=meetings.find(m=>m.id===mid);
-  if(!m){ alert('Rapat tidak ditemukan.'); return; }
-  if(!m.attendees) m.attendees=[];
-  if(!m.attendees.includes(name)) m.attendees.push(name);
-  sv(K.mtg,meetings);
-  document.getElementById('absensiForm').style.display='none';
-  document.getElementById('absensiSuccess').style.display='block';
+  const btn=document.querySelector('#absensiForm button');
+  if(btn){ btn.disabled=true; btn.textContent='⏳ Mengirim...'; }
+  fetch('/api/meeting/absensi/'+encodeURIComponent(mid),{
+    method:'POST', headers:_mtgAuthHeaders(), body:JSON.stringify({name})
+  })
+    .then(function(r){ return r.json().catch(function(){ return {}; }).then(function(j){ if(!r.ok||!j.success) throw new Error(j.message||('HTTP '+r.status)); }); })
+    .then(function(){
+      document.getElementById('absensiForm').style.display='none';
+      document.getElementById('absensiSuccess').style.display='block';
+    })
+    .catch(function(err){
+      alert('Gagal mengirim absensi: '+err.message+'\nPeriksa koneksi lalu coba lagi.');
+      if(btn){ btn.disabled=false; btn.textContent='✅ Konfirmasi Kehadiran'; }
+    });
 }
-// Check URL param on load
-(function checkAbsensiParam(){
-  const params=new URLSearchParams(window.location.search);
-  const mid=params.get('absensi');
-  if(!mid) return;
-  // wait for meetings to be seeded
-  setTimeout(()=>{
-    const m=meetings.find(m=>m.id===mid);
-    if(!m){ return; }
-    document.getElementById('absensiMid').value=mid;
-    document.getElementById('absensiTitle').textContent=m.title;
-    document.getElementById('absensiOverlay').classList.add('open');
-  },100);
-})();
+const _absensiMid=new URLSearchParams(window.location.search).get('absensi');
+// Dipanggil setelah data server dimuat (lihat initMeetingData)
+function openAbsensiFromURL(){
+  if(!_absensiMid) return;
+  const m=meetings.find(m=>m.id===_absensiMid);
+  document.getElementById('absensiMid').value=_absensiMid;
+  document.getElementById('absensiTitle').textContent=m?m.title:'Rapat tidak ditemukan / gagal memuat data. Coba muat ulang halaman.';
+  document.getElementById('absensiForm').style.display=m?'':'none';
+  document.getElementById('absensiOverlay').classList.add('open');
+}
+// Gabungkan nama dari link absensi (server) ke daftar hadir rapat di memori
+function mergeAbsensiLink(link){
+  if(!link||typeof link!=='object') return false;
+  let changed=false;
+  meetings.forEach(function(m){
+    const names=link[m.id]; if(!Array.isArray(names)) return;
+    if(!m.attendees) m.attendees=[];
+    names.forEach(function(n){ if(!m.attendees.includes(n)){ m.attendees.push(n); changed=true; } });
+  });
+  return changed;
+}
+// Panitia: refresh daftar hadir dari link tiap 15 detik selama tab terbuka
+setInterval(function(){
+  if(_absensiMid||document.hidden||!_mtgReady) return;
+  fetch('/api/meeting/absensi',{headers:_mtgAuthHeaders()})
+    .then(function(r){ return r.ok?r.json():null; })
+    .then(function(json){
+      if(json&&mergeAbsensiLink(json.absensiLink)) meetings.forEach(function(m){ renderMtgAttendees(m.id); });
+    }).catch(function(){});
+},15000);
 
 // ══════════════════════════════════════════════════
 //  SYNC FROM ACADEMIC CALENDAR (via API)
@@ -1345,7 +1371,12 @@ function addMtgAttendee(mid, event){
 function removeMtgAttendee(mid, idx){
   const m=meetings.find(m=>m.id===mid); if(!m)return;
   if(!m.attendees) return;
+  const name=m.attendees[idx];
   m.attendees.splice(idx,1); saveAll();
+  // hapus juga dari daftar absensi-link agar tidak muncul lagi saat refresh
+  fetch('/api/meeting/absensi/'+encodeURIComponent(mid),{
+    method:'DELETE', headers:_mtgAuthHeaders(), body:JSON.stringify({name})
+  }).catch(function(){});
   renderMtgAttendees(mid);
 }
 function renderMtgAttendees(mid){
@@ -2208,6 +2239,7 @@ function renderAll(){
         if(Array.isArray(json.notulen))  notulen  = json.notulen;
         if(Array.isArray(json.pics))     _setPics(json.pics);
         if(Array.isArray(json.evaluasi)) evaluasi = json.evaluasi;
+        mergeAbsensiLink(json.absensiLink);
         // Update cache
         try{ sv(K.mtg,meetings); sv(K.nt,notulen); sv(K.pics,_allPics()); sv(K.eval,evaluasi); }catch(e){}
         // Data server sudah dimuat → aman untuk PUT mulai sekarang
@@ -2218,7 +2250,8 @@ function renderAll(){
     .finally(function(){
       initTahunAjaran();
       showDashboard();
-      _autoSyncCalendar();
+      // Mode absensi (HP peserta): jangan auto-sync/menyimpan apa pun ke server
+      if(_absensiMid) openAbsensiFromURL(); else _autoSyncCalendar();
     });
 })();
 

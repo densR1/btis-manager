@@ -16,7 +16,8 @@ router.get('/data', async (req, res) => {
     const pics     = await upsert('meeting_pics',     []);
     const notulen  = await upsert('meeting_notulen',  []);
     const evaluasi = await upsert('meeting_evaluasi', []);
-    res.json({ success: true, meetings, pics, notulen, evaluasi });
+    const absensiLink = await upsert('meeting_absensi_link', {});
+    res.json({ success: true, meetings, pics, notulen, evaluasi, absensiLink });
   } catch (err) { res.status(500).json({ success: false, message: err.message }); }
 });
 
@@ -33,6 +34,65 @@ router.put('/data', async (req, res) => {
     if (pics     !== undefined) await save('meeting_pics',     JSON.stringify(pics));
     if (notulen  !== undefined) await save('meeting_notulen',  JSON.stringify(notulen));
     if (evaluasi !== undefined) await save('meeting_evaluasi', JSON.stringify(evaluasi));
+    res.json({ success: true });
+  } catch (err) { res.status(500).json({ success: false, message: err.message }); }
+});
+
+// ── Absensi via link/QR ─────────────────────────────────────────────
+// Disimpan terpisah ({ [meetingId]: [nama] }) agar PUT /data dari tab panitia
+// yang terbuka tidak menimpa nama yang masuk dari HP peserta.
+// Semua tulis diantrekan (1 proses node) supaya scan bersamaan tidak saling timpa.
+let absensiQueue = Promise.resolve();
+function withAbsensi(db, fn) {
+  const run = absensiQueue.then(async () => {
+    const row = await db.queryOne("SELECT value FROM calendar_settings WHERE `key` = 'meeting_absensi_link'");
+    const data = row ? JSON.parse(row.value) : {};
+    const result = fn(data);
+    const val = JSON.stringify(data);
+    await db.execute(
+      "INSERT INTO calendar_settings (`key`, value) VALUES ('meeting_absensi_link', ?) ON DUPLICATE KEY UPDATE value = ?",
+      [val, val]
+    );
+    return result;
+  });
+  absensiQueue = run.catch(() => {});
+  return run;
+}
+
+// GET /api/meeting/absensi — daftar nama per meeting (dipakai panitia untuk refresh)
+router.get('/absensi', async (req, res) => {
+  try {
+    const row = await getDb(req).queryOne("SELECT value FROM calendar_settings WHERE `key` = 'meeting_absensi_link'");
+    res.json({ success: true, absensiLink: row ? JSON.parse(row.value) : {} });
+  } catch (err) { res.status(500).json({ success: false, message: err.message }); }
+});
+
+// POST /api/meeting/absensi/:mid  { name } — peserta isi absen dari link
+router.post('/absensi/:mid', async (req, res) => {
+  try {
+    const mid  = String(req.params.mid || '').slice(0, 64);
+    const name = String((req.body && req.body.name) || '').trim().slice(0, 120);
+    if (!mid || !name) return res.status(400).json({ success: false, message: 'Nama wajib diisi' });
+    const db = getDb(req);
+    const row = await db.queryOne("SELECT value FROM calendar_settings WHERE `key` = 'meeting_meetings'");
+    const meetings = row ? JSON.parse(row.value) : [];
+    if (!meetings.some(m => m.id === mid)) return res.status(404).json({ success: false, message: 'Rapat tidak ditemukan' });
+    await withAbsensi(db, data => {
+      const list = Array.isArray(data[mid]) ? data[mid] : (data[mid] = []);
+      if (!list.includes(name)) list.push(name);
+    });
+    res.json({ success: true });
+  } catch (err) { res.status(500).json({ success: false, message: err.message }); }
+});
+
+// DELETE /api/meeting/absensi/:mid  { name } — panitia hapus nama dari daftar hadir
+router.delete('/absensi/:mid', async (req, res) => {
+  try {
+    const mid  = String(req.params.mid || '');
+    const name = String((req.body && req.body.name) || '').trim();
+    await withAbsensi(getDb(req), data => {
+      if (Array.isArray(data[mid])) data[mid] = data[mid].filter(n => n !== name);
+    });
     res.json({ success: true });
   } catch (err) { res.status(500).json({ success: false, message: err.message }); }
 });
