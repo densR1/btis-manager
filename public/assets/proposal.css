@@ -224,15 +224,15 @@
 .pp-toast.error { background:#dc2626; }
 
 /* Print: hanya dokumen proposal yang tercetak */
+#ppPrintRoot { display:none; }
 @media print {
-  body.pp-printing * { visibility:hidden; }
-  body.pp-printing #previewWrap, body.pp-printing #previewWrap * { visibility:visible; }
-  body.pp-printing #previewWrap { position:absolute; left:0; top:0; width:100%; padding:0; background:none; }
-  body.pp-printing .preview-scroll { background:none; padding:0; overflow:visible; }
+  html, body { overflow:visible !important; background:#fff !important; }
+  body.pp-printing > *:not(#ppPrintRoot) { display:none !important; }
+  body.pp-printing #ppPrintRoot { display:block !important; }
   body.pp-printing #previewDoc { box-shadow:none; margin:0; width:auto; min-height:0; padding:16mm; }
   body.pp-printing #previewDoc .doc-section { page-break-before:always; }
   body.pp-printing #previewDoc .doc-section:first-child { page-break-before:avoid; }
-  body.pp-printing .no-print { display:none !important; }
+  body.pp-printing #previewDoc .doc-section + .doc-section { border-top:none; margin-top:0; padding-top:0; }
 }
 
 /* Responsif HP */

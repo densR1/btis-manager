@@ -435,11 +435,31 @@
   function wirePreviewButtons() {
     $('previewBtn').addEventListener('click', renderPreview);
     $('refreshPreviewBtn').addEventListener('click', renderPreview);
-    $('downloadPdfBtn').addEventListener('click', function () {
-      document.body.classList.add('pp-printing');
-      window.print();
-      setTimeout(function () { document.body.classList.remove('pp-printing'); }, 500);
-    });
+    $('downloadPdfBtn').addEventListener('click', printProposal);
+  }
+  // Cetak: pindahkan #previewDoc sementara ke wadah langsung di bawah <body>
+  // supaya tidak terpengaruh CSS print halaman Meeting (semua .section dipaksa
+  // tampil, overflow body, dll) yang bikin PDF kosong. Dikembalikan setelah cetak.
+  function printProposal() {
+    var doc = $('previewDoc');
+    if (!doc || !doc.innerHTML.trim()) { ppToast('Buat pratinjau dulu sebelum unduh PDF', true); return; }
+    var home = doc.parentNode, next = doc.nextSibling;
+    var root = document.createElement('div');
+    root.id = 'ppPrintRoot';
+    document.body.appendChild(root);
+    root.appendChild(doc);
+    document.body.classList.add('pp-printing');
+    var restored = false;
+    function restore() {
+      if (restored) return;
+      restored = true;
+      window.removeEventListener('afterprint', restore);
+      home.insertBefore(doc, next);
+      root.remove();
+      document.body.classList.remove('pp-printing');
+    }
+    window.addEventListener('afterprint', restore);
+    window.print();
   }
 
   // ── Isi ulang seluruh form dari `state` ───────────────────────────────
